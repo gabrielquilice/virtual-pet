@@ -9,6 +9,7 @@ from virtual_pet.pets import (
     FISH,
     GUINEA_PIG,
     PARAKEET,
+    PENGUIN,
     TURTLE,
     species_by_key,
 )
@@ -50,13 +51,22 @@ def test_the_pets_to_choose_from_and_their_names():
         ("turtle", "Sea Turtle"),
         ("fish", "Fish"),
         ("guinea_pig", "Guinea Pig"),
+        ("penguin", "Penguin"),
     ]
 
 
 def test_pets_are_found_by_the_key_saved_in_the_settings():
-    keys = ("dog", "cat", "parakeet", "turtle", "fish", "guinea_pig")
+    keys = ("dog", "cat", "parakeet", "turtle", "fish", "guinea_pig", "penguin")
 
-    assert [species_by_key(key) for key in keys] == [DOG, CAT, PARAKEET, TURTLE, FISH, GUINEA_PIG]
+    assert [species_by_key(key) for key in keys] == [
+        DOG,
+        CAT,
+        PARAKEET,
+        TURTLE,
+        FISH,
+        GUINEA_PIG,
+        PENGUIN,
+    ]
 
 
 def test_an_unknown_saved_pet_becomes_the_dog():
@@ -70,6 +80,7 @@ def test_each_pet_roams_its_own_way():
         "Fly",
         "Swim",
         "Swim",
+        "Walk",
         "Walk",
     ]
 
@@ -129,8 +140,16 @@ def test_each_pet_is_drawn_in_its_own_colors():
         pet.image(pet.portrait).pixelColor(*find(pet.portrait, "B")).name() for pet in ALL_SPECIES
     ]
 
-    # tan, gray, green, sage, blue, ginger
-    assert body_colors == ["#dc9a57", "#a3a8b0", "#4cae4f", "#6fa582", "#2f5fd0", "#e08a3c"]
+    # tan, gray, green, sage, blue, ginger, white
+    assert body_colors == [
+        "#dc9a57",
+        "#a3a8b0",
+        "#4cae4f",
+        "#6fa582",
+        "#2f5fd0",
+        "#e08a3c",
+        "#f6f6f1",
+    ]
 
 
 def test_rendered_frame_keeps_transparent_background_and_eye_colors():

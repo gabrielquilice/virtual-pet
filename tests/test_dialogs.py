@@ -41,10 +41,11 @@ def test_every_pet_is_offered_with_the_dog_preselected(dialog):
         ("Sea Turtle", False),
         ("Fish", False),
         ("Guinea Pig", False),
+        ("Penguin", False),
     ]
 
 
-def test_pets_are_offered_in_two_rows_of_three(dialog):
+def test_pets_are_offered_in_rows_of_three(dialog):
     dialog.show()
     rows = {}
     for button in sorted(pet_buttons(dialog), key=lambda button: (button.y(), button.x())):
@@ -53,6 +54,7 @@ def test_pets_are_offered_in_two_rows_of_three(dialog):
     assert list(rows.values()) == [
         ["Dog", "Cat", "Maritaca"],
         ["Sea Turtle", "Fish", "Guinea Pig"],
+        ["Penguin"],
     ]
 
 
