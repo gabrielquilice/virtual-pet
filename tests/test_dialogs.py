@@ -3,7 +3,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QComboBox, QDialogButtonBox, QLabel, QLineEdit, QToolButton
 
 from virtual_pet import i18n
-from virtual_pet.dialogs import PetChoice, PetDialog, Preferences, SettingsDialog
+from virtual_pet.dialogs import NoTrayNotice, PetChoice, PetDialog, Preferences, SettingsDialog
 from virtual_pet.pets import CAT, PARAKEET
 
 LEFT = Qt.MouseButton.LeftButton
@@ -215,3 +215,29 @@ def test_the_pet_cards_never_overlap_or_leave_the_dialog(qtbot, language):
     ]
     outside = [card.topLeft() for card in cards if not dialog.rect().contains(card)]
     assert (overlapping, outside) == ([], [])
+
+
+def test_without_a_tray_the_notice_says_how_to_bring_the_pet_back(qtbot):
+    notice = NoTrayNotice("Rex")
+    qtbot.addWidget(notice)
+
+    assert notice.text() == "Rex is hiding.\nTo bring Rex back, open Virtual Pet again."
+
+
+def test_the_notice_shows_names_as_typed(qtbot):
+    notice = NoTrayNotice("<b>Rex</b>")
+    qtbot.addWidget(notice)
+
+    assert notice.textFormat() == Qt.TextFormat.PlainText  # no markup, even in a name
+
+
+def test_the_notice_speaks_portuguese(qtbot):
+    i18n.use_language("pt_BR")
+
+    notice = NoTrayNotice("Rex")
+    qtbot.addWidget(notice)
+
+    assert (
+        notice.text()
+        == "Rex foi se esconder.\nPara trazer Rex de volta, abra o Pet Virtual de novo."
+    )

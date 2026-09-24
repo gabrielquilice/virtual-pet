@@ -12,13 +12,15 @@ the screen.
 | Leave it alone | It moves around the screen, resting now and then. The dog, the cat, the guinea pig and the penguin walk, the maritaca flies, the sea turtle and the fish swim (they float while they rest), and the snake slithers. |
 | Left click | It sits and stays put (the guinea pig lies down, the sea turtle and the fish rest on the bottom, and the snake coils up). Click again and it goes back to roaming. |
 | Drag | You carry it anywhere on the screen (including another monitor). |
-| Right click | Menu: its name, Sit/Walk (Sit/Fly for the maritaca, Sit/Swim for the sea turtle and the fish, Coil up/Slither for the snake), Settings… and Quit. |
+| Right click | Menu: its name, Sit/Walk (Sit/Fly for the maritaca, Sit/Swim for the sea turtle and the fish, Coil up/Slither for the snake), Hide, Settings… and Quit. |
+| Hide (in the menu) | It leaves the screen and waits in the system tray: click the paw print there to bring it back, where you left it. On desktops without a tray (GNOME without the AppIndicator extension, for example), open the app again instead. |
 | Hover | Shows its name. |
 
 On the first run you choose your pet and give it a name. Settings let you rename it or
 swap it for another kind of pet. There is only ever one pet on the screen: choosing a
 new one replaces the current one, in the same spot. The pet remembers which animal it
-is, its name, where you left it and whether it was sitting.
+is, its name, where you left it and whether it was sitting. Opening the app while it runs
+starts no second pet: the running one shows itself instead.
 
 The pet speaks English and Brazilian Portuguese, in which the app is called Pet Virtual.
 It follows your desktop's language (English if it doesn't speak it), unless you choose a
@@ -95,9 +97,11 @@ src/virtual_pet/
 ├── dialogs.py      # dialogs used to adopt a pet and to change it (and the language) later
 ├── i18n.py         # the interface in the user's language
 ├── icon.py         # the app's icon: a paw print, drawn like the pets
+├── instance.py     # one pet at a time: the lock, and how opening the app again reaches it
 ├── pet_window.py   # transparent, frameless, always-on-top window and mouse handling
 ├── species.py      # what makes a kind of pet: colors, animations, gait, how it roams
 ├── sprites.py      # pixel-art building blocks shared by all pets
+├── tray.py         # the paw print in the system tray while the pet hides
 ├── translations/   # Qt Linguist files: virtual_pet_<language>.ts and its compiled .qm
 └── pets/
     ├── dog.py      # each pet's pixel art, palette and animations

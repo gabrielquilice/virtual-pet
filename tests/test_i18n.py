@@ -106,3 +106,30 @@ def test_the_compiled_translation_matches_its_source(language, tmp_path):
     )
 
     assert compiled.read_bytes() == source.with_suffix(".qm").read_bytes()
+
+
+@pytest.mark.parametrize(
+    ("text", "values", "expected"),
+    [
+        ("Show %1", ["Rex"], "Show Rex"),
+        ("Bring %1 back: open %2", ["Rex", "Virtual Pet"], "Bring Rex back: open Virtual Pet"),
+        ("%2, %1", ["first", "second"], "second, first"),  # a translation may reorder them
+        ("Show %1", ["100%2"], "Show 100%2"),  # a value is never filled in itself
+    ],
+)
+def test_values_fill_in_the_markers_of_a_text(text, values, expected):
+    assert i18n.arg(text, *values) == expected
+
+
+@pytest.mark.parametrize("language", TRANSLATED)
+def test_translations_keep_the_markers_of_their_texts(language):
+    messages = ET.parse(i18n.FOLDER / f"virtual_pet_{language}.ts").getroot().iter("message")  # noqa: S314
+
+    changed = [
+        message.findtext("source")
+        for message in messages
+        if sorted(i18n.MARKER.findall(message.findtext("source") or ""))
+        != sorted(i18n.MARKER.findall(message.findtext("translation") or ""))
+    ]
+
+    assert changed == []

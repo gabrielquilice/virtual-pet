@@ -6,6 +6,7 @@ texts, like the Cancel button or the menu of a text field, come translated with 
 """
 
 import logging
+import re
 from collections.abc import Iterable
 from pathlib import Path
 
@@ -15,6 +16,7 @@ from PySide6.QtGui import QGuiApplication
 ENGLISH = "en"  # the language of the texts in the code
 LANGUAGES = {ENGLISH: "English", "pt_BR": "Português (Brasil)"}  # each named in itself
 FOLDER = Path(__file__).with_name("translations")
+MARKER = re.compile(r"%([1-9])")  # where a value goes into a text: %1, %2…, as in Qt
 
 logger = logging.getLogger(__name__)
 _installed: list[QTranslator] = []  # removed again when the language changes
@@ -29,6 +31,15 @@ def QT_TRANSLATE_NOOP(context: str, text: str) -> str:  # noqa: N802, ARG001 - l
 
 
 APP_DISPLAY_NAME = QT_TRANSLATE_NOOP("App", "Virtual Pet")  # Qt ends the window titles with it
+
+
+def arg(text: str, *values: str) -> str:
+    """Put `values` into a translated text's %1, %2…, like Qt's QString::arg.
+
+    Qt Linguist warns when a translation loses a marker. All of them are filled in at once,
+    so a value holding a marker, like a pet named "100%2", stays as it is.
+    """
+    return MARKER.sub(lambda marker: values[int(marker.group(1)) - 1], text)
 
 
 def resolve(chosen: str | None, system: Iterable[str]) -> str:

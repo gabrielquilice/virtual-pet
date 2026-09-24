@@ -149,7 +149,7 @@ def test_names_are_shown_exactly_as_typed(make_window, name):
 def test_menu_shows_the_name_and_what_the_dog_can_do(make_window):
     window = make_window()
 
-    assert menu_texts(window) == ["Rex", "Sit", "Settings…", "Quit"]
+    assert menu_texts(window) == ["Rex", "Sit", "Hide", "Settings…", "Quit"]
 
 
 def test_menu_offers_a_walk_to_a_sitting_dog(make_window):
@@ -168,9 +168,10 @@ def test_menu_can_make_the_dog_sit(make_window, qtbot):
 
 
 @pytest.mark.parametrize(
-    ("text", "signal_name"), [("Settings…", "settings_requested"), ("Quit", "quit_requested")]
+    ("text", "signal_name"),
+    [("Hide", "hide_requested"), ("Settings…", "settings_requested"), ("Quit", "quit_requested")],
 )
-def test_menu_forwards_settings_and_quit_to_the_app(make_window, qtbot, text, signal_name):
+def test_menu_forwards_hide_settings_and_quit_to_the_app(make_window, qtbot, text, signal_name):
     window = make_window()
 
     with qtbot.waitSignal(getattr(window, signal_name)):
@@ -212,7 +213,7 @@ def test_menu_offers_a_swim_to_a_sitting_swimmer(make_window, swimmer):
 def test_menu_offers_to_coil_up_a_roaming_snake(make_window):
     window = make_window(species=SNAKE)
 
-    assert menu_texts(window) == ["Rex", "Coil up", "Settings…", "Quit"]
+    assert menu_texts(window) == ["Rex", "Coil up", "Hide", "Settings…", "Quit"]
 
 
 def test_menu_offers_a_slither_to_a_coiled_snake(make_window):
@@ -227,5 +228,5 @@ def test_the_menu_speaks_portuguese(make_window):
     roaming = menu_texts(make_window(species=SNAKE))
     coiled = menu_texts(make_window(species=SNAKE, sitting=True))
 
-    assert roaming == ["Rex", "Enrolar-se", "Configurações…", "Sair"]
+    assert roaming == ["Rex", "Enrolar-se", "Ocultar", "Configurações…", "Sair"]
     assert coiled[1] == "Rastejar"

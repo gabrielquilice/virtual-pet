@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 from PySide6.QtCore import QPoint, Qt, QTimer
 from PySide6.QtGui import QTextDocumentFragment
-from PySide6.QtWidgets import QComboBox, QLineEdit, QToolButton
+from PySide6.QtWidgets import QComboBox, QLineEdit, QMessageBox, QSystemTrayIcon, QToolButton
 
 from virtual_pet.app import (
     PetController,
@@ -205,8 +205,72 @@ def test_choosing_a_language_in_settings_translates_the_menu_and_is_remembered(
     controller.window.settings_requested.emit()
 
     menu = [action.text() for action in controller.window.context_menu().actions()]
-    assert [text for text in menu if text] == ["Rex", "Sentar", "Configurações…", "Sair"]
+    assert [text for text in menu if text] == ["Rex", "Sentar", "Ocultar", "Configurações…", "Sair"]
     assert store.load().language == "pt_BR"
+
+
+@pytest.fixture
+def shown_pet(store, qtbot):
+    """A controller whose pet is on the screen, on a desktop with a system tray or without one."""
+
+    def make(*, tray: bool) -> PetController:
+        config = Config(pet_name="Rex", position=(300, 300))
+        controller = PetController(store, config, tray_available=lambda: tray)
+        qtbot.addWidget(controller.window)
+        controller.window.show()
+        return controller
+
+    return make
+
+
+def notices(qapp) -> list[str]:
+    return [
+        widget.text()
+        for widget in qapp.topLevelWidgets()
+        if isinstance(widget, QMessageBox) and widget.isVisible()
+    ]
+
+
+def test_hiding_puts_the_pet_in_the_tray_until_its_icon_is_clicked(shown_pet, qapp):
+    controller = shown_pet(tray=True)
+
+    controller.window.hide_requested.emit()
+    hidden = (controller.window.isVisible(), controller.tray.isVisible())
+    controller.tray.activated.emit(QSystemTrayIcon.ActivationReason.Trigger)
+
+    assert hidden == (False, True)
+    assert (controller.window.isVisible(), controller.tray.isVisible()) == (True, False)
+    assert notices(qapp) == []
+
+
+def test_the_tray_icon_is_named_after_the_pet(shown_pet):
+    controller = shown_pet(tray=True)
+
+    controller.window.hide_requested.emit()
+
+    assert controller.tray.toolTip() == "Click to show Rex"
+
+
+def test_without_a_tray_hiding_says_how_to_bring_the_pet_back(shown_pet, qapp):
+    controller = shown_pet(tray=False)
+
+    controller.window.hide_requested.emit()
+    hidden = (controller.window.isVisible(), controller.tray.isVisible(), notices(qapp))
+    controller.show_pet()  # what opening the app again does
+
+    assert hidden == (False, False, ["Rex is hiding.\nTo bring Rex back, open Virtual Pet again."])
+    assert (controller.window.isVisible(), notices(qapp)) == (True, [])
+
+
+def test_hiding_twice_without_a_tray_leaves_one_notice(shown_pet, qapp):
+    controller = shown_pet(tray=False)
+
+    for _ in range(2):
+        controller.window.hide_requested.emit()
+        controller.show_pet()
+        controller.window.hide_requested.emit()
+
+    assert len(notices(qapp)) == 1
 
 
 def test_cancelling_the_settings_keeps_the_name(controller, answer_dialog):
@@ -257,15 +321,20 @@ def pet_command() -> list[str]:
 
 @pytest.fixture
 def start_pet(pet_environment, pet_command):
-    """Start the real app and wait until it holds its single-instance lock."""
+    """Start the real app and wait until it holds its lock and listens for later starts."""
     started: list[subprocess.Popen[bytes]] = []
 
     def start(**options) -> subprocess.Popen[bytes]:
         pet = subprocess.Popen(pet_command, env=pet_environment, **options)
         started.append(pet)
-        lock = Path(pet_environment["XDG_RUNTIME_DIR"], "virtual-pet.lock")
+        runtime = Path(pet_environment["XDG_RUNTIME_DIR"])
+        ready = [runtime / "virtual-pet.lock", runtime / "virtual-pet.socket"]
         deadline = time.monotonic() + 15
-        while not lock.exists() and pet.poll() is None and time.monotonic() < deadline:
+        while (
+            not all(path.exists() for path in ready)
+            and pet.poll() is None
+            and time.monotonic() < deadline
+        ):
             time.sleep(0.05)
         return pet
 
@@ -307,16 +376,21 @@ def test_the_translations_are_found(pet_environment, start_pet):
 
 
 @pytest.mark.process
-def test_only_one_pet_runs_at_a_time(pet_environment, pet_command, start_pet):
+def test_opening_the_app_again_asks_the_running_pet_to_show_itself(
+    pet_environment, pet_command, start_pet
+):
     first = start_pet()
     try:
-        second = subprocess.run(pet_command, env=pet_environment, timeout=10, check=False)
+        second = subprocess.run(
+            pet_command, env=pet_environment, timeout=10, check=False, capture_output=True
+        )
         first_still_running = first.poll() is None
     finally:
         first.terminate()
         first_exit_code = first.wait(timeout=10)
 
-    assert second.returncode == 1
+    assert second.returncode == 0  # only one pet runs: the second start hands over and ends
+    assert b"already running: it was asked to show the pet" in second.stderr
     assert first_still_running
     assert first_exit_code == 0
 

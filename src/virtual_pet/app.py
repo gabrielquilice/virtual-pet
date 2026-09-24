@@ -4,18 +4,31 @@ import logging
 import os
 import signal
 import sys
-from collections.abc import MutableMapping
+from collections.abc import Callable, MutableMapping
 from pathlib import Path
 
-from PySide6.QtCore import QDir, QLockFile, QStandardPaths, QTimer
-from PySide6.QtWidgets import QApplication
+from PySide6.QtCore import QStandardPaths, QTimer
+from PySide6.QtWidgets import QApplication, QSystemTrayIcon
 
 from virtual_pet.config import Config, ConfigStore
-from virtual_pet.dialogs import PetChoice, Preferences, ask_for_changes, ask_for_new_pet
+from virtual_pet.dialogs import (
+    NoTrayNotice,
+    PetChoice,
+    Preferences,
+    ask_for_changes,
+    ask_for_new_pet,
+)
 from virtual_pet.i18n import APP_DISPLAY_NAME, use_language
 from virtual_pet.icon import app_icon
+from virtual_pet.instance import (
+    acquire_lock,
+    ask_to_show,
+    listen_for_show_requests,
+    runtime_folder,
+)
 from virtual_pet.pet_window import PetWindow
 from virtual_pet.pets import species_by_key
+from virtual_pet.tray import PetTray
 
 APP_NAME = "virtual-pet"
 
@@ -23,9 +36,15 @@ logger = logging.getLogger(__name__)
 
 
 class PetController:
-    """Keeps the pet's window, the settings dialog and the saved config in sync."""
+    """Keeps the pet's window, its tray icon, the settings dialog and the saved config in sync."""
 
-    def __init__(self, store: ConfigStore, config: Config) -> None:
+    def __init__(
+        self,
+        store: ConfigStore,
+        config: Config,
+        *,
+        tray_available: Callable[[], bool] = QSystemTrayIcon.isSystemTrayAvailable,
+    ) -> None:
         self._store = store
         self._config = config
         self.window = PetWindow(
@@ -35,8 +54,14 @@ class PetController:
             sitting=config.sitting,
         )
         self.window.state_changed.connect(self.save)
+        self.window.hide_requested.connect(self.hide_pet)
         self.window.settings_requested.connect(self.open_settings)
         self.window.quit_requested.connect(QApplication.quit)
+        self.tray = PetTray()
+        self.tray.show_requested.connect(self.show_pet)
+        self.tray.quit_requested.connect(QApplication.quit)
+        self._tray_available = tray_available  # asked at each hide: a tray can come and go
+        self._notice: NoTrayNotice | None = None
 
     def save(self) -> None:
         """Remember which pet it is, its name, where it is and whether it sits."""
@@ -45,6 +70,28 @@ class PetController:
         self._config.position = (position.x(), position.y())
         self._config.sitting = self.window.sitting
         save_config(self._store, self._config)
+
+    def hide_pet(self) -> None:
+        """Put the pet away: in the system tray, or, without one, until the app is opened again."""
+        self.window.hide()  # which also stops it: a hidden pet doesn't roam
+        name = self._config.pet_name or ""
+        if self._tray_available():
+            self.tray.show_for(name)
+            return
+        self._close_notice()
+        self._notice = NoTrayNotice(name)
+        self._notice.show()
+
+    def show_pet(self) -> None:
+        """Bring the pet back where it was: from the tray, or when the app is opened again."""
+        self.tray.hide()
+        self._close_notice()
+        self.window.show()
+
+    def _close_notice(self) -> None:
+        if self._notice is not None:
+            self._notice.close()
+            self._notice = None
 
     def open_settings(self) -> None:
         """Let the user rename the pet, swap it (there is only ever one) or change the language."""
@@ -113,14 +160,6 @@ def keep_gtk_off_opengl(environ: MutableMapping[str, str]) -> None:
     environ.setdefault("GDK_GL", "disable")
 
 
-def acquire_single_instance_lock() -> QLockFile | None:
-    """Lock held while the pet runs; None if another pet is already running."""
-    folder = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.RuntimeLocation)
-    lock = QLockFile(str(Path(folder or QDir.tempPath()) / f"{APP_NAME}.lock"))
-    lock.setStaleLockTime(0)  # held for the whole run: only a dead owner makes it stale
-    return lock if lock.tryLock(0) else None
-
-
 def quit_on_termination_signals(app: QApplication) -> None:
     """Close gracefully (saving the pet's state) on Ctrl+C or a termination request."""
 
@@ -150,18 +189,31 @@ def main() -> int:
     if app.platformName().startswith("wayland"):
         logger.warning("Running on native Wayland: without XWayland the pet can't move around.")
 
-    lock = acquire_single_instance_lock()
+    folder = runtime_folder()
+    lock = acquire_lock(folder / f"{APP_NAME}.lock")  # held until main() returns
     if lock is None:
+        if ask_to_show(folder / f"{APP_NAME}.socket"):
+            logger.info("%s is already running: it was asked to show the pet.", APP_DISPLAY_NAME)
+            return 0
         logger.warning("%s is already running.", APP_DISPLAY_NAME)
         return 1
 
-    store = ConfigStore(config_path())
-    config = store.load()
-    use_language(config.language)  # before the first window, for its texts and title
-    config = ensure_pet(store, config)
-    if config is None:
-        return 0
-    controller = PetController(store, config)
-    app.aboutToQuit.connect(controller.save)
-    controller.window.show()
-    return app.exec()
+    # Listen right away, even during the first run's dialog, so a later start always gets
+    # an answer.
+    requests = listen_for_show_requests(folder / f"{APP_NAME}.socket")
+    try:
+        store = ConfigStore(config_path())
+        config = store.load()
+        use_language(config.language)  # before the first window, for its texts and title
+        config = ensure_pet(store, config)
+        if config is None:
+            return 0
+        controller = PetController(store, config)
+        if requests is not None:
+            requests.received.connect(controller.show_pet)
+        app.aboutToQuit.connect(controller.save)
+        controller.window.show()
+        return app.exec()
+    finally:
+        if requests is not None:
+            requests.close()

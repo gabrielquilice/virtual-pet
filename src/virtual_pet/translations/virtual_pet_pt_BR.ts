@@ -9,6 +9,15 @@
     </message>
 </context>
 <context>
+    <name>NoTrayNotice</name>
+    <message>
+        <source>%1 is hiding.
+To bring %1 back, open %2 again.</source>
+        <translation>%1 foi se esconder.
+Para trazer %1 de volta, abra o %2 de novo.</translation>
+    </message>
+</context>
+<context>
     <name>PetDialog</name>
     <message>
         <source>e.g. Buddy</source>
@@ -42,7 +51,26 @@ Escolha seu pet e dê um nome a ele.</translation>
     </message>
 </context>
 <context>
+    <name>PetTray</name>
+    <message>
+        <source>Click to show %1</source>
+        <translation>Clique para mostrar %1</translation>
+    </message>
+    <message>
+        <source>Show %1</source>
+        <translation>Mostrar %1</translation>
+    </message>
+    <message>
+        <source>Quit</source>
+        <translation>Sair</translation>
+    </message>
+</context>
+<context>
     <name>PetWindow</name>
+    <message>
+        <source>Hide</source>
+        <translation>Ocultar</translation>
+    </message>
     <message>
         <source>Settings…</source>
         <translation>Configurações…</translation>

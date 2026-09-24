@@ -32,11 +32,12 @@ class PetWindow(QWidget):
     """Shows the pet above every other window and lets the user play with it.
 
     Left click: sit down / get up. Left drag: carry the pet somewhere else.
-    Right click: menu with the pet's name, sit/walk (or fly, swim, coil up/slither), settings
-    and quit.
+    Right click: menu with the pet's name, sit/walk (or fly, swim, coil up/slither), hide,
+    settings and quit.
     """
 
     state_changed = Signal()  # the user moved the pet or made it sit/get up
+    hide_requested = Signal()
     settings_requested = Signal()
     quit_requested = Signal()
 
@@ -123,6 +124,7 @@ class PetWindow(QWidget):
         toggle_text = self._species.roam_label if self.sitting else self._species.sit_label
         toggle_text = QCoreApplication.translate("PetWindow", toggle_text)
         menu.addAction(toggle_text).triggered.connect(self._toggle_sitting)
+        menu.addAction(self.tr("Hide")).triggered.connect(self.hide_requested)
         menu.addAction(self.tr("Settings…")).triggered.connect(self.settings_requested)
         menu.addSeparator()
         menu.addAction(self.tr("Quit")).triggered.connect(self.quit_requested)
