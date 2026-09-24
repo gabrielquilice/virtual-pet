@@ -10,6 +10,7 @@ from collections.abc import Iterable
 from pathlib import Path
 
 from PySide6.QtCore import QCoreApplication, QLibraryInfo, QLocale, QTranslator
+from PySide6.QtGui import QGuiApplication
 
 ENGLISH = "en"  # the language of the texts in the code
 LANGUAGES = {ENGLISH: "English", "pt_BR": "Português (Brasil)"}  # each named in itself
@@ -25,6 +26,9 @@ def QT_TRANSLATE_NOOP(context: str, text: str) -> str:  # noqa: N802, ARG001 - l
     lupdate finds texts by this name; PySide6's own QT_TRANSLATE_NOOP returns an `object`.
     """
     return text
+
+
+APP_DISPLAY_NAME = QT_TRANSLATE_NOOP("App", "Virtual Pet")  # Qt ends the window titles with it
 
 
 def resolve(chosen: str | None, system: Iterable[str]) -> str:
@@ -46,7 +50,8 @@ def use_language(chosen: str | None) -> str:
     """Show the interface in `chosen` (None: the system's language) from now on.
 
     Returns the language it is shown in. Texts already on the screen keep their language, but
-    the pet's menu and dialogs are built each time they open, so they switch at once.
+    the pet's menu and dialogs are built each time they open, so they switch at once, and so
+    does the app's name at the end of their titles.
     """
     app = QCoreApplication.instance()
     if app is None:
@@ -57,8 +62,14 @@ def use_language(chosen: str | None) -> str:
         translator = _installed.pop()
         app.removeTranslator(translator)
         translator.deleteLater()
-    if language == ENGLISH:
-        return language
+    if language != ENGLISH:
+        _install_translations(app, language)
+    QGuiApplication.setApplicationDisplayName(QCoreApplication.translate("App", APP_DISPLAY_NAME))
+    return language
+
+
+def _install_translations(app: QCoreApplication, language: str) -> None:
+    """Install the pet's translation to `language` and Qt's own."""
     qt_folder = QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath)
     for name, folder in (("virtual_pet", str(FOLDER)), ("qtbase", qt_folder)):
         translator = QTranslator(app)
@@ -67,4 +78,3 @@ def use_language(chosen: str | None) -> str:
             _installed.append(translator)
         else:
             logger.warning("Could not load the %s translation %s from %s", language, name, folder)
-    return language

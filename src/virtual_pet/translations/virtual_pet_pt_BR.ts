@@ -2,6 +2,13 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="pt_BR" sourcelanguage="en">
 <context>
+    <name>App</name>
+    <message>
+        <source>Virtual Pet</source>
+        <translation>Pet Virtual</translation>
+    </message>
+</context>
+<context>
     <name>PetDialog</name>
     <message>
         <source>e.g. Buddy</source>

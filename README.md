@@ -20,8 +20,9 @@ swap it for another kind of pet. There is only ever one pet on the screen: choos
 new one replaces the current one, in the same spot. The pet remembers which animal it
 is, its name, where you left it and whether it was sitting.
 
-The pet speaks English and Brazilian Portuguese. It follows your desktop's language
-(English if it doesn't speak it), unless you choose a language in Settings.
+The pet speaks English and Brazilian Portuguese, in which the app is called Pet Virtual.
+It follows your desktop's language (English if it doesn't speak it), unless you choose a
+language in Settings.
 
 ## Requirements
 

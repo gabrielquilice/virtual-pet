@@ -12,13 +12,12 @@ from PySide6.QtWidgets import QApplication
 
 from virtual_pet.config import Config, ConfigStore
 from virtual_pet.dialogs import PetChoice, Preferences, ask_for_changes, ask_for_new_pet
-from virtual_pet.i18n import use_language
+from virtual_pet.i18n import APP_DISPLAY_NAME, use_language
 from virtual_pet.icon import app_icon
 from virtual_pet.pet_window import PetWindow
 from virtual_pet.pets import species_by_key
 
 APP_NAME = "virtual-pet"
-APP_DISPLAY_NAME = "Virtual Pet"
 
 logger = logging.getLogger(__name__)
 
@@ -145,7 +144,6 @@ def main() -> int:
     keep_gtk_off_opengl(os.environ)
     app = QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
-    app.setApplicationDisplayName(APP_DISPLAY_NAME)
     app.setWindowIcon(app_icon())
     app.setQuitOnLastWindowClosed(False)  # closing a dialog must not end the app
     quit_on_termination_signals(app)
@@ -159,7 +157,7 @@ def main() -> int:
 
     store = ConfigStore(config_path())
     config = store.load()
-    use_language(config.language)  # before the first dialog
+    use_language(config.language)  # before the first window, for its texts and title
     config = ensure_pet(store, config)
     if config is None:
         return 0

@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 from PySide6.QtCore import QCoreApplication
+from PySide6.QtGui import QGuiApplication
 
 from virtual_pet import i18n
 
@@ -52,6 +53,16 @@ def test_the_interface_can_switch_to_portuguese_and_back():
 
     assert used == ["pt_BR", "en"]
     assert (portuguese, texts()) == (("Sair", "Cancelar"), ("Quit", "Cancel"))
+
+
+@pytest.mark.usefixtures("qapp")
+def test_the_app_is_named_in_the_language_shown():
+    names = []
+    for language in ("pt_BR", "en"):
+        i18n.use_language(language)
+        names.append(QGuiApplication.applicationDisplayName())  # ends the window titles
+
+    assert names == ["Pet Virtual", "Virtual Pet"]
 
 
 @pytest.mark.usefixtures("qapp")
