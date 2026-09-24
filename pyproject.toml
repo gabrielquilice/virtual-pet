@@ -1,0 +1,85 @@
+[project]
+name = "virtual-pet"
+version = "0.1.0"
+description = "A little dog that lives on your desktop."
+readme = "README.md"
+authors = [
+    { name = "Gabriel Quilice", email = "gabrielnquilice@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "pyside6-essentials>=6.11.2",
+]
+
+[project.gui-scripts]
+virtual-pet = "virtual_pet.app:main"
+
+[build-system]
+requires = ["uv_build>=0.12.10,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "hypothesis>=6.168.1",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "pytest-qt>=4.5.0",
+    "ruff>=0.16.8",
+    "ty>=0.0.83",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "D",       # docstrings are written where they help, not enforced everywhere
+    "CPY001",  # no copyright header policy (no license chosen yet)
+    "COM812",  # conflicts with the formatter
+    "ISC001",  # conflicts with the formatter
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "S101",    # assert is how pytest works
+    "PLR2004", # magic values are fine in tests
+    "ANN",     # annotations are optional in tests
+    "S311",    # seeded pseudo-random generators make tests deterministic
+]
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.ty.environment]
+python-version = "3.12"
+
+[tool.ty.terminal]
+error-on-warning = true
+
+[tool.pytest]
+testpaths = ["tests"]
+qt_api = "pyside6"
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=virtual_pet",
+    "--cov-report=term-missing",
+]
+filterwarnings = ["error"]
+
+[tool.coverage.run]
+branch = true
+source = ["virtual_pet"]
+omit = ["*/__main__.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+]
+fail_under = 80
+show_missing = true
