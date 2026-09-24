@@ -40,6 +40,7 @@ def test_every_pet_is_offered_with_the_dog_preselected(dialog):
         ("Maritaca", False),
         ("Sea Turtle", False),
         ("Fish", False),
+        ("Guinea Pig", False),
     ]
 
 

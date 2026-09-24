@@ -1,15 +1,15 @@
 # Virtual Pet
 
 A little pixel-art pet that lives on your desktop: a dog, a cat, a maritaca (a green
-Brazilian parakeet), a sea turtle or a fish (a betta). It moves around on its own, sits
-when you click it and goes wherever you drag it, but never off the screen.
+Brazilian parakeet), a sea turtle, a fish (a betta) or a guinea pig. It moves around on
+its own, sits when you click it and goes wherever you drag it, but never off the screen.
 
 ## How to play
 
 | Action | What happens |
 | --- | --- |
-| Leave it alone | It moves around the screen, resting now and then. The dog and the cat walk, the maritaca flies, and the sea turtle and the fish swim (they float while they rest). |
-| Left click | It sits and stays put (the sea turtle and the fish rest on the bottom). Click again and it goes back to roaming. |
+| Leave it alone | It moves around the screen, resting now and then. The dog, the cat and the guinea pig walk, the maritaca flies, and the sea turtle and the fish swim (they float while they rest). |
+| Left click | It sits and stays put (the guinea pig lies down, and the sea turtle and the fish rest on the bottom). Click again and it goes back to roaming. |
 | Drag | You carry it anywhere on the screen (including another monitor). |
 | Right click | Menu: its name, Sit/Walk (Sit/Fly for the maritaca, Sit/Swim for the sea turtle and the fish), Settings… and Quit. |
 | Hover | Shows its name. |
@@ -97,7 +97,8 @@ src/virtual_pet/
     ├── cat.py
     ├── parakeet.py # the maritaca
     ├── turtle.py   # the sea turtle
-    └── fish.py     # the betta
+    ├── fish.py     # the betta
+    └── guinea_pig.py
 appimage/
 ├── build.py            # builds the AppImage (see below)
 ├── virtual-pet.spec    # PyInstaller: what goes into the bundle
