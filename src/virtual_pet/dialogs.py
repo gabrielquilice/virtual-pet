@@ -1,7 +1,4 @@
-"""The small dialogs used to adopt a pet on first run and to change it, or the language, later.
-
-Also the notice that says how to bring back a pet hidden where there is no system tray.
-"""
+"""The small dialogs used to adopt a pet on first run and to change it, or the language, later."""
 
 from typing import NamedTuple
 
@@ -16,14 +13,13 @@ from PySide6.QtWidgets import (
     QLabel,
     QLayout,
     QLineEdit,
-    QMessageBox,
     QToolButton,
     QVBoxLayout,
     QWidget,
 )
 
 from virtual_pet.config import MAX_NAME_LENGTH, normalize_name
-from virtual_pet.i18n import APP_DISPLAY_NAME, LANGUAGES, arg
+from virtual_pet.i18n import LANGUAGES
 from virtual_pet.pets import ALL_SPECIES, DOG
 from virtual_pet.species import Species
 from virtual_pet.sprites import FRAME_HEIGHT, FRAME_WIDTH
@@ -146,19 +142,6 @@ class SettingsDialog(PetDialog):
     def preferences(self) -> Preferences:
         """The chosen pet, its name and the chosen language (None: the system's)."""
         return Preferences(self.choice(), self._language_field.currentData() or None)
-
-
-class NoTrayNotice(QMessageBox):
-    """Says how to bring back a pet that hid where there is no system tray to click."""
-
-    def __init__(self, name: str) -> None:
-        super().__init__()
-        app = QCoreApplication.translate("App", APP_DISPLAY_NAME)
-        self.setWindowTitle(app)
-        self.setIcon(QMessageBox.Icon.Information)
-        self.setTextFormat(Qt.TextFormat.PlainText)  # a name like "<Rex>" isn't markup
-        self.setText(arg(self.tr("%1 is hiding.\nTo bring %1 back, open %2 again."), name, app))
-        self.setStandardButtons(QMessageBox.StandardButton.Ok)
 
 
 def _pet_button(species: Species, dialog: QWidget) -> QToolButton:

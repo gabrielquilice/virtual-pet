@@ -11,13 +11,7 @@ from PySide6.QtCore import QStandardPaths, QTimer
 from PySide6.QtWidgets import QApplication, QSystemTrayIcon
 
 from virtual_pet.config import Config, ConfigStore
-from virtual_pet.dialogs import (
-    NoTrayNotice,
-    PetChoice,
-    Preferences,
-    ask_for_changes,
-    ask_for_new_pet,
-)
+from virtual_pet.dialogs import PetChoice, Preferences, ask_for_changes, ask_for_new_pet
 from virtual_pet.i18n import APP_DISPLAY_NAME, use_language
 from virtual_pet.icon import app_icon
 from virtual_pet.instance import (
@@ -61,7 +55,6 @@ class PetController:
         self.tray.show_requested.connect(self.show_pet)
         self.tray.quit_requested.connect(QApplication.quit)
         self._tray_available = tray_available  # asked at each hide: a tray can come and go
-        self._notice: NoTrayNotice | None = None
 
     def save(self) -> None:
         """Remember which pet it is, its name, where it is and whether it sits."""
@@ -74,24 +67,13 @@ class PetController:
     def hide_pet(self) -> None:
         """Put the pet away: in the system tray, or, without one, until the app is opened again."""
         self.window.hide()  # which also stops it: a hidden pet doesn't roam
-        name = self._config.pet_name or ""
         if self._tray_available():
-            self.tray.show_for(name)
-            return
-        self._close_notice()
-        self._notice = NoTrayNotice(name)
-        self._notice.show()
+            self.tray.show_for(self._config.pet_name or "")
 
     def show_pet(self) -> None:
         """Bring the pet back where it was: from the tray, or when the app is opened again."""
         self.tray.hide()
-        self._close_notice()
         self.window.show()
-
-    def _close_notice(self) -> None:
-        if self._notice is not None:
-            self._notice.close()
-            self._notice = None
 
     def open_settings(self) -> None:
         """Let the user rename the pet, swap it (there is only ever one) or change the language."""

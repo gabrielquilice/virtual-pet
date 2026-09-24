@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 from PySide6.QtCore import QPoint, Qt, QTimer
 from PySide6.QtGui import QTextDocumentFragment
-from PySide6.QtWidgets import QComboBox, QLineEdit, QMessageBox, QSystemTrayIcon, QToolButton
+from PySide6.QtWidgets import QComboBox, QLineEdit, QSystemTrayIcon, QToolButton, QWidget
 
 from virtual_pet.app import (
     PetController,
@@ -223,15 +223,11 @@ def shown_pet(store, qtbot):
     return make
 
 
-def notices(qapp) -> list[str]:
-    return [
-        widget.text()
-        for widget in qapp.topLevelWidgets()
-        if isinstance(widget, QMessageBox) and widget.isVisible()
-    ]
+def visible_windows(qapp) -> list[QWidget]:
+    return [widget for widget in qapp.topLevelWidgets() if widget.isVisible()]
 
 
-def test_hiding_puts_the_pet_in_the_tray_until_its_icon_is_clicked(shown_pet, qapp):
+def test_hiding_puts_the_pet_in_the_tray_until_its_icon_is_clicked(shown_pet):
     controller = shown_pet(tray=True)
 
     controller.window.hide_requested.emit()
@@ -240,7 +236,6 @@ def test_hiding_puts_the_pet_in_the_tray_until_its_icon_is_clicked(shown_pet, qa
 
     assert hidden == (False, True)
     assert (controller.window.isVisible(), controller.tray.isVisible()) == (True, False)
-    assert notices(qapp) == []
 
 
 def test_the_tray_icon_is_named_after_the_pet(shown_pet):
@@ -251,26 +246,15 @@ def test_the_tray_icon_is_named_after_the_pet(shown_pet):
     assert controller.tray.toolTip() == "Click to show Rex"
 
 
-def test_without_a_tray_hiding_says_how_to_bring_the_pet_back(shown_pet, qapp):
+def test_without_a_tray_the_pet_hides_until_the_app_is_opened_again(shown_pet, qapp):
     controller = shown_pet(tray=False)
 
     controller.window.hide_requested.emit()
-    hidden = (controller.window.isVisible(), controller.tray.isVisible(), notices(qapp))
+    hidden = (visible_windows(qapp), controller.tray.isVisible())
     controller.show_pet()  # what opening the app again does
 
-    assert hidden == (False, False, ["Rex is hiding.\nTo bring Rex back, open Virtual Pet again."])
-    assert (controller.window.isVisible(), notices(qapp)) == (True, [])
-
-
-def test_hiding_twice_without_a_tray_leaves_one_notice(shown_pet, qapp):
-    controller = shown_pet(tray=False)
-
-    for _ in range(2):
-        controller.window.hide_requested.emit()
-        controller.show_pet()
-        controller.window.hide_requested.emit()
-
-    assert len(notices(qapp)) == 1
+    assert hidden == ([], False)  # nothing at all: not even a message
+    assert visible_windows(qapp) == [controller.window]
 
 
 def test_cancelling_the_settings_keeps_the_name(controller, answer_dialog):

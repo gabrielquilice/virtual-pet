@@ -9,15 +9,6 @@
     </message>
 </context>
 <context>
-    <name>NoTrayNotice</name>
-    <message>
-        <source>%1 is hiding.
-To bring %1 back, open %2 again.</source>
-        <translation>%1 foi se esconder.
-Para trazer %1 de volta, abra o %2 de novo.</translation>
-    </message>
-</context>
-<context>
     <name>PetDialog</name>
     <message>
         <source>e.g. Buddy</source>
