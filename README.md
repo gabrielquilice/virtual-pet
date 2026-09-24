@@ -20,6 +20,9 @@ swap it for another kind of pet. There is only ever one pet on the screen: choos
 new one replaces the current one, in the same spot. The pet remembers which animal it
 is, its name, where you left it and whether it was sitting.
 
+The pet speaks English and Brazilian Portuguese. It follows your desktop's language
+(English if it doesn't speak it), unless you choose a language in Settings.
+
 ## Requirements
 
 - Linux with an X11 or Wayland desktop (tested on KDE Plasma 6, Wayland).
@@ -88,11 +91,13 @@ src/virtual_pet/
 ├── app.py          # entry point: Qt setup, first run, single instance, saving
 ├── behavior.py     # the pet's brain: roaming, resting, sitting, being carried (no Qt)
 ├── config.py       # settings file (JSON) loading and saving
-├── dialogs.py      # dialog used to adopt a pet and to change it later
+├── dialogs.py      # dialogs used to adopt a pet and to change it (and the language) later
+├── i18n.py         # the interface in the user's language
 ├── icon.py         # the app's icon: a paw print, drawn like the pets
 ├── pet_window.py   # transparent, frameless, always-on-top window and mouse handling
 ├── species.py      # what makes a kind of pet: colors, animations, gait, how it roams
 ├── sprites.py      # pixel-art building blocks shared by all pets
+├── translations/   # Qt Linguist files: virtual_pet_<language>.ts and its compiled .qm
 └── pets/
     ├── dog.py      # each pet's pixel art, palette and animations
     ├── cat.py
@@ -114,6 +119,23 @@ Each pet is drawn as text grids, one character per pixel, colored through its
 species' palette. Edit the grids to redraw a pet. The tests check that every frame
 of every pet keeps the same size and stands on the same ground line (except when
 carried or flying, and the swimmers, which float until they sit).
+
+### Translations
+
+The texts in the code are English. Each other language has a Qt Linguist file,
+`src/virtual_pet/translations/virtual_pet_<language>.ts`, and the `.qm` compiled from it,
+which is what the app loads. After adding or changing texts in the code:
+
+```bash
+uv run pyside6-lupdate src/virtual_pet/*.py src/virtual_pet/pets/*.py -locations none \
+    -no-obsolete -ts src/virtual_pet/translations/virtual_pet_pt_BR.ts
+uv run pyside6-linguist src/virtual_pet/translations/virtual_pet_pt_BR.ts  # translate them
+uv run pyside6-lrelease src/virtual_pet/translations/virtual_pet_pt_BR.ts  # the .qm
+```
+
+The tests fail while a text is untranslated, or a `.qm` is older than its `.ts`. A new
+language needs its code and name in `LANGUAGES` (`i18n.py`) and a `.ts` file, made by
+the first command with `-target-language <code>` and the file named after that code.
 
 ### Building the AppImage
 

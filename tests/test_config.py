@@ -10,15 +10,21 @@ def test_first_run_has_no_pet_name_yet(tmp_path):
 
     config = store.load()
 
-    assert config == Config(pet_name=None, species="dog", position=None, sitting=False)
+    assert config == Config(
+        pet_name=None, species="dog", position=None, sitting=False, language=None
+    )
 
 
 def test_saved_config_is_loaded_back(tmp_path):
     store = ConfigStore(tmp_path / "virtual-pet" / "config.json")
 
-    store.save(Config(pet_name="Mimi", species="cat", position=(120, -40), sitting=True))
+    saved = Config(
+        pet_name="Mimi", species="cat", position=(120, -40), sitting=True, language="pt_BR"
+    )
 
-    assert store.load() == Config(pet_name="Mimi", species="cat", position=(120, -40), sitting=True)
+    store.save(saved)
+
+    assert store.load() == saved
 
 
 @pytest.mark.parametrize("content", [b"{not json", b"[1, 2]", b"", b'"Rex"', b"\xff\xfe\x00"])
@@ -33,13 +39,19 @@ def test_invalid_values_are_dropped_and_valid_ones_kept(tmp_path):
     path = tmp_path / "config.json"
     path.write_text(
         json.dumps(
-            {"pet_name": "Rex", "species": 42, "position": {"x": "10", "y": True}, "sitting": "yes"}
+            {
+                "pet_name": "Rex",
+                "species": 42,
+                "position": {"x": "10", "y": True},
+                "sitting": "yes",
+                "language": ["pt_BR"],
+            }
         ),
         encoding="utf-8",
     )
 
     assert ConfigStore(path).load() == Config(
-        pet_name="Rex", species="dog", position=None, sitting=False
+        pet_name="Rex", species="dog", position=None, sitting=False, language=None
     )
 
 
@@ -78,3 +90,10 @@ def test_settings_from_before_there_was_a_choice_of_pets_keep_the_dog(tmp_path):
     path.write_text(json.dumps({"pet_name": "Rex", "sitting": True}), encoding="utf-8")
 
     assert ConfigStore(path).load().species == "dog"
+
+
+def test_settings_from_before_there_was_a_choice_of_language_follow_the_system(tmp_path):
+    path = tmp_path / "config.json"
+    path.write_text(json.dumps({"pet_name": "Rex", "species": "cat"}), encoding="utf-8")
+
+    assert ConfigStore(path).load().language is None

@@ -1,6 +1,7 @@
 """The sea turtle: it swims around and rests on the bottom when told to sit."""
 
 from virtual_pet.behavior import Activity, Gait
+from virtual_pet.i18n import QT_TRANSLATE_NOOP
 from virtual_pet.species import Locomotion, Species
 from virtual_pet.sprites import EYE, EYE_SHINE, Animation, art
 
@@ -246,7 +247,7 @@ CARRIED_B = art("""
 
 TURTLE = Species(
     key="turtle",
-    label="Sea Turtle",
+    label=QT_TRANSLATE_NOOP("Species", "Sea Turtle"),
     palette={
         "K": "#233026",  # outline
         "B": "#6fa582",  # skin

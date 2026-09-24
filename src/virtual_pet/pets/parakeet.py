@@ -1,6 +1,7 @@
 """The maritaca: a green Brazilian parakeet that flies from place to place."""
 
 from virtual_pet.behavior import Activity, Gait
+from virtual_pet.i18n import QT_TRANSLATE_NOOP
 from virtual_pet.species import Locomotion, Species
 from virtual_pet.sprites import EYE, EYE_SHINE, Animation, art
 
@@ -306,7 +307,7 @@ CARRIED_B = art("""
 
 PARAKEET = Species(
     key="parakeet",
-    label="Maritaca",
+    label=QT_TRANSLATE_NOOP("Species", "Maritaca"),
     palette={
         "K": "#1c2a1b",  # outline
         "B": "#4cae4f",  # green feathers

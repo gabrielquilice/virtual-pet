@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 from PySide6.QtCore import QPoint, Qt, QTimer
 from PySide6.QtGui import QTextDocumentFragment
-from PySide6.QtWidgets import QLineEdit, QToolButton
+from PySide6.QtWidgets import QComboBox, QLineEdit, QToolButton
 
 from virtual_pet.app import (
     PetController,
@@ -33,11 +33,12 @@ def shown_name(controller: PetController) -> str:
 def answer_dialog(qapp):
     """Schedule an answer for the next modal dialog.
 
-    Picks `pet` (by its label) if given, types `name` and confirms; cancels if `name` is None.
+    Picks `pet` (by its label) and `language` (by its code) if given, types `name` and
+    confirms; cancels if `name` is None.
     """
     timers = []
 
-    def answer(name: str | None, pet: str | None) -> None:
+    def answer(name: str | None, pet: str | None, language: str | None) -> None:
         dialog = qapp.activeModalWidget()
         if dialog is None:
             return
@@ -48,13 +49,16 @@ def answer_dialog(qapp):
             next(
                 button for button in dialog.findChildren(QToolButton) if button.text() == pet
             ).click()
+        if language is not None:
+            field = dialog.findChild(QComboBox)
+            field.setCurrentIndex(field.findData(language))
         dialog.findChild(QLineEdit).setText(name)
         dialog.accept()
 
-    def schedule(name: str | None, pet: str | None = None) -> None:
+    def schedule(name: str | None, pet: str | None = None, language: str | None = None) -> None:
         timer = QTimer()
         timer.setSingleShot(True)
-        timer.timeout.connect(lambda: answer(name, pet))
+        timer.timeout.connect(lambda: answer(name, pet, language))
         timer.start(0)
         timers.append(timer)
 
@@ -114,7 +118,7 @@ def test_first_run_asks_for_the_name_and_remembers_it(tmp_path, answer_dialog):
     store = ConfigStore(tmp_path / "config.json")
 
     answer_dialog("  Rex ")
-    config = ensure_pet(store)
+    config = ensure_pet(store, store.load())
 
     assert config == Config(pet_name="Rex", species="dog")
     assert store.load() == Config(pet_name="Rex", species="dog")
@@ -124,7 +128,7 @@ def test_first_run_can_adopt_a_cat(tmp_path, answer_dialog):
     store = ConfigStore(tmp_path / "config.json")
 
     answer_dialog("Mimi", pet="Cat")
-    config = ensure_pet(store)
+    config = ensure_pet(store, store.load())
 
     assert config == Config(pet_name="Mimi", species="cat")
     assert store.load() == Config(pet_name="Mimi", species="cat")
@@ -135,7 +139,7 @@ def test_closing_the_first_run_dialog_quits_without_saving(tmp_path, answer_dial
 
     answer_dialog(None)
 
-    assert ensure_pet(store) is None
+    assert ensure_pet(store, store.load()) is None
     assert not store.path.exists()
 
 
@@ -145,7 +149,7 @@ def test_later_runs_do_not_ask_for_the_name_again(tmp_path, answer_dialog):
 
     answer_dialog(None)  # would cancel a dialog, if one were (wrongly) shown
 
-    assert ensure_pet(store) == Config(pet_name="Rex", sitting=True)
+    assert ensure_pet(store, store.load()) == Config(pet_name="Rex", sitting=True)
 
 
 @pytest.fixture
@@ -192,6 +196,17 @@ def test_an_unknown_saved_pet_shows_up_as_the_dog(store, qtbot):
     qtbot.addWidget(controller.window)
 
     assert controller.window.species is DOG
+
+
+def test_choosing_a_language_in_settings_translates_the_menu_and_is_remembered(
+    controller, store, answer_dialog
+):
+    answer_dialog("Rex", language="pt_BR")
+    controller.window.settings_requested.emit()
+
+    menu = [action.text() for action in controller.window.context_menu().actions()]
+    assert [text for text in menu if text] == ["Rex", "Sentar", "Configurações…", "Sair"]
+    assert store.load().language == "pt_BR"
 
 
 def test_cancelling_the_settings_keeps_the_name(controller, answer_dialog):
@@ -245,8 +260,8 @@ def start_pet(pet_environment, pet_command):
     """Start the real app and wait until it holds its single-instance lock."""
     started: list[subprocess.Popen[bytes]] = []
 
-    def start() -> subprocess.Popen[bytes]:
-        pet = subprocess.Popen(pet_command, env=pet_environment)
+    def start(**options) -> subprocess.Popen[bytes]:
+        pet = subprocess.Popen(pet_command, env=pet_environment, **options)
         started.append(pet)
         lock = Path(pet_environment["XDG_RUNTIME_DIR"], "virtual-pet.lock")
         deadline = time.monotonic() + 15
@@ -274,7 +289,21 @@ def test_pet_quits_gracefully_and_remembers_its_state(pet_environment, start_pet
         "species": "cat",
         "position": {"x": 100, "y": 200},
         "sitting": True,
+        "language": None,
     }
+
+
+@pytest.mark.process
+def test_the_translations_are_found(pet_environment, start_pet):
+    config = Path(pet_environment["XDG_CONFIG_HOME"], "virtual-pet", "config.json")
+    config.write_text(json.dumps({"pet_name": "Rex", "language": "pt_BR"}), encoding="utf-8")
+    pet = start_pet(stderr=subprocess.PIPE)
+
+    pet.send_signal(signal.SIGTERM)
+    _, errors = pet.communicate(timeout=10)
+
+    assert pet.returncode == 0
+    assert b"Could not load" not in errors
 
 
 @pytest.mark.process

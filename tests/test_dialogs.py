@@ -1,8 +1,9 @@
 import pytest
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QDialogButtonBox, QLabel, QLineEdit, QToolButton
+from PySide6.QtWidgets import QComboBox, QDialogButtonBox, QLabel, QLineEdit, QToolButton
 
-from virtual_pet.dialogs import PetChoice, PetDialog
+from virtual_pet import i18n
+from virtual_pet.dialogs import PetChoice, PetDialog, Preferences, SettingsDialog
 from virtual_pet.pets import CAT, PARAKEET
 
 LEFT = Qt.MouseButton.LeftButton
@@ -130,3 +131,87 @@ def test_hint_explains_how_to_play_with_the_pet(qtbot):
     qtbot.addWidget(dialog)
 
     assert "Tip: click it" in [label.text() for label in dialog.findChildren(QLabel)]
+
+
+@pytest.fixture
+def settings(qtbot):
+    dialog = SettingsDialog(Preferences(PetChoice(CAT, "Mimi"), "pt_BR"))
+    qtbot.addWidget(dialog)
+    return dialog
+
+
+def language_field(dialog: PetDialog) -> QComboBox | None:
+    return dialog.findChild(QComboBox)
+
+
+def test_settings_offer_the_languages_with_the_current_one_chosen(settings):
+    field = language_field(settings)
+
+    offered = [field.itemText(index) for index in range(field.count())]
+
+    assert offered == ["System default", "English", "Português (Brasil)"]
+    assert field.currentText() == "Português (Brasil)"
+
+
+def test_settings_can_go_back_to_the_system_language(settings):
+    language_field(settings).setCurrentIndex(0)
+
+    assert settings.preferences() == Preferences(PetChoice(CAT, "Mimi"), None)
+
+
+def test_settings_keep_the_pet_choices_of_the_pet_dialog(settings, qtbot):
+    qtbot.mouseClick(pet_button(settings, "Maritaca"), LEFT)
+
+    assert settings.preferences() == Preferences(PetChoice(PARAKEET, "Mimi"), "pt_BR")
+
+
+def test_an_unknown_saved_language_shows_as_the_system_default(qtbot):
+    dialog = SettingsDialog(Preferences(PetChoice(CAT, "Mimi"), "tlh"))
+    qtbot.addWidget(dialog)
+
+    assert language_field(dialog).currentText() == "System default"
+
+
+def test_the_first_run_dialog_asks_for_no_language(dialog):
+    assert language_field(dialog) is None
+
+
+def test_the_settings_speak_portuguese(qtbot):
+    i18n.use_language("pt_BR")
+    dialog = SettingsDialog(Preferences(PetChoice(CAT, "Mimi"), "pt_BR"))
+    qtbot.addWidget(dialog)
+    buttons = dialog.findChild(QDialogButtonBox)
+
+    assert dialog.windowTitle() == "Configurações"
+    assert [button.text() for button in pet_buttons(dialog)] == [
+        "Cachorro",
+        "Gato",
+        "Maritaca",
+        "Tartaruga-marinha",
+        "Peixe",
+        "Porquinho-da-índia",
+        "Pinguim",
+        "Cobra",
+    ]
+    assert {"&Nome:", "&Idioma:"} <= {label.text() for label in dialog.findChildren(QLabel)}
+    assert [button.text() for button in buttons.buttons()] == ["Salvar", "Cancelar"]
+    assert language_field(dialog).itemText(0) == "Padrão do sistema"
+
+
+@pytest.mark.parametrize("language", ["en", "pt_BR"])
+def test_the_pet_cards_never_overlap_or_leave_the_dialog(qtbot, language):
+    # The offscreen screen is 800 pixels wide, and Qt opens a window at most 2/3 as wide.
+    i18n.use_language(language)
+    dialog = PetDialog(title="", message="", confirm_text="")
+    qtbot.addWidget(dialog)
+    dialog.show()
+
+    cards = [button.geometry() for button in pet_buttons(dialog)]
+    overlapping = [
+        (a.topLeft(), b.topLeft())
+        for i, a in enumerate(cards)
+        for b in cards[i + 1 :]
+        if a.intersects(b)
+    ]
+    outside = [card.topLeft() for card in cards if not dialog.rect().contains(card)]
+    assert (overlapping, outside) == ([], [])

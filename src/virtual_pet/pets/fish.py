@@ -1,6 +1,7 @@
 """The fish: a betta with a blue body and long red fins."""
 
 from virtual_pet.behavior import Activity, Gait
+from virtual_pet.i18n import QT_TRANSLATE_NOOP
 from virtual_pet.species import Locomotion, Species
 from virtual_pet.sprites import EYE, EYE_SHINE, Animation, art
 
@@ -276,7 +277,7 @@ CARRIED_B = art("""
 
 FISH = Species(
     key="fish",
-    label="Fish",
+    label=QT_TRANSLATE_NOOP("Species", "Fish"),
     palette={
         "K": "#191a3f",  # outline
         "B": "#2f5fd0",  # blue body

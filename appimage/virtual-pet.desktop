@@ -2,10 +2,13 @@
 Type=Application
 Name=Virtual Pet
 GenericName=Desktop Pet
+GenericName[pt_BR]=Pet de área de trabalho
 Comment=A little pixel-art pet that lives on your desktop
+Comment[pt_BR]=Um pequeno pet em pixel art que mora na sua área de trabalho
 Exec=virtual-pet
 Icon=virtual-pet
 Terminal=false
 Categories=Game;Amusement;
 Keywords=pet;dog;cat;parakeet;maritaca;turtle;sea turtle;fish;betta;guinea pig;cavy;penguin;snake;
+Keywords[pt_BR]=pet;bichinho;cachorro;cão;gato;maritaca;periquito;tartaruga;tartaruga-marinha;peixe;betta;porquinho-da-índia;cobaia;pinguim;cobra;serpente;
 StartupWMClass=virtual-pet

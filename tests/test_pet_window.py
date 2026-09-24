@@ -4,6 +4,7 @@ import pytest
 from PySide6.QtCore import QPoint, QRect, Qt
 from PySide6.QtGui import QTextDocumentFragment
 
+from virtual_pet import i18n
 from virtual_pet.pet_window import PetWindow
 from virtual_pet.pets import CAT, DOG, FISH, PARAKEET, SNAKE, TURTLE
 
@@ -218,3 +219,13 @@ def test_menu_offers_a_slither_to_a_coiled_snake(make_window):
     window = make_window(species=SNAKE, sitting=True)
 
     assert "Slither" in menu_texts(window)
+
+
+def test_the_menu_speaks_portuguese(make_window):
+    i18n.use_language("pt_BR")
+
+    roaming = menu_texts(make_window(species=SNAKE))
+    coiled = menu_texts(make_window(species=SNAKE, sitting=True))
+
+    assert roaming == ["Rex", "Enrolar-se", "Configurações…", "Sair"]
+    assert coiled[1] == "Rastejar"

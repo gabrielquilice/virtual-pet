@@ -22,6 +22,7 @@ class Config:
     species: str = DEFAULT_SPECIES
     position: tuple[int, int] | None = None
     sitting: bool = False
+    language: str | None = None  # of the interface; None follows the system's language
 
 
 def normalize_name(raw: str) -> str:
@@ -47,12 +48,13 @@ class ConfigStore:
         if not isinstance(data, dict):
             logger.warning("Ignoring settings file %s: unexpected content", self.path)
             return Config()
-        name, species = data.get("pet_name"), data.get("species")
+        name, species, language = data.get("pet_name"), data.get("species"), data.get("language")
         return Config(
             pet_name=(normalize_name(name) or None) if isinstance(name, str) else None,
             species=species if isinstance(species, str) and species else DEFAULT_SPECIES,
             position=_position_from_json(data.get("position")),
             sitting=data.get("sitting") is True,
+            language=language if isinstance(language, str) and language else None,
         )
 
     def save(self, config: Config) -> None:
@@ -63,6 +65,7 @@ class ConfigStore:
             "species": config.species,
             "position": None if position is None else {"x": position[0], "y": position[1]},
             "sitting": config.sitting,
+            "language": config.language,
         }
         self.path.parent.mkdir(parents=True, exist_ok=True)
         fd, temp_name = tempfile.mkstemp(dir=self.path.parent, prefix=".config-", suffix=".tmp")

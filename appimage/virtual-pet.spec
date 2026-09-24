@@ -2,7 +2,8 @@
 #
 # The bundle keeps what the pet needs on X11/XWayland and Wayland desktops, Qt's GTK theme
 # included, and leaves out:
-# - the Qt modules, plugins and translations the pet never loads (its UI is English only);
+# - the Qt modules and plugins the pet never loads, and Qt's own translations into languages
+#   the pet doesn't speak;
 # - the libraries every desktop Linux has (the AppImage project's excludelist);
 # - then every library that nothing left in the bundle links to.
 # It also writes bundled-files.json, where each collected binary and Python module came from,
@@ -16,6 +17,12 @@ from pathlib import Path
 from PyInstaller.depend.bindepend import get_imports
 
 SOURCES = Path(SPECPATH).parent / "src"
+TRANSLATIONS = SOURCES / "virtual_pet" / "translations"
+# Qt's translation of its own texts (the Cancel button...) into each language the pet speaks.
+QT_TRANSLATIONS = {
+    f"PySide6/Qt/translations/qtbase_{path.stem.removeprefix('virtual_pet_')}.qm"
+    for path in TRANSLATIONS.glob("virtual_pet_*.qm")
+}
 
 UNUSED_PLUGINS = re.compile(
     r"PySide6/Qt/plugins/("
@@ -82,6 +89,7 @@ def unresolved(path):
 a = Analysis(
     [str(SOURCES / "virtual_pet" / "__main__.py")],
     pathex=[str(SOURCES)],
+    datas=[(str(TRANSLATIONS / "*.qm"), "virtual_pet/translations")],
     excludes=["PySide6.QtNetwork", "PySide6.QtDBus"],  # collected by PySide6's hook, never used
 )
 
@@ -105,7 +113,8 @@ kept = {dest for dest, _, _ in a.binaries}
 a.datas = [
     (dest, src, kind)
     for dest, src, kind in a.datas
-    if not dest.startswith("PySide6/Qt/translations/") and (kind != "SYMLINK" or src in kept)
+    if (not dest.startswith("PySide6/Qt/translations/") or dest in QT_TRANSLATIONS)
+    and (kind != "SYMLINK" or src in kept)
 ]
 
 Path(workpath, "bundled-files.json").write_text(

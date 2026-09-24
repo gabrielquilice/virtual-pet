@@ -1,6 +1,7 @@
 """The penguin: a gentoo, black and white with an orange bill and feet, that waddles around."""
 
 from virtual_pet.behavior import Activity, Gait
+from virtual_pet.i18n import QT_TRANSLATE_NOOP
 from virtual_pet.species import Species
 from virtual_pet.sprites import EYE, EYE_SHINE, Animation, art
 
@@ -276,7 +277,7 @@ CARRIED_B = art("""
 
 PENGUIN = Species(
     key="penguin",
-    label="Penguin",
+    label=QT_TRANSLATE_NOOP("Species", "Penguin"),
     palette={
         "K": "#1a1d27",  # outline
         "B": "#f6f6f1",  # white feathers: belly and the band over the eye, which frames it

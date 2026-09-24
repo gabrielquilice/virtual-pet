@@ -1,6 +1,7 @@
 """The snake: green like an emerald tree boa, it slithers around and coils up to rest."""
 
 from virtual_pet.behavior import Activity, Gait
+from virtual_pet.i18n import QT_TRANSLATE_NOOP
 from virtual_pet.species import Locomotion, Species
 from virtual_pet.sprites import EYE, EYE_SHINE, Animation, art
 
@@ -306,7 +307,7 @@ CARRIED_B = art("""
 
 SNAKE = Species(
     key="snake",
-    label="Snake",
+    label=QT_TRANSLATE_NOOP("Species", "Snake"),
     palette={
         "K": "#0f2a1a",  # outline
         "B": "#23a45a",  # green scales
@@ -327,5 +328,5 @@ SNAKE = Species(
     },
     gait=Gait(speed=30, max_slope=0.4, distance=(80, 300)),
     locomotion=Locomotion.SLITHER,
-    sit_label="Coil up",
+    sit_label=QT_TRANSLATE_NOOP("PetWindow", "Coil up"),
 )

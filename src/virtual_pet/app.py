@@ -11,7 +11,8 @@ from PySide6.QtCore import QDir, QLockFile, QStandardPaths, QTimer
 from PySide6.QtWidgets import QApplication
 
 from virtual_pet.config import Config, ConfigStore
-from virtual_pet.dialogs import PetChoice, ask_for_changes, ask_for_new_pet
+from virtual_pet.dialogs import PetChoice, Preferences, ask_for_changes, ask_for_new_pet
+from virtual_pet.i18n import use_language
 from virtual_pet.icon import app_icon
 from virtual_pet.pet_window import PetWindow
 from virtual_pet.pets import species_by_key
@@ -47,14 +48,18 @@ class PetController:
         save_config(self._store, self._config)
 
     def open_settings(self) -> None:
-        """Let the user rename the pet or swap it for another one (there is only ever one)."""
-        current = PetChoice(self.window.species, self._config.pet_name or "")
+        """Let the user rename the pet, swap it (there is only ever one) or change the language."""
+        pet = PetChoice(self.window.species, self._config.pet_name or "")
+        current = Preferences(pet, self._config.language)
         choice = ask_for_changes(current)
         if choice is None or choice == current:
             return
-        self._config.pet_name = choice.name
-        self.window.set_name(choice.name)
-        self.window.set_species(choice.species)
+        self._config.pet_name = choice.pet.name
+        self.window.set_name(choice.pet.name)
+        self.window.set_species(choice.pet.species)
+        if choice.language != current.language:
+            self._config.language = choice.language
+            use_language(choice.language)
         self.save()
 
 
@@ -66,12 +71,11 @@ def save_config(store: ConfigStore, config: Config) -> None:
         logger.warning("Could not save settings to %s: %s", store.path, error)
 
 
-def ensure_pet(store: ConfigStore) -> Config | None:
-    """Load the config, asking which pet to adopt, and its name, on the first run.
+def ensure_pet(store: ConfigStore, config: Config) -> Config | None:
+    """Ask which pet to adopt, and its name, if there is none yet (the first run).
 
     Returns None when the user closes the adoption dialog without choosing.
     """
-    config = store.load()
     if config.pet_name is None:
         choice = ask_for_new_pet()
         if choice is None:
@@ -154,7 +158,9 @@ def main() -> int:
         return 1
 
     store = ConfigStore(config_path())
-    config = ensure_pet(store)
+    config = store.load()
+    use_language(config.language)  # before the first dialog
+    config = ensure_pet(store, config)
     if config is None:
         return 0
     controller = PetController(store, config)

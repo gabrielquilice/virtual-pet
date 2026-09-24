@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-A pixel-art desktop pet (dog, cat, maritaca, sea turtle, fish, guinea pig, penguin or snake) written in Python 3.12+ with PySide6 (Qt 6), managed with uv. The stack is cross-platform, but the app is currently built and tested for Linux only (KDE Plasma 6 on Wayland, through XWayland). The scope is deliberately small: the pet roams on its own, a click makes it sit (another click lets it roam), it can be dragged anywhere but never off the screen, and its right-click menu offers Sit/Walk (Sit/Fly for the maritaca, Sit/Swim for the sea turtle and the fish, Coil up/Slither for the snake), Settings… (name and species) and Quit. It ships as an x86-64 Linux AppImage, built locally by `appimage/build.py` (there is no CI workflow). Run from source on Debian/Ubuntu, Qt's X11 backend needs `libxcb-cursor0`; the AppImage bundles it.
+A pixel-art desktop pet (dog, cat, maritaca, sea turtle, fish, guinea pig, penguin or snake) written in Python 3.12+ with PySide6 (Qt 6), managed with uv. The stack is cross-platform, but the app is currently built and tested for Linux only (KDE Plasma 6 on Wayland, through XWayland). The scope is deliberately small: the pet roams on its own, a click makes it sit (another click lets it roam), it can be dragged anywhere but never off the screen, and its right-click menu offers Sit/Walk (Sit/Fly for the maritaca, Sit/Swim for the sea turtle and the fish, Coil up/Slither for the snake), Settings… (name, species and language) and Quit. The interface is in English or Brazilian Portuguese. It ships as an x86-64 Linux AppImage, built locally by `appimage/build.py` (there is no CI workflow). Run from source on Debian/Ubuntu, Qt's X11 backend needs `libxcb-cursor0`; the AppImage bundles it.
 
 ## Commands
 
@@ -19,6 +19,10 @@ uv run ty check src/
 uv run appimage/build.py     # dist/VirtualPet-<version>-x86_64.AppImage, then its process tests
 VIRTUAL_PET_EXECUTABLE=$PWD/dist/VirtualPet-0.1.0-x86_64.AppImage uv run pytest -m process --no-cov
                              # the process tests against a built AppImage
+uv run pyside6-lupdate src/virtual_pet/*.py src/virtual_pet/pets/*.py -locations none -no-obsolete \
+    -ts src/virtual_pet/translations/virtual_pet_pt_BR.ts
+                             # after changing UI texts: new ones come in unfinished, gone ones go
+uv run pyside6-lrelease src/virtual_pet/translations/virtual_pet_pt_BR.ts   # the .qm the app loads
 ```
 
 Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[dependency-groups]`; PyInstaller is in the `build` group.
@@ -29,7 +33,7 @@ Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[depe
   - `PetBehavior` is a small state machine. `Activity` is derived from flags in this order: carried, sitting, walking (has a target), standing.
   - Positions are the window's top-left corner. `Area` is the allowed range for that corner: the screen's available geometry minus the window size. Every move is clamped to it, which is how "never off the screen" is enforced.
   - `Gait` (speed, max slope, stroll length) comes from the species. `tick()` caps dt at 0.1 s so the pet doesn't teleport after a system sleep.
-- **`config.py`** holds `Config` and `ConfigStore`, also plain Python.
+- **`config.py`** holds `Config` and `ConfigStore`, also plain Python. `Config.language` is the interface's language: a code, or None (the default) to follow the system.
   - Writes are atomic: a temp file, then replace.
   - Loading tolerates bad files and fields and falls back to defaults. Settings without a species keep the dog.
 - **Art pipeline: `sprites.py`, `species.py`, `pets/`, `icon.py`**
@@ -53,18 +57,23 @@ Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[depe
   - The timer runs at 33 ms only while walking, 100 ms otherwise. `advance(seconds)` is the public tick that tests drive.
   - Click versus drag is decided by `QApplication.startDragDistance()`. While dragging, the allowed area is the screen under the cursor.
   - It only emits `state_changed`, `settings_requested` and `quit_requested`; it never persists anything.
-- **`dialogs.py`**: `PetDialog` is the adoption dialog on first run and the Settings dialog.
+- **`i18n.py`** shows the interface in English, the language of the texts in the code, or in a translation.
+  - Translations are Qt Linguist files in `src/virtual_pet/translations/`: `virtual_pet_<code>.ts`, edited in Qt Linguist, and the `.qm` that `pyside6-lrelease` compiles from it and the app loads. Both are committed. `LANGUAGES` maps each code to the language's name in itself.
+  - `use_language(code)` replaces the installed translators: the app's `.qm` and Qt's own `qtbase_<code>.qm`, which translates Qt's texts (the Cancel button, a text field's context menu). None follows the system (`QLocale.system().uiLanguages()`, the closest language, else English). A file that fails to load is logged as "Could not load".
+  - Texts are marked with `self.tr()` in a class, `QCoreApplication.translate(context, text)` elsewhere, or `QT_TRANSLATE_NOOP(context, text)` where a module-level value is defined (the one in `i18n.py`, typed `str`; PySide6's returns `object`, and lupdate goes by the name): species labels ("Species" context) and the menu's roam and sit texts ("PetWindow"). Those are translated where they are shown. PySide6's `self.tr()` uses the class it is written in as the context, as lupdate does, even when a subclass calls it.
+- **`dialogs.py`**: `PetDialog` is the adoption dialog on first run. `SettingsDialog` is the same plus a Language field ("System default", then each language by its own name). `ask_for_changes()` takes and returns `Preferences(pet, language)`.
   - The pets are a grid of checkable buttons, `PETS_PER_ROW` (4) per row, so the eight pets make two rows. Every button gets the size of the largest one: in a `QGridLayout`, fixed-width buttons of different widths squeeze their column to the narrowest and cut the longer names.
   - The buttons are children of the dialog from the start, so its style sheet's padding counts when they are measured.
+  - The layout's `SetMinimumSize` keeps the dialog at least as large as its contents. Qt opens a window at most 2/3 as wide as the screen, and without that (or with an explicit minimum width, which turns the layout's minimum off) the cards overlapped with the longer Portuguese names on the 800-pixel test screen.
 - **`app.py`**
   - On Linux Wayland sessions it sets `QT_QPA_PLATFORM=xcb` (when XWayland is available and no non-Wayland platform was chosen), because Wayland forbids self-positioning and always-on-top.
   - It sets `GDK_GL=disable` unless the user set it. On GNOME-like desktops Qt draws its dialogs with the GTK theme, and GTK would otherwise start OpenGL and load the system's GPU driver (Mesa and LLVM, about 50 MB) that the pet never uses.
   - Single instance: a `QLockFile` in the runtime dir, with `setStaleLockTime(0)`.
   - SIGINT/SIGTERM trigger `QTimer.singleShot(0, QApplication.exit)`, because Qt 6's `quit()` does nothing outside `app.exec()`, for example during the first-run dialog. A heartbeat timer lets the Python signal handlers run.
-  - `ensure_pet()` shows the adoption dialog on first run.
+  - `main()` applies the saved language before `ensure_pet()` shows the adoption dialog on first run. The controller applies a language chosen in Settings at once: the menu and the dialogs are built each time they open. The language is never applied outside `main()` and the Settings, so the tests don't follow the machine's language.
   - `PetController` wires the window signals to `dialogs.ask_for_changes()`. It saves to `~/.config/virtual-pet/config.json` (`GenericConfigLocation`, respects `$XDG_CONFIG_HOME`) after every user interaction and on quit.
 - **`appimage/`** builds the AppImage on the developer's machine.
-  - `virtual-pet.spec` (PyInstaller) keeps the xcb, wayland and offscreen platforms and the platform themes (GTK 3, XDG portal). It drops the other Qt plugins (embedded displays, VNC, networking, input devices, image formats other than SVG), the QtNetwork and QtDBus modules and Qt's translations.
+  - `virtual-pet.spec` (PyInstaller) keeps the xcb, wayland and offscreen platforms and the platform themes (GTK 3, XDG portal). It drops the other Qt plugins (embedded displays, VNC, networking, input devices, image formats other than SVG), the QtNetwork and QtDBus modules, and Qt's translations except `qtbase_<code>.qm` for each language the pet has a `.qm` for. It bundles the app's `.qm` files as data. The license check doesn't look at data files: the app's are GPL, and Qt's are covered by the Qt notice.
   - The spec also leaves out the libraries in the AppImage project's excludelist (glibc, libstdc++, GL, core X11/xcb, fontconfig, freetype, harfbuzz, zlib…), then every library that no extension module, plugin or libpython still links to. It stops if the machine lacks a library that isn't in that list, and writes `bundled-files.json` with the source of every bundled binary and module.
   - `build.py` first starts itself again in `build/appimage/venv`, through `UV_PROJECT_ENVIRONMENT` and `uv run --managed-python --locked --group build`. So the bundle always embeds uv's python-build-standalone Python, whatever the dev `.venv` runs on. Homebrew's Python, for example, isn't portable and has no package licenses.
   - `build.py` then runs PyInstaller and lays out the AppDir: `AppRun` (`exec`, so signals reach the pet), the `.desktop` file, the icons and the licenses. It packs the AppDir with appimagetool and the type2 runtime, pinned by URL and SHA-256 and cached in `build/appimage/tools/`. Then it runs `pytest -m process` against the AppImage and prints the glibc version the AppImage needs.
@@ -82,7 +91,7 @@ Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[depe
   - they use only palette characters;
   - the lowest visible row is 25 for sitting, for standing unless the species swims, and for walking only if the species walks or slithers;
   - every frame contains the E and H eye pixels.
-- Identifiers, file names, comments, docs and UI strings are in English. The user writes in Portuguese.
+- Identifiers, file names, comments and docs are in English. UI texts are written in English in the code and translated in `src/virtual_pet/translations/` (Brazilian Portuguese so far). The user writes in Portuguese.
 - Commits follow Conventional Commits (`type(scope): summary`) in English, with a short body and a `Co-Authored-By` trailer for the Claude model that made the change.
 - New or changed pet art, and the app icon, must be shown to the user as images first: enlarged poses, plus real size on dark and light backgrounds. Wait for approval before it touches the code. The gray tabby cat (redrawn with a round head in profile, dark eyes and a short muzzle, kicking when carried), the sea turtle (brown shell, green skin), the betta (blue body, red fins), the tricolor guinea pig (ginger with a white blaze and band, a black patch, big dark eyes), the gentoo penguin (black and white, an orange bill and feet, a white band over the eye, sitting back on its tail rather than squashed) and the green snake (white marks on the back, a yellow belly, the head at the end of a diagonal neck rather than on top of a vertical one, the eye below a row of green and no mouth line) are the designs the user approved, and the paw print is the icon the user chose.
 - The AppImage is x86-64 Linux only. PyInstaller doesn't cross-compile, and the window behavior is untested elsewhere.
@@ -94,8 +103,9 @@ Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[depe
 
 ## Testing and live checks
 
-- `tests/conftest.py` forces Qt's offscreen platform, a single 800×800 virtual screen. The "This plugin does not support setting window masks" messages it prints are expected. `filterwarnings = "error"` is on.
-- `tests/test_app.py` also starts the real app in subprocesses, with temporary `XDG_CONFIG_HOME` and `XDG_RUNTIME_DIR`. It waits for the lock file to exist before sending signals. Those tests are marked `process`, and `VIRTUAL_PET_EXECUTABLE` makes them start a built app (the AppImage) instead of `python -m virtual_pet`.
+- `tests/conftest.py` forces Qt's offscreen platform, a single 800×800 virtual screen. The "This plugin does not support setting window masks" messages it prints are expected. `filterwarnings = "error"` is on. It puts the interface back in English after every test.
+- `tests/test_i18n.py` runs `pyside6-lupdate` and `pyside6-lrelease` from the venv. It fails while a text in the code is untranslated (lupdate marks it "unfinished") or a translation's text is gone from the code ("vanished"), and while a `.qm` differs from what its `.ts` compiles to.
+- `tests/test_app.py` also starts the real app in subprocesses, with temporary `XDG_CONFIG_HOME` and `XDG_RUNTIME_DIR`. It waits for the lock file to exist before sending signals. Those tests are marked `process`, and `VIRTUAL_PET_EXECUTABLE` makes them start a built app (the AppImage) instead of `python -m virtual_pet`. One starts the app in Portuguese and fails on "Could not load", so a bundle missing a `.qm` is caught.
 - Trying the app on the real desktop:
   - Set those same two variables to temporary dirs, so the user's settings and lock stay untouched.
   - `xwininfo` and `xprop` inspect the window through XWayland: expect `Override Redirect State: yes` and an unchanged `_NET_ACTIVE_WINDOW`.

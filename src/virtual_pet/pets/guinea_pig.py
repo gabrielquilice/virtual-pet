@@ -1,6 +1,7 @@
 """The guinea pig: a tricolor, ginger, white and black, that scurries around."""
 
 from virtual_pet.behavior import Activity, Gait
+from virtual_pet.i18n import QT_TRANSLATE_NOOP
 from virtual_pet.species import Species
 from virtual_pet.sprites import EYE, EYE_SHINE, Animation, art
 
@@ -306,7 +307,7 @@ CARRIED_B = art("""
 
 GUINEA_PIG = Species(
     key="guinea_pig",
-    label="Guinea Pig",
+    label=QT_TRANSLATE_NOOP("Species", "Guinea Pig"),
     palette={
         "K": "#2b1d16",  # outline
         "B": "#e08a3c",  # ginger fur

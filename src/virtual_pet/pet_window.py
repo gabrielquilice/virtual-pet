@@ -5,7 +5,7 @@ import random
 import time
 from typing import override
 
-from PySide6.QtCore import QPoint, Qt, QTimer, Signal
+from PySide6.QtCore import QCoreApplication, QPoint, Qt, QTimer, Signal
 from PySide6.QtGui import (
     QContextMenuEvent,
     QGuiApplication,
@@ -121,10 +121,11 @@ class PetWindow(QWidget):
         title.setFont(font)
         menu.addSeparator()
         toggle_text = self._species.roam_label if self.sitting else self._species.sit_label
+        toggle_text = QCoreApplication.translate("PetWindow", toggle_text)
         menu.addAction(toggle_text).triggered.connect(self._toggle_sitting)
-        menu.addAction("Settings…").triggered.connect(self.settings_requested)
+        menu.addAction(self.tr("Settings…")).triggered.connect(self.settings_requested)
         menu.addSeparator()
-        menu.addAction("Quit").triggered.connect(self.quit_requested)
+        menu.addAction(self.tr("Quit")).triggered.connect(self.quit_requested)
         return menu
 
     def advance(self, seconds: float) -> None:

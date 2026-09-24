@@ -1,6 +1,7 @@
 """The cat: a gray tabby with a blue collar and a little bell."""
 
 from virtual_pet.behavior import Activity, Gait
+from virtual_pet.i18n import QT_TRANSLATE_NOOP
 from virtual_pet.species import Species
 from virtual_pet.sprites import EYE, EYE_SHINE, Animation, art
 
@@ -246,7 +247,7 @@ CARRIED_B = art("""
 
 CAT = Species(
     key="cat",
-    label="Cat",
+    label=QT_TRANSLATE_NOOP("Species", "Cat"),
     palette={
         "K": "#2d2a33",  # outline
         "B": "#a3a8b0",  # gray fur
