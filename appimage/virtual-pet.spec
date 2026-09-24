@@ -70,7 +70,12 @@ def linked_from(roots, candidates):
 
 def unresolved(path):
     """Names of the libraries that the file needs and this machine lacks."""
-    ldd = subprocess.run(["ldd", path], capture_output=True, text=True, check=False).stdout
+    try:
+        ldd = subprocess.run(
+            ["ldd", path], capture_output=True, text=True, check=False, timeout=60
+        ).stdout
+    except subprocess.TimeoutExpired:
+        raise SystemExit(f"ldd gave no answer in 60 seconds about {path}") from None
     return {line.split()[0] for line in ldd.splitlines() if "=> not found" in line}
 
 

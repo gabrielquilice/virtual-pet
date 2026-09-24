@@ -59,7 +59,7 @@ Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[depe
   - `build.py` runs PyInstaller and lays out the AppDir: `AppRun` (`exec`, so signals reach the pet), the `.desktop` file, the icons and the licenses. It packs the AppDir with appimagetool and the type2 runtime, pinned by URL and SHA-256 and cached in `build/appimage/tools/`. Then it runs `pytest -m process` against the AppImage and prints the glibc version the AppImage needs.
   - Licenses: every bundled file must be covered by a notice or a system package, or the build stops.
     - `DISTRIBUTION_NOTICES` maps Python distributions to notices; a new dependency that lands in the bundle needs an entry.
-    - System libraries get their package's license files (dpkg, rpm or pacman).
+    - System libraries get their package's license files (dpkg, rpm or pacman). dpkg and pacman get one query for all the files: `dpkg-query --search` reads every package's file list on each call, so a query per file takes minutes on a desktop. Package queries, `ldd` in the spec and downloads have timeouts, so nothing hangs silently.
     - uv's Python (python-build-standalone) gets the texts from the matching full build, checked against the release's SHA256SUMS.
     - `appimage/licenses/` holds the texts no package provides: LGPL-3.0 for Qt for Python, and ICU 73.2's license. The build stops if the bundled ICU's major version changes.
 

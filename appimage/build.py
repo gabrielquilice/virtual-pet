@@ -27,6 +27,7 @@ import tarfile
 import tomllib
 import urllib.parse
 import urllib.request
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -47,6 +48,8 @@ ICU_MAJOR = "73"  # appimage/licenses/icu/LICENSE is ICU 73.2's
 GITHUB = "https://github.com"
 PYTHON_BUILDS = f"{GITHUB}/astral-sh/python-build-standalone/releases/download"
 GLIBC = re.compile(rb"GLIBC_(\d+)\.(\d+)")
+QUERY_TIMEOUT = 300  # seconds; a package manager query taking longer is stuck
+NETWORK_TIMEOUT = 60  # seconds without a byte from the server
 
 
 @dataclass(frozen=True)
@@ -79,7 +82,9 @@ def main() -> None:
 
     pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     version = pyproject["project"]["version"]
+    step("1/4 Bundling the pet with PyInstaller")
     bundle, manifest = run_pyinstaller()
+    step("2/4 Laying out the AppDir and gathering the licenses")
     appdir = make_appdir(bundle)
     missing = add_licenses(appdir / "usr" / "share" / "licenses", manifest, version)
     if missing and not args.allow_missing_licenses:
@@ -87,15 +92,22 @@ def main() -> None:
             "No license found for these bundled files (--allow-missing-licenses builds anyway):\n  "
             + "\n  ".join(missing)
         )
+    step("3/4 Packing the AppImage")
     appimage = DIST / f"VirtualPet-{version}-{ARCH}.AppImage"
     pack(appdir, appimage)
     if not args.skip_tests:
+        step("4/4 Running the process tests on the AppImage")
         run_process_tests(appimage)
     major, minor = glibc_needed(appdir)
     size = appimage.stat().st_size / 2**20
     print(
         f"\n{appimage.relative_to(ROOT)}: {size:.1f} MiB, runs with glibc {major}.{minor} or newer"
     )
+
+
+def step(title: str) -> None:
+    """Announce a build step, so a long one never looks like a hang."""
+    print(f"\n==> {title}", flush=True)
 
 
 def run_pyinstaller() -> tuple[Path, dict]:
@@ -107,7 +119,6 @@ def run_pyinstaller() -> tuple[Path, dict]:
             "PyInstaller",
             "--noconfirm",
             "--clean",
-            "--log-level=WARN",
             f"--distpath={WORK / 'bundle'}",
             f"--workpath={WORK / 'pyinstaller'}",
             str(HERE / "virtual-pet.spec"),
@@ -181,21 +192,29 @@ def sort_out(manifest: dict) -> tuple[set[str], dict[str, Package], list[str]]:
     owners = distribution_files()
     sources = [Path(entry["source"]) for entry in manifest["binaries"]]
     sources += [Path(module) for module in manifest["modules"]]
+    system_files = []
     for source in sources:
         origin = origin_of(source, owners)
-        if isinstance(origin, Package):
-            packages.setdefault(origin.name, origin).libraries.add(source.name)
+        if origin == "system":
+            system_files.append(source)
         elif origin is None:
             missing.append(str(source))
         elif origin == "icu" and not source.name.endswith(f".so.{ICU_MAJOR}"):
             missing.append(f"{source} (appimage/licenses/icu is for ICU {ICU_MAJOR})")
         elif origin != "pet":
             notices.add(origin)
+    print(f"Finding the packages of {len(system_files)} bundled files from this system", flush=True)
+    found = system_packages(system_files)
+    for source in system_files:
+        if package := found.get(source):
+            packages.setdefault(package.name, package).libraries.add(source.name)
+        else:
+            missing.append(str(source))
     return notices, packages, missing
 
 
-def origin_of(source: Path, owners: dict[Path, str]) -> str | Package | None:
-    """What covers a bundled file: "pet" (ours), a notice or a system package; None if unknown."""
+def origin_of(source: Path, owners: dict[Path, str]) -> str | None:
+    """What covers a bundled file: "pet" (ours), a notice or "system"; None if nothing does."""
     resolved = source.resolve()
     if resolved in owners:
         covered_by = DISTRIBUTION_NOTICES.get(owners[resolved])
@@ -204,7 +223,7 @@ def origin_of(source: Path, owners: dict[Path, str]) -> str | Package | None:
         return "pet"
     if python_build_tag() and resolved.is_relative_to(Path(sys.base_prefix).resolve()):
         return "python"
-    return system_package(source)
+    return "system"
 
 
 def distribution_files() -> dict[Path, str]:
@@ -316,15 +335,29 @@ def python_licenses() -> Path:
     return folder
 
 
-def system_package(library: Path) -> Package | None:
-    """The distribution package that the library comes from, with its license texts."""
-    paths = [library, library.resolve()]
-    paths += [merged_usr_twin(path) for path in paths]
-    for find in (dpkg_package, rpm_package, pacman_package):
-        for path in dict.fromkeys(paths):
-            if package := find(path):
-                return package
-    return None
+def system_packages(files: list[Path]) -> dict[Path, Package]:
+    """The distribution package of each file that one owns, with its license texts.
+
+    Each package manager gets all the files in one query: dpkg reads every package's file
+    list on each query, which one query per file turns into minutes on a desktop.
+    """
+    by_real_file = {file.resolve(): file for file in files}
+    found: dict[Path, Package] = {}
+    for owners_of in (dpkg_owners, rpm_owners, pacman_owners):
+        paths = [path for file in files if file not in found for path in path_variants(file)]
+        if not paths:
+            break
+        for path, package in owners_of(list(dict.fromkeys(paths))).items():
+            file = by_real_file.get(path.resolve())
+            if file and file not in found:
+                found[file] = package
+    return found
+
+
+def path_variants(file: Path) -> list[Path]:
+    """The paths a package database may know a file by: its link, its target, merged /usr."""
+    paths = [file, file.resolve()]
+    return [*paths, *(merged_usr_twin(path) for path in paths)]
 
 
 def merged_usr_twin(path: Path) -> Path:
@@ -334,53 +367,98 @@ def merged_usr_twin(path: Path) -> Path:
 
 
 def query(*command: str) -> str:
-    """The output of a package manager query; "" if it failed or the tool isn't installed."""
+    """What a package manager query printed; "" if the tool isn't installed.
+
+    These tools fail when some of the files asked about belong to no package, but still
+    print the owners of the others, so their exit status says nothing useful here.
+    """
     if not shutil.which(command[0]):
         return ""
-    result = subprocess.run(command, capture_output=True, text=True, check=False)
-    return result.stdout.strip() if result.returncode == 0 else ""
+    try:
+        result = subprocess.run(
+            command, capture_output=True, text=True, check=False, timeout=QUERY_TIMEOUT
+        )
+    except subprocess.TimeoutExpired:
+        sys.exit(f"{command[0]} gave no answer in {QUERY_TIMEOUT} seconds")
+    return result.stdout
 
 
-def dpkg_package(path: Path) -> Package | None:
-    """Debian, Ubuntu and derivatives: the license is the package's copyright file."""
-    if not (found := query("dpkg-query", "--search", str(path))):
-        return None
-    name = found.split(": ")[0].split(", ")[0].split(":")[0]  # "libfoo1:amd64: /usr/lib/…"
-    copyright_file = Path("/usr/share/doc", name, "copyright")
-    return Package(
-        name,
-        query("dpkg-query", "--show", "--showformat=${Version}", name),
-        [copyright_file] if copyright_file.is_file() else [],
+def existing(paths: Iterable[Path]) -> list[Path]:
+    """The paths that are files, once each."""
+    return [path for path in dict.fromkeys(paths) if path.is_file()]
+
+
+def dpkg_owners(paths: list[Path]) -> dict[Path, Package]:
+    """Debian, Ubuntu and derivatives: a package's license is its copyright file."""
+    names = {}
+    for line in query("dpkg-query", "--search", *map(str, paths)).splitlines():
+        owners, _, path = line.partition(": ")  # "libfoo1:amd64, libfoo1:i386: /usr/lib/…"
+        if path and "diversion" not in owners:
+            names[Path(path)] = owners.split(", ")[0].split(":")[0]
+    if not names:
+        return {}
+    shown = query(
+        "dpkg-query", "--show", "--showformat=${Package}\t${Version}\n", *set(names.values())
     )
+    versions = dict(line.split("\t", 1) for line in shown.splitlines())
+    packages = {
+        name: Package(
+            name, versions.get(name, ""), existing([Path("/usr/share/doc", name, "copyright")])
+        )
+        for name in set(names.values())
+    }
+    return {path: packages[name] for path, name in names.items()}
 
 
-def rpm_package(path: Path) -> Package | None:
-    """Fedora, openSUSE and other RPM distributions: the package's license files."""
-    found = query(
-        "rpm", "--query", "--file", "--queryformat=%{NAME} %{VERSION}-%{RELEASE}\n", str(path)
-    )
-    if not found:
-        return None
-    name, version = found.splitlines()[0].split()
-    files = [Path(line) for line in query("rpm", "--query", "--licensefiles", name).splitlines()]
-    return Package(name, version, [file for file in files if file.is_file()])
+def rpm_owners(paths: list[Path]) -> dict[Path, Package]:
+    """Fedora, openSUSE and other RPM distributions: the package's license files.
+
+    rpm looks files up in an index, so one query per file is quick.
+    """
+    if not shutil.which("rpm"):
+        return {}
+    packages, owners = {}, {}
+    for path in paths:
+        queryformat = "--queryformat=%{NAME} %{VERSION}-%{RELEASE}\n"
+        line = query("rpm", "--query", "--file", queryformat, str(path)).partition("\n")[0]
+        if not line or "not owned" in line:  # "file … is not owned by any package"
+            continue
+        name, _, version = line.partition(" ")
+        if name not in packages:
+            texts = query("rpm", "--query", "--licensefiles", name).splitlines()
+            packages[name] = Package(name, version, existing(Path(text) for text in texts))
+        owners[path] = packages[name]
+    return owners
 
 
-def pacman_package(path: Path) -> Package | None:
+def pacman_owners(paths: list[Path]) -> dict[Path, Package]:
     """Arch and derivatives: the package's license folder, else the common license texts."""
-    if not (name := query("pacman", "--query", "--owns", "--quiet", str(path))):
-        return None
+    owned = {}
+    for line in query("pacman", "--query", "--owns", *map(str, paths)).splitlines():
+        path, _, owner = line.partition(
+            " is owned by "
+        )  # "/usr/lib/libfoo.so.1 is owned by foo 1.0-1"
+        if owner:
+            owned[Path(path)] = owner.partition(" ")
+    packages = {
+        name: Package(name, version, pacman_licenses(name)) for name, _, version in owned.values()
+    }
+    return {path: packages[name] for path, (name, _, _) in owned.items()}
+
+
+def pacman_licenses(name: str) -> list[Path]:
+    """The package's own license texts, else the common texts of the licenses it names."""
     fields = [
         line.split(":", 1) for line in query("pacman", "--query", "--info", name).splitlines()
     ]
     info = {pair[0].strip(): pair[1].strip() for pair in fields if len(pair) == 2}  # noqa: PLR2004
-    files = sorted(Path("/usr/share/licenses", name).glob("*"))
+    texts = sorted(Path("/usr/share/licenses", name).glob("*"))
     for spdx in info.get("Licenses", "").split():
-        files += [
+        texts += [
             Path("/usr/share/licenses/spdx", f"{spdx}.txt"),
             Path("/usr/share/licenses/common", spdx, "license.txt"),
         ]
-    return Package(name, info.get("Version", ""), [file for file in files if file.is_file()])
+    return existing(texts)
 
 
 def notice_index(version: str, components: list[Notice], packages: dict[str, Package]) -> str:
@@ -430,14 +508,22 @@ def fetch(tool: Download) -> Path:
 
 
 def download(url: str, path: Path) -> str:
-    """Save the URL's content to the path; returns the content's SHA-256."""
-    print(f"Downloading {url}")
+    """Save the URL's content to the path, showing progress; returns the content's SHA-256."""
+    print(f"Downloading {url}", flush=True)
     path.parent.mkdir(parents=True, exist_ok=True)
     digest = hashlib.sha256()
-    with urllib.request.urlopen(url) as response, path.open("wb") as file:  # noqa: S310 (https only)
+    with (
+        urllib.request.urlopen(url, timeout=NETWORK_TIMEOUT) as response,  # noqa: S310 (https only)
+        path.open("wb") as file,
+    ):
+        total, done = int(response.headers.get("Content-Length") or 0), 0
         while chunk := response.read(2**20):
             digest.update(chunk)
             file.write(chunk)
+            done += len(chunk)
+            if total:
+                print(f"\r  {done / 2**20:.0f} of {total / 2**20:.0f} MiB", end="", flush=True)
+    print()
     return digest.hexdigest()
 
 
