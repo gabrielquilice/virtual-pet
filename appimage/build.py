@@ -1,6 +1,11 @@
 """Build the pet's AppImage on this machine: dist/VirtualPet-<version>-x86_64.AppImage.
 
-    uv run --group build appimage/build.py
+    uv run appimage/build.py
+
+The build runs in its own environment, build/appimage/venv, which uv sets up from uv.lock
+with its own Python (python-build-standalone), whatever Python the project's .venv uses.
+The AppImage embeds the Python it is built with, and those builds are made to run on other
+distributions and come with the license texts of the libraries built into them. There:
 
 1. PyInstaller bundles the app with the Python and the Qt it runs on (virtual-pet.spec).
 2. The bundle goes into an AppDir with its launcher (AppRun), menu entry, icons and the
@@ -30,6 +35,7 @@ import urllib.request
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import NoReturn
 
 from PySide6.QtCore import qVersion
 
@@ -39,6 +45,7 @@ ROOT = Path(__file__).resolve().parent.parent
 HERE = ROOT / "appimage"
 WORK = ROOT / "build" / "appimage"
 TOOLS = WORK / "tools"  # downloads, kept between builds
+BUILD_ENVIRONMENT = WORK / "venv"
 DIST = ROOT / "dist"
 APP = "virtual-pet"
 ARCH = "x86_64"
@@ -79,6 +86,10 @@ def main() -> None:
         help="build even if the license of some bundled file was not found",
     )
     args = parser.parse_args()
+    if not in_build_environment():
+        run_in_build_environment()
+    if not python_build_tag():
+        sys.exit(f"The build environment runs on {sys.base_prefix}, not on uv's own Python")
 
     pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     version = pyproject["project"]["version"]
@@ -102,6 +113,29 @@ def main() -> None:
     size = appimage.stat().st_size / 2**20
     print(
         f"\n{appimage.relative_to(ROOT)}: {size:.1f} MiB, runs with glibc {major}.{minor} or newer"
+    )
+
+
+def in_build_environment() -> bool:
+    """Whether this runs in the build's own environment."""
+    return Path(sys.prefix).resolve() == BUILD_ENVIRONMENT.resolve()
+
+
+def run_in_build_environment() -> NoReturn:
+    """Start the build again in its own environment, which uv sets up with its own Python."""
+    uv = shutil.which("uv")
+    if not uv or os.environ.get("VIRTUAL_PET_BUILD_ENVIRONMENT"):
+        sys.exit(f"uv could not start the build in {BUILD_ENVIRONMENT}")
+    step(f"Setting up {BUILD_ENVIRONMENT.relative_to(ROOT)} with uv's own Python")
+    environment = {
+        **os.environ,
+        "UV_PROJECT_ENVIRONMENT": str(BUILD_ENVIRONMENT),
+        "VIRTUAL_PET_BUILD_ENVIRONMENT": "1",  # a second start is an error, never a loop
+    }
+    environment.pop("VIRTUAL_ENV", None)  # the .venv's, which uv would warn it isn't using
+    command = ["run", f"--project={ROOT}", "--managed-python", "--locked", "--group=build"]
+    os.execve(
+        uv, [uv, *command, "python", str(Path(__file__).resolve()), *sys.argv[1:]], environment
     )
 
 

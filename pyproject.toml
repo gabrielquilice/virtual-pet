@@ -58,6 +58,7 @@ ignore = [
 "appimage/*.py" = [
     "INP001",  # a folder of build scripts, not a package
     "S603",    # running the build tools is what the build script is for
+    "S606",    # it starts itself again under uv, in the build environment
     "S607",    # those tools are found on PATH
     "T201",    # a command-line script reports its progress by printing
 ]

@@ -16,8 +16,7 @@ uv run pytest tests/test_behavior.py::test_sitting_pet_stays_where_it_is --no-co
                              # a single test: --no-cov, otherwise the coverage gate fails the run
 uv run ruff check . && uv run ruff format --check .
 uv run ty check src/
-uv run --group build appimage/build.py
-                             # dist/VirtualPet-<version>-x86_64.AppImage, then its process tests
+uv run appimage/build.py     # dist/VirtualPet-<version>-x86_64.AppImage, then its process tests
 VIRTUAL_PET_EXECUTABLE=$PWD/dist/VirtualPet-0.1.0-x86_64.AppImage uv run pytest -m process --no-cov
                              # the process tests against a built AppImage
 ```
@@ -56,7 +55,8 @@ Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[depe
 - **`appimage/`** builds the AppImage on the developer's machine.
   - `virtual-pet.spec` (PyInstaller) keeps the xcb, wayland and offscreen platforms and the platform themes (GTK 3, XDG portal). It drops the other Qt plugins (embedded displays, VNC, networking, input devices, image formats other than SVG), the QtNetwork and QtDBus modules and Qt's translations.
   - The spec also leaves out the libraries in the AppImage project's excludelist (glibc, libstdc++, GL, core X11/xcb, fontconfig, freetype, harfbuzz, zlib…), then every library that no extension module, plugin or libpython still links to. It stops if the machine lacks a library that isn't in that list, and writes `bundled-files.json` with the source of every bundled binary and module.
-  - `build.py` runs PyInstaller and lays out the AppDir: `AppRun` (`exec`, so signals reach the pet), the `.desktop` file, the icons and the licenses. It packs the AppDir with appimagetool and the type2 runtime, pinned by URL and SHA-256 and cached in `build/appimage/tools/`. Then it runs `pytest -m process` against the AppImage and prints the glibc version the AppImage needs.
+  - `build.py` first starts itself again in `build/appimage/venv`, through `UV_PROJECT_ENVIRONMENT` and `uv run --managed-python --locked --group build`. So the bundle always embeds uv's python-build-standalone Python, whatever the dev `.venv` runs on. Homebrew's Python, for example, isn't portable and has no package licenses.
+  - `build.py` then runs PyInstaller and lays out the AppDir: `AppRun` (`exec`, so signals reach the pet), the `.desktop` file, the icons and the licenses. It packs the AppDir with appimagetool and the type2 runtime, pinned by URL and SHA-256 and cached in `build/appimage/tools/`. Then it runs `pytest -m process` against the AppImage and prints the glibc version the AppImage needs.
   - Licenses: every bundled file must be covered by a notice or a system package, or the build stops.
     - `DISTRIBUTION_NOTICES` maps Python distributions to notices; a new dependency that lands in the bundle needs an entry.
     - System libraries get their package's license files (dpkg, rpm or pacman). dpkg and pacman get one query for all the files: `dpkg-query --search` reads every package's file list on each call, so a query per file takes minutes on a desktop. Package queries, `ldd` in the spec and downloads have timeouts, so nothing hangs silently.

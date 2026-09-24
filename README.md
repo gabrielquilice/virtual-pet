@@ -112,11 +112,16 @@ carried or flying).
 ### Building the AppImage
 
 ```bash
-uv run --group build appimage/build.py
+uv run appimage/build.py
 ```
 
 This writes `dist/VirtualPet-<version>-x86_64.AppImage` on the machine that runs it.
-PyInstaller bundles the pet with its Python and Qt, leaving
+The build runs in its own environment, `build/appimage/venv`, which uv sets up from
+`uv.lock` with its own Python (python-build-standalone), whatever Python the project's
+`.venv` uses (Homebrew's or the distribution's, for example). The AppImage embeds the
+Python it is built with, and uv's builds are made to run on other distributions and come
+with the license texts of the libraries built into them.
+PyInstaller bundles the pet with that Python and Qt, leaving
 out what every desktop Linux already has (the AppImage project's
 [excludelist](https://github.com/AppImageCommunity/pkg2appimage/blob/master/excludelist)).
 The bundle goes into an AppDir with the launcher, menu entry, icons and licenses, and
@@ -129,9 +134,10 @@ appimagetool packs it. The finished AppImage then runs the app's process tests
 - The build machine needs the libraries that go into the bundle: on Debian/Ubuntu
   `libxcb-cursor0`, and GTK 3 for Qt's GTK theme. The build stops and names any that
   are missing.
-- The first build downloads appimagetool and the AppImage runtime (pinned versions,
-  checked by SHA-256) and, for the license texts of the Python that uv installs, that
-  Python's full build (about 130 MB). All of it stays in `build/appimage/tools/`.
+- The first build downloads uv's Python if it isn't installed yet (about 35 MB),
+  appimagetool and the AppImage runtime (pinned versions, checked by SHA-256) and, for
+  the license texts of uv's Python, that Python's full build (about 130 MB). The tools
+  and texts stay in `build/appimage/tools/`.
 - Everything in the AppImage comes with its license: the texts and an index,
   `THIRD-PARTY-NOTICES.txt`, are in its `usr/share/licenses/`. The build stops if it
   can't find the license of a bundled file (`--allow-missing-licenses` builds anyway).
