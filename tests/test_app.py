@@ -11,7 +11,13 @@ from PySide6.QtCore import QPoint, Qt, QTimer
 from PySide6.QtGui import QTextDocumentFragment
 from PySide6.QtWidgets import QLineEdit, QToolButton
 
-from virtual_pet.app import PetController, config_path, ensure_pet, prefer_xwayland
+from virtual_pet.app import (
+    PetController,
+    config_path,
+    ensure_pet,
+    keep_gtk_off_opengl,
+    prefer_xwayland,
+)
 from virtual_pet.config import Config, ConfigStore
 from virtual_pet.pets import DOG, PARAKEET
 
@@ -82,6 +88,22 @@ def test_other_systems_are_left_alone():
     prefer_xwayland(environ, platform="win32")
 
     assert "QT_QPA_PLATFORM" not in environ
+
+
+def test_gtk_is_kept_off_opengl():
+    environ = {}
+
+    keep_gtk_off_opengl(environ)
+
+    assert environ["GDK_GL"] == "disable"
+
+
+def test_a_gtk_opengl_choice_made_by_the_user_is_respected():
+    environ = {"GDK_GL": "always"}
+
+    keep_gtk_off_opengl(environ)
+
+    assert environ["GDK_GL"] == "always"
 
 
 def test_settings_live_in_the_user_config_folder():

@@ -99,6 +99,16 @@ def prefer_xwayland(environ: MutableMapping[str, str], platform: str = sys.platf
         environ["QT_QPA_PLATFORM"] = "xcb"
 
 
+def keep_gtk_off_opengl(environ: MutableMapping[str, str]) -> None:
+    """Stop GTK from starting OpenGL, which the pet never uses.
+
+    On GNOME-like desktops Qt styles the dialogs through GTK, and GTK starts OpenGL on
+    its own, loading the system's GPU driver: about 50 MB more memory for a pet that
+    draws without OpenGL. A GDK_GL value set by the user is respected.
+    """
+    environ.setdefault("GDK_GL", "disable")
+
+
 def acquire_single_instance_lock() -> QLockFile | None:
     """Lock held while the pet runs; None if another pet is already running."""
     folder = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.RuntimeLocation)
@@ -127,6 +137,7 @@ def main() -> int:
     """Run the virtual pet until the user quits it."""
     logging.basicConfig(level=logging.INFO, format="%(name)s: %(message)s")
     prefer_xwayland(os.environ)
+    keep_gtk_off_opengl(os.environ)
     app = QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
     app.setApplicationDisplayName(APP_DISPLAY_NAME)
