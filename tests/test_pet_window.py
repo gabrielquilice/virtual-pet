@@ -5,7 +5,7 @@ from PySide6.QtCore import QPoint, QRect, Qt
 from PySide6.QtGui import QTextDocumentFragment
 
 from virtual_pet.pet_window import PetWindow
-from virtual_pet.pets import CAT, DOG, PARAKEET, TURTLE
+from virtual_pet.pets import CAT, DOG, FISH, PARAKEET, TURTLE
 
 LEFT = Qt.MouseButton.LeftButton
 BODY = QPoint(46, 46)  # a point on the dog's body, in window coordinates
@@ -201,7 +201,8 @@ def test_menu_offers_a_flight_to_a_sitting_maritaca(make_window):
     assert "Fly" in menu_texts(window)
 
 
-def test_menu_offers_a_swim_to_a_sitting_sea_turtle(make_window):
-    window = make_window(species=TURTLE, sitting=True)
+@pytest.mark.parametrize("swimmer", [TURTLE, FISH], ids=lambda species: species.key)
+def test_menu_offers_a_swim_to_a_sitting_swimmer(make_window, swimmer):
+    window = make_window(species=swimmer, sitting=True)
 
     assert "Swim" in menu_texts(window)

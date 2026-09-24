@@ -2,7 +2,7 @@ import pytest
 
 from virtual_pet import sprites
 from virtual_pet.behavior import Activity
-from virtual_pet.pets import ALL_SPECIES, CAT, DOG, PARAKEET, TURTLE, species_by_key
+from virtual_pet.pets import ALL_SPECIES, CAT, DOG, FISH, PARAKEET, TURTLE, species_by_key
 from virtual_pet.species import Locomotion, Species
 
 GROUND_LINE = 25  # row of the outline under the paws
@@ -33,27 +33,28 @@ def lowest_visible_row(frame: sprites.Frame) -> int:
     return max(y for y, row in enumerate(frame) if row.strip(sprites.TRANSPARENT))
 
 
-def test_the_pets_are_a_dog_a_cat_a_maritaca_and_a_sea_turtle():
+def test_the_pets_to_choose_from_and_their_names():
     assert [(pet.key, pet.label) for pet in ALL_SPECIES] == [
         ("dog", "Dog"),
         ("cat", "Cat"),
         ("parakeet", "Maritaca"),
         ("turtle", "Sea Turtle"),
+        ("fish", "Fish"),
     ]
 
 
 def test_pets_are_found_by_the_key_saved_in_the_settings():
-    keys = ("dog", "cat", "parakeet", "turtle")
+    keys = ("dog", "cat", "parakeet", "turtle", "fish")
 
-    assert [species_by_key(key) for key in keys] == [DOG, CAT, PARAKEET, TURTLE]
+    assert [species_by_key(key) for key in keys] == [DOG, CAT, PARAKEET, TURTLE, FISH]
 
 
 def test_an_unknown_saved_pet_becomes_the_dog():
     assert species_by_key("dragon") is DOG
 
 
-def test_the_maritaca_flies_and_the_sea_turtle_swims():
-    assert [pet.roam_label for pet in ALL_SPECIES] == ["Walk", "Walk", "Fly", "Swim"]
+def test_each_pet_roams_its_own_way():
+    assert [pet.roam_label for pet in ALL_SPECIES] == ["Walk", "Walk", "Fly", "Swim", "Swim"]
 
 
 def test_every_activity_has_an_animation(species):
@@ -88,11 +89,12 @@ def test_flying_lifts_the_maritaca_off_the_ground():
     assert all(lowest_visible_row(frame) < GROUND_LINE for frame in flying)
 
 
-def test_the_sea_turtle_floats_until_it_rests_on_the_bottom():
+@pytest.mark.parametrize("swimmer", [TURTLE, FISH], ids=lambda species: species.key)
+def test_swimmers_float_until_they_rest_on_the_bottom(swimmer):
     floating = [
         frame
         for activity in (Activity.STANDING, Activity.WALKING)
-        for frame in TURTLE.animations[activity].frames
+        for frame in swimmer.animations[activity].frames
     ]
 
     assert all(lowest_visible_row(frame) < GROUND_LINE for frame in floating)
@@ -110,7 +112,8 @@ def test_each_pet_is_drawn_in_its_own_colors():
         pet.image(pet.portrait).pixelColor(*find(pet.portrait, "B")).name() for pet in ALL_SPECIES
     ]
 
-    assert body_colors == ["#dc9a57", "#a3a8b0", "#4cae4f", "#6fa582"]  # tan, gray, green, sage
+    # tan, gray, green, sage, blue
+    assert body_colors == ["#dc9a57", "#a3a8b0", "#4cae4f", "#6fa582", "#2f5fd0"]
 
 
 def test_rendered_frame_keeps_transparent_background_and_eye_colors():
