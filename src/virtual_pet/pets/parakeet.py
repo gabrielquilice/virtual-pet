@@ -1,7 +1,7 @@
 """The maritaca: a green Brazilian parakeet that flies from place to place."""
 
 from virtual_pet.behavior import Activity, Gait
-from virtual_pet.species import Species
+from virtual_pet.species import Locomotion, Species
 from virtual_pet.sprites import EYE, EYE_SHINE, Animation, art
 
 STAND_A = art("""
@@ -328,5 +328,5 @@ PARAKEET = Species(
         Activity.CARRIED: Animation((CARRIED_A, CARRIED_B), fps=8),  # flapping in protest
     },
     gait=Gait(speed=80, max_slope=1.0, distance=(120, 420)),
-    flies=True,
+    locomotion=Locomotion.FLY,
 )

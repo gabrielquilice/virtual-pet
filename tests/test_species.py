@@ -3,9 +3,13 @@ import pytest
 from virtual_pet import sprites
 from virtual_pet.behavior import Activity
 from virtual_pet.pets import ALL_SPECIES, CAT, DOG, PARAKEET, species_by_key
-from virtual_pet.species import Species
+from virtual_pet.species import Locomotion, Species
 
 GROUND_LINE = 25  # row of the outline under the paws
+GROUNDED = {  # the poses drawn on the ground line
+    Locomotion.WALK: {Activity.STANDING, Activity.WALKING, Activity.SITTING},
+    Locomotion.FLY: {Activity.STANDING, Activity.SITTING},  # it takes off to fly
+}
 
 
 @pytest.fixture(params=ALL_SPECIES, ids=lambda species: species.key)
@@ -65,12 +69,9 @@ def test_frames_only_use_colors_from_the_palette(species):
 
 
 def test_feet_stay_on_the_ground_line_unless_carried_or_flying(species):
-    grounded = [Activity.STANDING, Activity.SITTING]
-    if not species.flies:
-        grounded.append(Activity.WALKING)
     ground_lines = {
         lowest_visible_row(frame)
-        for activity in grounded
+        for activity in GROUNDED[species.locomotion]
         for frame in species.animations[activity].frames
     }
 

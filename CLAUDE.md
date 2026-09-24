@@ -35,7 +35,8 @@ Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[depe
 - **Art pipeline: `sprites.py`, `species.py`, `pets/`, `icon.py`**
   - A frame is a text grid, one character per art pixel ("." is transparent). Every frame of every species shares one 32×27 canvas, so the window never resizes. Frames face right and are mirrored at runtime.
   - `sprites.draw(frame, palette)` paints a frame one image pixel per art pixel, for the pets and the icon.
-  - `Species` bundles key, label, palette, animations per `Activity`, gait and `flies`. It renders frames in its palette through a `functools.cache` keyed on the species' identity.
+  - `Species` bundles key, label, palette, animations per `Activity`, gait and `locomotion`. It renders frames in its palette through a `functools.cache` keyed on the species' identity.
+  - `Locomotion` says how the pet roams, which is what its WALKING animation shows. Its value is the menu text for roaming again ("Walk", "Fly").
   - `icon.py` is the app's icon, a 32×32 paw print in the dog's colors. `icon_image(size)` only takes whole multiples of 32, so its pixels stay sharp. `app_icon()` is every window's icon, and the AppImage's icons come from `SIZES` (32 to 256).
   - Blinking recolors "E" pixels with the palette's "B" and "H" pixels with "N", so every palette must define B and N.
   - `pets/__init__.py` has `ALL_SPECIES` and `species_by_key()`; unknown keys become the dog. The maritaca is `parakeet` in code and settings and "Maritaca" in the UI. Its WALKING animation is flying.

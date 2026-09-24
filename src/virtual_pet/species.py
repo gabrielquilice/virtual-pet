@@ -3,6 +3,7 @@
 import functools
 from collections.abc import Mapping
 from dataclasses import dataclass
+from enum import Enum
 
 from PySide6.QtGui import QImage
 
@@ -11,6 +12,13 @@ from virtual_pet.sprites import EYE, EYE_SHINE, Animation, Frame, draw
 
 BODY = "B"  # palette key of the main fur/feather color (it covers the eye when blinking)
 DARKEST = "N"  # palette key of the darkest detail (a closed eye is drawn with it)
+
+
+class Locomotion(Enum):
+    """How a kind of pet roams (its WALKING animation); the value is the menu text for it."""
+
+    WALK = "Walk"
+    FLY = "Fly"
 
 
 @dataclass(frozen=True, eq=False)  # each species is one of a kind: compared by identity
@@ -22,12 +30,12 @@ class Species:
     palette: Mapping[str, str]  # art character -> color; must define BODY and DARKEST
     animations: Mapping[Activity, Animation]
     gait: Gait
-    flies: bool = False
+    locomotion: Locomotion = Locomotion.WALK
 
     @property
     def roam_label(self) -> str:
         """Menu text for letting the pet move around again."""
-        return "Fly" if self.flies else "Walk"
+        return self.locomotion.value
 
     @property
     def portrait(self) -> Frame:
