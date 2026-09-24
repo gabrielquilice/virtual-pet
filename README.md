@@ -38,8 +38,8 @@ the pet, Python and Qt inside, so there is nothing else to install. Make it exec
 (downloads lose that bit) and run it, or double-click it in the file manager:
 
 ```bash
-chmod +x VirtualPet-0.1.0-x86_64.AppImage
-./VirtualPet-0.1.0-x86_64.AppImage
+chmod +x VirtualPet-0.2.0-x86_64.AppImage
+./VirtualPet-0.2.0-x86_64.AppImage
 ```
 
 It runs on x86-64 Linux distributions whose glibc is at least as new as the build
