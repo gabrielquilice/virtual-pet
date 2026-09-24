@@ -15,6 +15,9 @@ distributions and come with the license texts of the libraries built into them. 
 
 An AppImage runs where glibc is at least as new as the newest one its files ask for, which
 is printed at the end: build on the oldest Linux distribution the AppImage should support.
+
+The AppImage is named after pyproject.toml's version only when built from a clean checkout
+of that release's tag, v<version>. Any other build names its commit too (0.2.0+g1a2b3c4).
 """
 
 import argparse
@@ -55,6 +58,7 @@ ICU_MAJOR = "73"  # appimage/licenses/icu/LICENSE is ICU 73.2's
 GITHUB = "https://github.com"
 PYTHON_BUILDS = f"{GITHUB}/astral-sh/python-build-standalone/releases/download"
 GLIBC = re.compile(rb"GLIBC_(\d+)\.(\d+)")
+RELEASE_TAG = re.compile(r"v\d+(\.\d+)*((a|b|rc)\d+)?")  # v<version>: v0.2.0, v1.0.0rc1
 QUERY_TIMEOUT = 300  # seconds; a package manager query taking longer is stuck
 NETWORK_TIMEOUT = 60  # seconds without a byte from the server
 
@@ -92,7 +96,10 @@ def main() -> None:
         sys.exit(f"The build environment runs on {sys.base_prefix}, not on uv's own Python")
 
     pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-    version = pyproject["project"]["version"]
+    release = pyproject["project"]["version"]
+    version = release_version(release)
+    if version != release:
+        print(f"Building {version}: not a clean checkout of tag v{release}")
     step("1/4 Bundling the pet with PyInstaller")
     bundle, manifest = run_pyinstaller()
     step("2/4 Laying out the AppDir and gathering the licenses")
@@ -105,7 +112,7 @@ def main() -> None:
         )
     step("3/4 Packing the AppImage")
     appimage = DIST / f"VirtualPet-{version}-{ARCH}.AppImage"
-    pack(appdir, appimage)
+    pack(appdir, appimage, version)
     if not args.skip_tests:
         step("4/4 Running the process tests on the AppImage")
         run_process_tests(appimage)
@@ -137,6 +144,38 @@ def run_in_build_environment() -> NoReturn:
     os.execve(
         uv, [uv, *command, "python", str(Path(__file__).resolve()), *sys.argv[1:]], environment
     )
+
+
+def release_version(version: str, checkout: Path = ROOT) -> str:
+    """The AppImage's version, from pyproject.toml's and the git checkout (see version_name)."""
+
+    def git(*args: str) -> str:
+        # Only the output is captured: when git fails, what it says is shown.
+        return subprocess.run(
+            ["git", *args], cwd=checkout, stdout=subprocess.PIPE, text=True, check=True
+        ).stdout
+
+    return version_name(
+        version,
+        tags=git("tag", "--points-at", "HEAD").split(),
+        commit=git("rev-parse", "--short", "HEAD").strip(),
+        dirty=bool(git("status", "--porcelain", "--untracked-files=no").strip()),
+    )
+
+
+def version_name(version: str, tags: Iterable[str], commit: str, *, dirty: bool) -> str:
+    """`version` for a clean checkout of its release tag, v<version>; else with the commit.
+
+    So no other build passes for the release: 0.2.0+g1a2b3c4 is commit 1a2b3c4, and .dirty
+    marks uncommitted changes to the files git tracks. A release tag on the commit that
+    isn't v<version> stops the build, as either the tag or pyproject.toml is wrong.
+    """
+    releases = sorted(tag for tag in tags if RELEASE_TAG.fullmatch(tag))
+    if set(releases) - {f"v{version}"}:
+        sys.exit(f"This commit is tagged {', '.join(releases)}, but pyproject.toml says {version}")
+    if releases and not dirty:
+        return version
+    return f"{version}+g{commit}" + (".dirty" if dirty else "")
 
 
 def step(title: str) -> None:
@@ -561,7 +600,7 @@ def download(url: str, path: Path) -> str:
     return digest.hexdigest()
 
 
-def pack(appdir: Path, appimage: Path) -> None:
+def pack(appdir: Path, appimage: Path, version: str) -> None:
     """Pack the AppDir into the AppImage with the pinned runtime."""
     appimage.parent.mkdir(exist_ok=True)
     subprocess.run(
@@ -573,7 +612,8 @@ def pack(appdir: Path, appimage: Path) -> None:
             str(appdir),
             str(appimage),
         ],
-        env={**os.environ, "ARCH": ARCH},
+        # appimagetool also writes VERSION into the menu entry, as X-AppImage-Version.
+        env={**os.environ, "ARCH": ARCH, "VERSION": version},
         check=True,
     )
 

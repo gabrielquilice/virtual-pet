@@ -144,7 +144,8 @@ the first command with `-target-language <code>` and the file named after that c
 uv run appimage/build.py
 ```
 
-This writes `dist/VirtualPet-<version>-x86_64.AppImage` on the machine that runs it.
+This writes `dist/VirtualPet-<version>-x86_64.AppImage` on the machine that runs it
+(see [Releasing](#releasing) for the version in its name).
 The build runs in its own environment, `build/appimage/venv`, which uv sets up from
 `uv.lock` with its own Python (python-build-standalone), whatever Python the project's
 `.venv` uses (Homebrew's or the distribution's, for example). The AppImage embeds the
@@ -170,6 +171,26 @@ appimagetool packs it. The finished AppImage then runs the app's process tests
 - Everything in the AppImage comes with its license: the texts and an index,
   `THIRD-PARTY-NOTICES.txt`, are in its `usr/share/licenses/`. The build stops if it
   can't find the license of a bundled file (`--allow-missing-licenses` builds anyway).
+
+### Releasing
+
+The version is in `pyproject.toml`, and a release is the commit that sets it, tagged
+`v<version>`:
+
+```bash
+uv version --bump minor        # or patch, or major: changes pyproject.toml and uv.lock
+git commit --message "chore(release): 0.3.0" pyproject.toml uv.lock
+git tag --annotate v0.3.0 --message "Virtual Pet 0.3.0"
+git push --follow-tags
+uv run appimage/build.py       # dist/VirtualPet-0.3.0-x86_64.AppImage
+```
+
+The build asks git which commit it is building, so it runs in a clone of the repository.
+Only a clean checkout of the release's tag makes `VirtualPet-<version>-x86_64.AppImage`.
+Any other commit adds itself to the name (`VirtualPet-0.3.0+g1a2b3c4-x86_64.AppImage`),
+followed by `.dirty` when files git tracks have uncommitted changes, and a release tag
+that isn't the version in `pyproject.toml` stops the build. The version also goes into
+the AppImage's menu entry (`X-AppImage-Version`), which AppImage managers show.
 
 ### Agent skills
 
