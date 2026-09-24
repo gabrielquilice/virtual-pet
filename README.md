@@ -88,8 +88,9 @@ carried or flying).
 
 ### Agent skills
 
-`.claude/skills/` holds the project-scoped agent skills, pinned in `skills-lock.json`:
+`.claude/skills/` holds the project-scoped agent skills, pinned in `skills-lock.json`.
+They are unmodified third-party copies, each with its license in its folder:
 
-- `modern-python` ([Trail of Bits](https://github.com/trailofbits/skills)): uv, ruff, ty and pytest setup.
-- `qt-ui-design` ([The Qt Company](https://github.com/TheQtCompanyRnD/agent-skills)): UI design and audit guidance.
-- `tdd` ([Matt Pocock](https://github.com/mattpocock/skills)): test-first red → green loop.
+- `modern-python` ([Trail of Bits](https://github.com/trailofbits/skills), CC BY-SA 4.0): uv, ruff, ty and pytest setup.
+- `qt-ui-design` ([The Qt Company](https://github.com/TheQtCompanyRnD/agent-skills), BSD-3-Clause): UI design and audit guidance.
+- `tdd` ([Matt Pocock](https://github.com/mattpocock/skills), MIT): test-first red → green loop.

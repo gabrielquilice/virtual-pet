@@ -61,6 +61,7 @@ Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[depe
 - Agent skills are project-scoped in `.claude/skills/` and pinned in `skills-lock.json`.
   - Install only trusted skills, and never with `-g`: `npx skills add <owner/repo> --skill <name> -a claude-code -y --copy`.
   - A personal skill in `~/.claude/skills` with the same name overrides the project one.
+  - Each skill's folder carries its upstream license. `npx skills` copies only the skill's folder and wipes it on every reinstall or update. The `LICENSE` files of `tdd` and `modern-python` come from the root of their repos, so restore them with `git restore` after an update.
 
 ## Testing and live checks
 
