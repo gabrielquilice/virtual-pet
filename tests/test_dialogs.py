@@ -42,6 +42,7 @@ def test_every_pet_is_offered_with_the_dog_preselected(dialog):
         ("Fish", False),
         ("Guinea Pig", False),
         ("Penguin", False),
+        ("Snake", False),
     ]
 
 
@@ -54,7 +55,7 @@ def test_pets_are_offered_in_rows_of_three(dialog):
     assert list(rows.values()) == [
         ["Dog", "Cat", "Maritaca"],
         ["Sea Turtle", "Fish", "Guinea Pig"],
-        ["Penguin"],
+        ["Penguin", "Snake"],
     ]
 
 

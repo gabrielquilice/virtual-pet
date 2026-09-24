@@ -1,18 +1,18 @@
 # Virtual Pet
 
 A little pixel-art pet that lives on your desktop: a dog, a cat, a maritaca (a green
-Brazilian parakeet), a sea turtle, a fish (a betta), a guinea pig or a penguin. It moves
-around on its own, sits when you click it and goes wherever you drag it, but never off the
-screen.
+Brazilian parakeet), a sea turtle, a fish (a betta), a guinea pig, a penguin or a snake. It
+moves around on its own, sits when you click it and goes wherever you drag it, but never off
+the screen.
 
 ## How to play
 
 | Action | What happens |
 | --- | --- |
-| Leave it alone | It moves around the screen, resting now and then. The dog, the cat, the guinea pig and the penguin walk, the maritaca flies, and the sea turtle and the fish swim (they float while they rest). |
-| Left click | It sits and stays put (the guinea pig lies down, and the sea turtle and the fish rest on the bottom). Click again and it goes back to roaming. |
+| Leave it alone | It moves around the screen, resting now and then. The dog, the cat, the guinea pig and the penguin walk, the maritaca flies, the sea turtle and the fish swim (they float while they rest), and the snake slithers. |
+| Left click | It sits and stays put (the guinea pig lies down, the sea turtle and the fish rest on the bottom, and the snake coils up). Click again and it goes back to roaming. |
 | Drag | You carry it anywhere on the screen (including another monitor). |
-| Right click | Menu: its name, Sit/Walk (Sit/Fly for the maritaca, Sit/Swim for the sea turtle and the fish), Settings… and Quit. |
+| Right click | Menu: its name, Sit/Walk (Sit/Fly for the maritaca, Sit/Swim for the sea turtle and the fish, Coil up/Slither for the snake), Settings… and Quit. |
 | Hover | Shows its name. |
 
 On the first run you choose your pet and give it a name. Settings let you rename it or
@@ -100,7 +100,8 @@ src/virtual_pet/
     ├── turtle.py   # the sea turtle
     ├── fish.py     # the betta
     ├── guinea_pig.py
-    └── penguin.py  # a gentoo
+    ├── penguin.py  # a gentoo
+    └── snake.py    # in an emerald tree boa's colors
 appimage/
 ├── build.py            # builds the AppImage (see below)
 ├── virtual-pet.spec    # PyInstaller: what goes into the bundle

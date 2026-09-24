@@ -20,6 +20,7 @@ class Locomotion(Enum):
     WALK = "Walk"
     FLY = "Fly"
     SWIM = "Swim"
+    SLITHER = "Slither"
 
 
 @dataclass(frozen=True, eq=False)  # each species is one of a kind: compared by identity
@@ -32,6 +33,7 @@ class Species:
     animations: Mapping[Activity, Animation]
     gait: Gait
     locomotion: Locomotion = Locomotion.WALK
+    sit_label: str = "Sit"  # menu text for making it sit (whatever sitting looks like for it)
 
     @property
     def roam_label(self) -> str:

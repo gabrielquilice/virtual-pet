@@ -32,7 +32,8 @@ class PetWindow(QWidget):
     """Shows the pet above every other window and lets the user play with it.
 
     Left click: sit down / get up. Left drag: carry the pet somewhere else.
-    Right click: menu with the pet's name, sit/walk (or fly, or swim), settings and quit.
+    Right click: menu with the pet's name, sit/walk (or fly, swim, coil up/slither), settings
+    and quit.
     """
 
     state_changed = Signal()  # the user moved the pet or made it sit/get up
@@ -119,7 +120,7 @@ class PetWindow(QWidget):
         font.setBold(True)
         title.setFont(font)
         menu.addSeparator()
-        toggle_text = self._species.roam_label if self.sitting else "Sit"
+        toggle_text = self._species.roam_label if self.sitting else self._species.sit_label
         menu.addAction(toggle_text).triggered.connect(self._toggle_sitting)
         menu.addAction("Settings…").triggered.connect(self.settings_requested)
         menu.addSeparator()

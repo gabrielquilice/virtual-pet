@@ -10,6 +10,7 @@ from virtual_pet.pets import (
     GUINEA_PIG,
     PARAKEET,
     PENGUIN,
+    SNAKE,
     TURTLE,
     species_by_key,
 )
@@ -20,6 +21,7 @@ GROUNDED = {  # the poses drawn on the ground line
     Locomotion.WALK: {Activity.STANDING, Activity.WALKING, Activity.SITTING},
     Locomotion.FLY: {Activity.STANDING, Activity.SITTING},  # it takes off to fly
     Locomotion.SWIM: {Activity.SITTING},  # it floats, unless told to rest on the bottom
+    Locomotion.SLITHER: {Activity.STANDING, Activity.WALKING, Activity.SITTING},
 }
 
 
@@ -52,11 +54,12 @@ def test_the_pets_to_choose_from_and_their_names():
         ("fish", "Fish"),
         ("guinea_pig", "Guinea Pig"),
         ("penguin", "Penguin"),
+        ("snake", "Snake"),
     ]
 
 
 def test_pets_are_found_by_the_key_saved_in_the_settings():
-    keys = ("dog", "cat", "parakeet", "turtle", "fish", "guinea_pig", "penguin")
+    keys = ("dog", "cat", "parakeet", "turtle", "fish", "guinea_pig", "penguin", "snake")
 
     assert [species_by_key(key) for key in keys] == [
         DOG,
@@ -66,6 +69,7 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         FISH,
         GUINEA_PIG,
         PENGUIN,
+        SNAKE,
     ]
 
 
@@ -82,7 +86,12 @@ def test_each_pet_roams_its_own_way():
         "Swim",
         "Walk",
         "Walk",
+        "Slither",
     ]
+
+
+def test_the_snake_coils_up_where_the_others_sit():
+    assert [pet.sit_label for pet in ALL_SPECIES] == [*["Sit"] * 7, "Coil up"]
 
 
 def test_every_activity_has_an_animation(species):
@@ -140,7 +149,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
         pet.image(pet.portrait).pixelColor(*find(pet.portrait, "B")).name() for pet in ALL_SPECIES
     ]
 
-    # tan, gray, green, sage, blue, ginger, white
+    # tan, gray, green, sage, blue, ginger, white, emerald
     assert body_colors == [
         "#dc9a57",
         "#a3a8b0",
@@ -149,6 +158,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
         "#2f5fd0",
         "#e08a3c",
         "#f6f6f1",
+        "#23a45a",
     ]
 
 

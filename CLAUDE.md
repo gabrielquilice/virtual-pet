@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-A pixel-art desktop pet (dog, cat, maritaca, sea turtle, fish, guinea pig or penguin) written in Python 3.12+ with PySide6 (Qt 6), managed with uv. The stack is cross-platform, but the app is currently built and tested for Linux only (KDE Plasma 6 on Wayland, through XWayland). The scope is deliberately small: the pet roams on its own, a click makes it sit (another click lets it roam), it can be dragged anywhere but never off the screen, and its right-click menu offers Sit/Walk (Sit/Fly for the maritaca, Sit/Swim for the sea turtle and the fish), Settings… (name and species) and Quit. It ships as an x86-64 Linux AppImage, built locally by `appimage/build.py` (there is no CI workflow). Run from source on Debian/Ubuntu, Qt's X11 backend needs `libxcb-cursor0`; the AppImage bundles it.
+A pixel-art desktop pet (dog, cat, maritaca, sea turtle, fish, guinea pig, penguin or snake) written in Python 3.12+ with PySide6 (Qt 6), managed with uv. The stack is cross-platform, but the app is currently built and tested for Linux only (KDE Plasma 6 on Wayland, through XWayland). The scope is deliberately small: the pet roams on its own, a click makes it sit (another click lets it roam), it can be dragged anywhere but never off the screen, and its right-click menu offers Sit/Walk (Sit/Fly for the maritaca, Sit/Swim for the sea turtle and the fish, Coil up/Slither for the snake), Settings… (name and species) and Quit. It ships as an x86-64 Linux AppImage, built locally by `appimage/build.py` (there is no CI workflow). Run from source on Debian/Ubuntu, Qt's X11 backend needs `libxcb-cursor0`; the AppImage bundles it.
 
 ## Commands
 
@@ -35,8 +35,9 @@ Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[depe
 - **Art pipeline: `sprites.py`, `species.py`, `pets/`, `icon.py`**
   - A frame is a text grid, one character per art pixel ("." is transparent). Every frame of every species shares one 32×27 canvas, so the window never resizes. Frames face right and are mirrored at runtime.
   - `sprites.draw(frame, palette)` paints a frame one image pixel per art pixel, for the pets and the icon.
-  - `Species` bundles key, label, palette, animations per `Activity`, gait and `locomotion`. It renders frames in its palette through a `functools.cache` keyed on the species' identity.
-  - `Locomotion` says how the pet roams, which is what its WALKING animation shows. Its value is the menu text for roaming again ("Walk", "Fly", "Swim").
+  - `Species` bundles key, label, palette, animations per `Activity`, gait, `locomotion` and `sit_label`. It renders frames in its palette through a `functools.cache` keyed on the species' identity.
+  - `Locomotion` says how the pet roams, which is what its WALKING animation shows. Its value is the menu text for roaming again ("Walk", "Fly", "Swim", "Slither").
+  - `sit_label` is the menu text for sitting down: "Sit", except the snake's "Coil up".
   - `icon.py` is the app's icon, a 32×32 paw print in the dog's colors. `icon_image(size)` only takes whole multiples of 32, so its pixels stay sharp. `app_icon()` is every window's icon, and the AppImage's icons come from `SIZES` (32 to 256).
   - Blinking recolors "E" pixels with the palette's "B" and "H" pixels with "N", so every palette must define B and N.
   - `pets/__init__.py` has `ALL_SPECIES` and `species_by_key()`; unknown keys become the dog. The maritaca is `parakeet` in code and settings and "Maritaca" in the UI. Its WALKING animation is flying.
@@ -45,6 +46,7 @@ Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[depe
   - The guinea pig is `guinea_pig` in code, settings and file name, and "Guinea Pig" in the UI. It walks, and its SITTING animation is lying down like a loaf.
   - The penguin is a gentoo, `penguin` in code, settings and file name, and "Penguin" in the UI. It walks (waddles), and its SITTING animation is sitting back on its tail with its toes up, only two rows lower than standing.
   - The penguin's "B" is white, not the black of its head: its eye sits in the white band over it, so blinking closes the eye into a line instead of hiding it.
+  - The snake is `snake` in code, settings and file name, and "Snake" in the UI, in the colors of an emerald tree boa. It slithers: its WALKING animation is a wave running from behind the neck to the tail while the raised head keeps still. Its SITTING animation is coiled up in two turns with the head resting on top.
 - **`pet_window.py`**: `PetWindow` is a frameless, translucent, always-on-top window with `X11BypassWindowManagerHint`.
   - Why unmanaged: Qt always advertises `WM_TAKE_FOCUS`, so KWin activates a managed window when clicked and takes focus from the user's app.
   - `setMask(silhouette)` follows each frame, so clicks around the pet reach the window below.
@@ -78,11 +80,11 @@ Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[depe
 - `tests/test_species.py` enforces the art invariants for every species:
   - all frames are 32×27;
   - they use only palette characters;
-  - the lowest visible row is 25 for sitting, for standing unless the species swims, and for walking only if the species walks;
+  - the lowest visible row is 25 for sitting, for standing unless the species swims, and for walking only if the species walks or slithers;
   - every frame contains the E and H eye pixels.
 - Identifiers, file names, comments, docs and UI strings are in English. The user writes in Portuguese.
 - Commits follow Conventional Commits (`type(scope): summary`) in English, with a short body and a `Co-Authored-By` trailer for the Claude model that made the change.
-- New or changed pet art, and the app icon, must be shown to the user as images first: enlarged poses, plus real size on dark and light backgrounds. Wait for approval before it touches the code. The gray tabby cat (redrawn with a round head in profile, dark eyes and a short muzzle, kicking when carried), the sea turtle (brown shell, green skin), the betta (blue body, red fins) the tricolor guinea pig (ginger with a white blaze and band, a black patch, big dark eyes) and the gentoo penguin (black and white, an orange bill and feet, a white band over the eye, sitting back on its tail rather than squashed) are the designs the user approved, and the paw print is the icon the user chose.
+- New or changed pet art, and the app icon, must be shown to the user as images first: enlarged poses, plus real size on dark and light backgrounds. Wait for approval before it touches the code. The gray tabby cat (redrawn with a round head in profile, dark eyes and a short muzzle, kicking when carried), the sea turtle (brown shell, green skin), the betta (blue body, red fins), the tricolor guinea pig (ginger with a white blaze and band, a black patch, big dark eyes), the gentoo penguin (black and white, an orange bill and feet, a white band over the eye, sitting back on its tail rather than squashed) and the green snake (white marks on the back, a yellow belly, the head at the end of a diagonal neck rather than on top of a vertical one, the eye below a row of green and no mouth line) are the designs the user approved, and the paw print is the icon the user chose.
 - The AppImage is x86-64 Linux only. PyInstaller doesn't cross-compile, and the window behavior is untested elsewhere.
 - The project is GPL-3.0-only: the full text is in `LICENSE`, the copyright notice in the README's License section, and `pyproject.toml` declares it. Code or art copied into the program needs a GPL-3.0-compatible license, and every third-party file keeps its license text next to it.
 - Agent skills are project-scoped in `.claude/skills/` and pinned in `skills-lock.json`.
