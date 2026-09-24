@@ -49,6 +49,9 @@ Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[depe
   - The timer runs at 33 ms only while walking, 100 ms otherwise. `advance(seconds)` is the public tick that tests drive.
   - Click versus drag is decided by `QApplication.startDragDistance()`. While dragging, the allowed area is the screen under the cursor.
   - It only emits `state_changed`, `settings_requested` and `quit_requested`; it never persists anything.
+- **`dialogs.py`**: `PetDialog` is the adoption dialog on first run and the Settings dialog.
+  - The pets are a grid of checkable buttons, `PETS_PER_ROW` (3) per row, all as wide as the widest one. In a `QGridLayout`, fixed-width buttons of different widths squeeze their column to the narrowest and cut the longer names.
+  - The buttons are children of the dialog from the start, so its style sheet's padding counts when they are measured.
 - **`app.py`**
   - On Linux Wayland sessions it sets `QT_QPA_PLATFORM=xcb` (when XWayland is available and no non-Wayland platform was chosen), because Wayland forbids self-positioning and always-on-top.
   - It sets `GDK_GL=disable` unless the user set it. On GNOME-like desktops Qt draws its dialogs with the GTK theme, and GTK would otherwise start OpenGL and load the system's GPU driver (Mesa and LLVM, about 50 MB) that the pet never uses.

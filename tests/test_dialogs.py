@@ -44,6 +44,29 @@ def test_every_pet_is_offered_with_the_dog_preselected(dialog):
     ]
 
 
+def test_pets_are_offered_in_two_rows_of_three(dialog):
+    dialog.show()
+    rows = {}
+    for button in sorted(pet_buttons(dialog), key=lambda button: (button.y(), button.x())):
+        rows.setdefault(button.y(), []).append(button.text())
+
+    assert list(rows.values()) == [
+        ["Dog", "Cat", "Maritaca"],
+        ["Sea Turtle", "Fish", "Guinea Pig"],
+    ]
+
+
+def test_every_pet_name_fits_on_its_button(dialog):
+    dialog.show()
+
+    squeezed = [
+        button.text()
+        for button in pet_buttons(dialog)
+        if button.width() < button.sizeHint().width()
+    ]
+    assert squeezed == []
+
+
 def test_choosing_a_pet_and_naming_it(dialog, qtbot):
     qtbot.mouseClick(pet_button(dialog, "Maritaca"), LEFT)
     qtbot.keyClicks(name_field(dialog), "  Kiwi ")

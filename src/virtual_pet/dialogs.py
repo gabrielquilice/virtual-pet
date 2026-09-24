@@ -8,11 +8,12 @@ from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QFormLayout,
-    QHBoxLayout,
+    QGridLayout,
     QLabel,
     QLineEdit,
     QToolButton,
     QVBoxLayout,
+    QWidget,
 )
 
 from virtual_pet.config import MAX_NAME_LENGTH, normalize_name
@@ -22,6 +23,7 @@ from virtual_pet.sprites import FRAME_HEIGHT, FRAME_WIDTH
 
 MIN_WIDTH = 340  # room for the title bar and for the longest name
 ICON_SIZE = QSize(FRAME_WIDTH * 2, FRAME_HEIGHT * 2)
+PETS_PER_ROW = 3  # the pets are shown in rows, so the dialog stays narrow
 # The chosen pet gets a thick border in the system's highlight color: not just a shade change.
 PET_BUTTON_STYLE = """
 QToolButton { border: 1px solid palette(mid); border-radius: 6px; padding: 4px 8px; }
@@ -55,13 +57,14 @@ class PetDialog(QDialog):
         self.setStyleSheet(PET_BUTTON_STYLE)
         current = current or PetChoice(DOG, "")
 
-        picker = QHBoxLayout()
-        self._pet_buttons: list[tuple[QToolButton, Species]] = []
-        for species in ALL_SPECIES:
-            button = _pet_button(species)
+        self._pet_buttons = [(_pet_button(species, self), species) for species in ALL_SPECIES]
+        width = max(button.sizeHint().width() for button, _ in self._pet_buttons)
+        picker = QGridLayout()
+        for index, (button, species) in enumerate(self._pet_buttons):
             button.setChecked(species is current.species)
-            picker.addWidget(button)
-            self._pet_buttons.append((button, species))
+            button.setFixedWidth(width)  # all as wide as the widest, so the columns line up
+            row, column = divmod(index, PETS_PER_ROW)
+            picker.addWidget(button, row, column)
 
         self._name_field = QLineEdit(current.name)
         self._name_field.setMaxLength(MAX_NAME_LENGTH)
@@ -99,9 +102,9 @@ class PetDialog(QDialog):
         self._confirm_button.setEnabled(bool(self.choice().name))
 
 
-def _pet_button(species: Species) -> QToolButton:
+def _pet_button(species: Species, dialog: QWidget) -> QToolButton:
     """A picture of the pet with its name under it; only one of these can be checked."""
-    button = QToolButton()
+    button = QToolButton(dialog)  # in the dialog from the start: its style sheet sizes it
     button.setText(species.label)
     image = species.image(species.portrait).scaled(ICON_SIZE)  # nearest neighbor: stays crisp
     button.setIcon(QIcon(QPixmap.fromImage(image)))
