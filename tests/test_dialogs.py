@@ -46,17 +46,23 @@ def test_every_pet_is_offered_with_the_dog_preselected(dialog):
     ]
 
 
-def test_pets_are_offered_in_rows_of_three(dialog):
+def test_pets_are_offered_in_two_rows_of_four(dialog):
     dialog.show()
     rows = {}
     for button in sorted(pet_buttons(dialog), key=lambda button: (button.y(), button.x())):
         rows.setdefault(button.y(), []).append(button.text())
 
     assert list(rows.values()) == [
-        ["Dog", "Cat", "Maritaca"],
-        ["Sea Turtle", "Fish", "Guinea Pig"],
-        ["Penguin", "Snake"],
+        ["Dog", "Cat", "Maritaca", "Sea Turtle"],
+        ["Fish", "Guinea Pig", "Penguin", "Snake"],
     ]
+
+
+def test_every_pet_card_has_the_same_size(dialog):
+    dialog.show()
+
+    sizes = {(button.width(), button.height()) for button in pet_buttons(dialog)}
+    assert len(sizes) == 1
 
 
 def test_every_pet_name_fits_on_its_button(dialog):

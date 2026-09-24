@@ -54,7 +54,7 @@ Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[depe
   - Click versus drag is decided by `QApplication.startDragDistance()`. While dragging, the allowed area is the screen under the cursor.
   - It only emits `state_changed`, `settings_requested` and `quit_requested`; it never persists anything.
 - **`dialogs.py`**: `PetDialog` is the adoption dialog on first run and the Settings dialog.
-  - The pets are a grid of checkable buttons, `PETS_PER_ROW` (3) per row, all as wide as the widest one. In a `QGridLayout`, fixed-width buttons of different widths squeeze their column to the narrowest and cut the longer names.
+  - The pets are a grid of checkable buttons, `PETS_PER_ROW` (4) per row, so the eight pets make two rows. Every button gets the size of the largest one: in a `QGridLayout`, fixed-width buttons of different widths squeeze their column to the narrowest and cut the longer names.
   - The buttons are children of the dialog from the start, so its style sheet's padding counts when they are measured.
 - **`app.py`**
   - On Linux Wayland sessions it sets `QT_QPA_PLATFORM=xcb` (when XWayland is available and no non-Wayland platform was chosen), because Wayland forbids self-positioning and always-on-top.

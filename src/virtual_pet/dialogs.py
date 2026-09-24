@@ -23,7 +23,7 @@ from virtual_pet.sprites import FRAME_HEIGHT, FRAME_WIDTH
 
 MIN_WIDTH = 340  # room for the title bar and for the longest name
 ICON_SIZE = QSize(FRAME_WIDTH * 2, FRAME_HEIGHT * 2)
-PETS_PER_ROW = 3  # the pets are shown in rows, so the dialog stays narrow
+PETS_PER_ROW = 4  # the eight pets in two rows, so the dialog stays compact
 # The chosen pet gets a thick border in the system's highlight color: not just a shade change.
 PET_BUTTON_STYLE = """
 QToolButton { border: 1px solid palette(mid); border-radius: 6px; padding: 4px 8px; }
@@ -58,11 +58,12 @@ class PetDialog(QDialog):
         current = current or PetChoice(DOG, "")
 
         self._pet_buttons = [(_pet_button(species, self), species) for species in ALL_SPECIES]
-        width = max(button.sizeHint().width() for button, _ in self._pet_buttons)
+        hints = [button.sizeHint() for button, _ in self._pet_buttons]
+        size = QSize(max(hint.width() for hint in hints), max(hint.height() for hint in hints))
         picker = QGridLayout()
         for index, (button, species) in enumerate(self._pet_buttons):
             button.setChecked(species is current.species)
-            button.setFixedWidth(width)  # all as wide as the widest, so the columns line up
+            button.setFixedSize(size)  # all the size of the largest, so the cards line up
             row, column = divmod(index, PETS_PER_ROW)
             picker.addWidget(button, row, column)
 
