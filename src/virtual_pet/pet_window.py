@@ -32,7 +32,7 @@ class PetWindow(QWidget):
     """Shows the pet above every other window and lets the user play with it.
 
     Left click: sit down / get up. Left drag: carry the pet somewhere else.
-    Right click: menu with the pet's name, sit/walk (or fly), settings and quit.
+    Right click: menu with the pet's name, sit/walk (or fly, or swim), settings and quit.
     """
 
     state_changed = Signal()  # the user moved the pet or made it sit/get up

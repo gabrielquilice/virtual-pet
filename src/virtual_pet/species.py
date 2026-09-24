@@ -19,6 +19,7 @@ class Locomotion(Enum):
 
     WALK = "Walk"
     FLY = "Fly"
+    SWIM = "Swim"
 
 
 @dataclass(frozen=True, eq=False)  # each species is one of a kind: compared by identity

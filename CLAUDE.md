@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-A pixel-art desktop pet (dog, cat or maritaca) written in Python 3.12+ with PySide6 (Qt 6), managed with uv. The stack is cross-platform, but the app is currently built and tested for Linux only (KDE Plasma 6 on Wayland, through XWayland). The scope is deliberately small: the pet roams on its own, a click makes it sit (another click lets it roam), it can be dragged anywhere but never off the screen, and its right-click menu offers Sit/Walk (Sit/Fly for the maritaca), Settings… (name and species) and Quit. It ships as an x86-64 Linux AppImage, built locally by `appimage/build.py` (there is no CI workflow). Run from source on Debian/Ubuntu, Qt's X11 backend needs `libxcb-cursor0`; the AppImage bundles it.
+A pixel-art desktop pet (dog, cat, maritaca or sea turtle) written in Python 3.12+ with PySide6 (Qt 6), managed with uv. The stack is cross-platform, but the app is currently built and tested for Linux only (KDE Plasma 6 on Wayland, through XWayland). The scope is deliberately small: the pet roams on its own, a click makes it sit (another click lets it roam), it can be dragged anywhere but never off the screen, and its right-click menu offers Sit/Walk (Sit/Fly for the maritaca, Sit/Swim for the sea turtle), Settings… (name and species) and Quit. It ships as an x86-64 Linux AppImage, built locally by `appimage/build.py` (there is no CI workflow). Run from source on Debian/Ubuntu, Qt's X11 backend needs `libxcb-cursor0`; the AppImage bundles it.
 
 ## Commands
 
@@ -36,10 +36,11 @@ Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[depe
   - A frame is a text grid, one character per art pixel ("." is transparent). Every frame of every species shares one 32×27 canvas, so the window never resizes. Frames face right and are mirrored at runtime.
   - `sprites.draw(frame, palette)` paints a frame one image pixel per art pixel, for the pets and the icon.
   - `Species` bundles key, label, palette, animations per `Activity`, gait and `locomotion`. It renders frames in its palette through a `functools.cache` keyed on the species' identity.
-  - `Locomotion` says how the pet roams, which is what its WALKING animation shows. Its value is the menu text for roaming again ("Walk", "Fly").
+  - `Locomotion` says how the pet roams, which is what its WALKING animation shows. Its value is the menu text for roaming again ("Walk", "Fly", "Swim").
   - `icon.py` is the app's icon, a 32×32 paw print in the dog's colors. `icon_image(size)` only takes whole multiples of 32, so its pixels stay sharp. `app_icon()` is every window's icon, and the AppImage's icons come from `SIZES` (32 to 256).
   - Blinking recolors "E" pixels with the palette's "B" and "H" pixels with "N", so every palette must define B and N.
   - `pets/__init__.py` has `ALL_SPECIES` and `species_by_key()`; unknown keys become the dog. The maritaca is `parakeet` in code and settings and "Maritaca" in the UI. Its WALKING animation is flying.
+  - The sea turtle is `turtle` in code and settings and "Sea Turtle" in the UI. Its WALKING animation is swimming. It floats in place while STANDING, and only touches the ground when SITTING, which is resting on the bottom.
 - **`pet_window.py`**: `PetWindow` is a frameless, translucent, always-on-top window with `X11BypassWindowManagerHint`.
   - Why unmanaged: Qt always advertises `WM_TAKE_FOCUS`, so KWin activates a managed window when clicked and takes focus from the user's app.
   - `setMask(silhouette)` follows each frame, so clicks around the pet reach the window below.
@@ -70,11 +71,11 @@ Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[depe
 - `tests/test_species.py` enforces the art invariants for every species:
   - all frames are 32×27;
   - they use only palette characters;
-  - the lowest visible row is 25 for standing and sitting, and for walking unless the species flies;
+  - the lowest visible row is 25 for sitting, for standing unless the species swims, and for walking only if the species walks;
   - every frame contains the E and H eye pixels.
 - Identifiers, file names, comments, docs and UI strings are in English. The user writes in Portuguese.
 - Commits follow Conventional Commits (`type(scope): summary`) in English, with a short body and a `Co-Authored-By` trailer for the Claude model that made the change.
-- New or changed pet art, and the app icon, must be shown to the user as images first: enlarged poses, plus real size on dark and light backgrounds. Wait for approval before it touches the code. The current gray tabby cat is the one the user chose to keep, and the paw print is the icon the user chose.
+- New or changed pet art, and the app icon, must be shown to the user as images first: enlarged poses, plus real size on dark and light backgrounds. Wait for approval before it touches the code. The current gray tabby cat is the one the user chose to keep, the sea turtle (brown shell, green skin) is the design the user approved, and the paw print is the icon the user chose.
 - The AppImage is x86-64 Linux only. PyInstaller doesn't cross-compile, and the window behavior is untested elsewhere.
 - The project is GPL-3.0-only: the full text is in `LICENSE`, the copyright notice in the README's License section, and `pyproject.toml` declares it. Code or art copied into the program needs a GPL-3.0-compatible license, and every third-party file keeps its license text next to it.
 - Agent skills are project-scoped in `.claude/skills/` and pinned in `skills-lock.json`.

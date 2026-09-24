@@ -2,13 +2,14 @@ import pytest
 
 from virtual_pet import sprites
 from virtual_pet.behavior import Activity
-from virtual_pet.pets import ALL_SPECIES, CAT, DOG, PARAKEET, species_by_key
+from virtual_pet.pets import ALL_SPECIES, CAT, DOG, PARAKEET, TURTLE, species_by_key
 from virtual_pet.species import Locomotion, Species
 
 GROUND_LINE = 25  # row of the outline under the paws
 GROUNDED = {  # the poses drawn on the ground line
     Locomotion.WALK: {Activity.STANDING, Activity.WALKING, Activity.SITTING},
     Locomotion.FLY: {Activity.STANDING, Activity.SITTING},  # it takes off to fly
+    Locomotion.SWIM: {Activity.SITTING},  # it floats, unless told to rest on the bottom
 }
 
 
@@ -32,24 +33,27 @@ def lowest_visible_row(frame: sprites.Frame) -> int:
     return max(y for y, row in enumerate(frame) if row.strip(sprites.TRANSPARENT))
 
 
-def test_the_pets_are_a_dog_a_cat_and_a_maritaca():
+def test_the_pets_are_a_dog_a_cat_a_maritaca_and_a_sea_turtle():
     assert [(pet.key, pet.label) for pet in ALL_SPECIES] == [
         ("dog", "Dog"),
         ("cat", "Cat"),
         ("parakeet", "Maritaca"),
+        ("turtle", "Sea Turtle"),
     ]
 
 
 def test_pets_are_found_by_the_key_saved_in_the_settings():
-    assert [species_by_key(key) for key in ("dog", "cat", "parakeet")] == [DOG, CAT, PARAKEET]
+    keys = ("dog", "cat", "parakeet", "turtle")
+
+    assert [species_by_key(key) for key in keys] == [DOG, CAT, PARAKEET, TURTLE]
 
 
 def test_an_unknown_saved_pet_becomes_the_dog():
     assert species_by_key("dragon") is DOG
 
 
-def test_only_the_maritaca_flies():
-    assert [pet.roam_label for pet in ALL_SPECIES] == ["Walk", "Walk", "Fly"]
+def test_the_maritaca_flies_and_the_sea_turtle_swims():
+    assert [pet.roam_label for pet in ALL_SPECIES] == ["Walk", "Walk", "Fly", "Swim"]
 
 
 def test_every_activity_has_an_animation(species):
@@ -68,7 +72,7 @@ def test_frames_only_use_colors_from_the_palette(species):
     assert used <= {*species.palette, sprites.TRANSPARENT}
 
 
-def test_feet_stay_on_the_ground_line_unless_carried_or_flying(species):
+def test_poses_on_the_ground_stand_on_the_ground_line(species):
     ground_lines = {
         lowest_visible_row(frame)
         for activity in GROUNDED[species.locomotion]
@@ -84,6 +88,16 @@ def test_flying_lifts_the_maritaca_off_the_ground():
     assert all(lowest_visible_row(frame) < GROUND_LINE for frame in flying)
 
 
+def test_the_sea_turtle_floats_until_it_rests_on_the_bottom():
+    floating = [
+        frame
+        for activity in (Activity.STANDING, Activity.WALKING)
+        for frame in TURTLE.animations[activity].frames
+    ]
+
+    assert all(lowest_visible_row(frame) < GROUND_LINE for frame in floating)
+
+
 def test_every_frame_has_an_eye_that_can_blink(species):
     for frame in all_frames(species):
         text = "".join(frame)
@@ -96,7 +110,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
         pet.image(pet.portrait).pixelColor(*find(pet.portrait, "B")).name() for pet in ALL_SPECIES
     ]
 
-    assert body_colors == ["#dc9a57", "#a3a8b0", "#4cae4f"]  # tan, gray, green
+    assert body_colors == ["#dc9a57", "#a3a8b0", "#4cae4f", "#6fa582"]  # tan, gray, green, sage
 
 
 def test_rendered_frame_keeps_transparent_background_and_eye_colors():

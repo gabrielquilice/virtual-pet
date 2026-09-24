@@ -31,10 +31,10 @@ def pet_button(dialog: PetDialog, label: str) -> QToolButton:
     return next(button for button in pet_buttons(dialog) if button.text() == label)
 
 
-def test_the_three_pets_are_offered_with_the_dog_preselected(dialog):
+def test_the_four_pets_are_offered_with_the_dog_preselected(dialog):
     offered = [(button.text(), button.isChecked()) for button in pet_buttons(dialog)]
 
-    assert offered == [("Dog", True), ("Cat", False), ("Maritaca", False)]
+    assert offered == [("Dog", True), ("Cat", False), ("Maritaca", False), ("Sea Turtle", False)]
 
 
 def test_choosing_a_pet_and_naming_it(dialog, qtbot):
