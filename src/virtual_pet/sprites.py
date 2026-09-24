@@ -1,4 +1,4 @@
-"""Pixel-art building blocks shared by every pet.
+"""Pixel-art building blocks shared by every pet (and by the app's icon).
 
 A frame is a grid of characters, one per art pixel ("." is transparent), colored
 through the palette of the pet's species. Frames are drawn facing right and
@@ -9,10 +9,11 @@ window never changes size.
 import functools
 import itertools
 import textwrap
+from collections.abc import Mapping
 from dataclasses import dataclass
 
-from PySide6.QtCore import QRect
-from PySide6.QtGui import QRegion
+from PySide6.QtCore import QRect, Qt
+from PySide6.QtGui import QColor, QImage, QRegion
 
 type Frame = tuple[str, ...]
 
@@ -28,6 +29,18 @@ EYE_SHINE = "H"  # eye highlight; turns dark while blinking, so the eye becomes 
 def art(text: str) -> Frame:
     """Turn an indented block of art rows into a frame."""
     return tuple(textwrap.dedent(text).strip("\n").splitlines())
+
+
+def draw(frame: Frame, palette: Mapping[str, str]) -> QImage:
+    """Paint a frame in the palette's colors, one image pixel per art pixel."""
+    colors = {char: QColor(value) for char, value in palette.items()}
+    image = QImage(len(frame[0]), len(frame), QImage.Format.Format_ARGB32_Premultiplied)
+    image.fill(Qt.GlobalColor.transparent)
+    for y, row in enumerate(frame):
+        for x, char in enumerate(row):
+            if char != TRANSPARENT:
+                image.setPixelColor(x, y, colors[char])
+    return image
 
 
 @dataclass(frozen=True)

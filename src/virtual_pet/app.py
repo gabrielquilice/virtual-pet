@@ -12,6 +12,7 @@ from PySide6.QtWidgets import QApplication
 
 from virtual_pet.config import Config, ConfigStore
 from virtual_pet.dialogs import PetChoice, ask_for_changes, ask_for_new_pet
+from virtual_pet.icon import app_icon
 from virtual_pet.pet_window import PetWindow
 from virtual_pet.pets import species_by_key
 
@@ -141,6 +142,7 @@ def main() -> int:
     app = QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
     app.setApplicationDisplayName(APP_DISPLAY_NAME)
+    app.setWindowIcon(app_icon())
     app.setQuitOnLastWindowClosed(False)  # closing a dialog must not end the app
     quit_on_termination_signals(app)
     if app.platformName().startswith("wayland"):
