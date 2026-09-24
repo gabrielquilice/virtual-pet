@@ -1,3 +1,8 @@
+<p align="center">
+  <img src="docs/icon.png" width="128" height="128"
+       alt="The app's icon: a cream paw print on a rounded orange tile">
+</p>
+
 # Virtual Pet
 
 A little pixel-art pet that lives on your desktop: a dog, a cat, a maritaca (a green

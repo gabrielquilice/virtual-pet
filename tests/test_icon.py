@@ -1,7 +1,11 @@
+from pathlib import Path
+
 import pytest
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QColor, QImage
 
 from virtual_pet import icon
+
+README_ICON = Path(__file__).resolve().parent.parent / "docs" / "icon.png"
 
 
 def rgb(image, x: int, y: int) -> tuple[int, int, int, int]:
@@ -45,3 +49,15 @@ def test_windows_and_the_tray_get_the_icon_in_every_size():
     sizes = {size.width() for size in icon.app_icon().availableSizes()}
 
     assert sizes == {*icon.SIZES, icon.TRAY_AT_200_PERCENT}
+
+
+def test_the_readme_shows_the_icon_as_drawn():
+    shown = QImage(str(README_ICON)).convertToFormat(QImage.Format.Format_ARGB32)
+    drawn = icon.icon_image(256).convertToFormat(QImage.Format.Format_ARGB32)
+
+    pairs = zip(bytes(shown.constBits()), bytes(drawn.constBits()), strict=True)
+    difference = sum(abs(a - b) for a, b in pairs) / (256 * 256 * 4)
+
+    assert (shown.width(), shown.height()) == (256, 256)
+    # Nearly identical: a newer Qt may round an edge differently, but a changed icon fails.
+    assert difference < 1

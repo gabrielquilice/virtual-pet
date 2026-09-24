@@ -24,6 +24,8 @@ uv run pyside6-lupdate src/virtual_pet/*.py src/virtual_pet/pets/*.py -locations
     -ts src/virtual_pet/translations/virtual_pet_pt_BR.ts
                              # after changing UI texts: new ones come in unfinished, gone ones go
 uv run pyside6-lrelease src/virtual_pet/translations/virtual_pet_pt_BR.ts   # the .qm the app loads
+uv run python -c "from virtual_pet.icon import icon_image; icon_image(256).save('docs/icon.png')"
+                             # after changing the icon: the README's picture of it
 ```
 
 Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[dependency-groups]`; PyInstaller is in the `build` group.
@@ -43,7 +45,7 @@ Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[depe
   - `Species` bundles key, label, palette, animations per `Activity`, gait, `locomotion` and `sit_label`. It renders frames in its palette through a `functools.cache` keyed on the species' identity.
   - `Locomotion` says how the pet roams, which is what its WALKING animation shows. Its value is the menu text for roaming again ("Walk", "Fly", "Swim", "Slither").
   - `sit_label` is the menu text for sitting down: "Sit", except the snake's "Coil up".
-  - `icon.py` draws the app's icon at any size, smooth (antialiased) rather than pixel art: a cream paw, whose shape is the alpha channel of `paw.png`, on a rounded orange tile with a dark rim, in the dog's colors. It is laid out on a grid of 32 units. The margin and the rim are whole pixels, so at 22 px the rim is one sharp pixel, and up to 32 px the paw's edges get extra contrast, which keeps the toes apart. `icon_image(size)` is cached.
+  - `icon.py` draws the app's icon at any size, smooth (antialiased) rather than pixel art: a cream paw, whose shape is the alpha channel of `paw.png`, on a rounded orange tile with a dark rim, in the dog's colors. It is laid out on a grid of 32 units. The margin and the rim are whole pixels, so at 22 px the rim is one sharp pixel, and up to 32 px the paw's edges get extra contrast, which keeps the toes apart. `icon_image(size)` is cached. The README shows it from `docs/icon.png`, drawn at 256 px, and `tests/test_icon.py` fails while that picture differs from what `icon_image(256)` draws.
   - `app_icon()`, the icon of every window and of the tray, holds `SIZES` (the icon theme's usual sizes, 16 to 256 px, which the AppImage installs) and 44 px, the tray's 22 px at 200%.
   - Blinking recolors "E" pixels with the palette's "B" and "H" pixels with "N", so every palette must define B and N.
   - `pets/__init__.py` has `ALL_SPECIES` and `species_by_key()`; unknown keys become the dog. The maritaca is `parakeet` in code and settings and "Maritaca" in the UI. Its WALKING animation is flying.
