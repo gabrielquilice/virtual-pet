@@ -76,7 +76,7 @@ Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[depe
   - every frame contains the E and H eye pixels.
 - Identifiers, file names, comments, docs and UI strings are in English. The user writes in Portuguese.
 - Commits follow Conventional Commits (`type(scope): summary`) in English, with a short body and a `Co-Authored-By` trailer for the Claude model that made the change.
-- New or changed pet art, and the app icon, must be shown to the user as images first: enlarged poses, plus real size on dark and light backgrounds. Wait for approval before it touches the code. The current gray tabby cat is the one the user chose to keep, the sea turtle (brown shell, green skin) and the betta (blue body, red fins) are the designs the user approved, and the paw print is the icon the user chose.
+- New or changed pet art, and the app icon, must be shown to the user as images first: enlarged poses, plus real size on dark and light backgrounds. Wait for approval before it touches the code. The gray tabby cat (redrawn with a round head in profile, dark eyes and a short muzzle, kicking when carried), the sea turtle (brown shell, green skin) and the betta (blue body, red fins) are the designs the user approved, and the paw print is the icon the user chose.
 - The AppImage is x86-64 Linux only. PyInstaller doesn't cross-compile, and the window behavior is untested elsewhere.
 - The project is GPL-3.0-only: the full text is in `LICENSE`, the copyright notice in the README's License section, and `pyproject.toml` declares it. Code or art copied into the program needs a GPL-3.0-compatible license, and every third-party file keeps its license text next to it.
 - Agent skills are project-scoped in `.claude/skills/` and pinned in `skills-lock.json`.
