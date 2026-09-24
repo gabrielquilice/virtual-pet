@@ -1,0 +1,116 @@
+import pytest
+
+from virtual_pet import sprites
+from virtual_pet.behavior import Activity
+from virtual_pet.pets import ALL_SPECIES, CAT, DOG, PARAKEET, species_by_key
+from virtual_pet.species import Species
+
+GROUND_LINE = 25  # row of the outline under the paws
+
+
+@pytest.fixture(params=ALL_SPECIES, ids=lambda species: species.key)
+def species(request) -> Species:
+    return request.param
+
+
+def all_frames(species: Species) -> list[sprites.Frame]:
+    return [frame for animation in species.animations.values() for frame in animation.frames]
+
+
+def find(frame: sprites.Frame, char: str) -> tuple[int, int]:
+    for y, row in enumerate(frame):
+        if char in row:
+            return row.index(char), y
+    raise AssertionError(char)
+
+
+def lowest_visible_row(frame: sprites.Frame) -> int:
+    return max(y for y, row in enumerate(frame) if row.strip(sprites.TRANSPARENT))
+
+
+def test_the_pets_are_a_dog_a_cat_and_a_maritaca():
+    assert [(pet.key, pet.label) for pet in ALL_SPECIES] == [
+        ("dog", "Dog"),
+        ("cat", "Cat"),
+        ("parakeet", "Maritaca"),
+    ]
+
+
+def test_pets_are_found_by_the_key_saved_in_the_settings():
+    assert [species_by_key(key) for key in ("dog", "cat", "parakeet")] == [DOG, CAT, PARAKEET]
+
+
+def test_an_unknown_saved_pet_becomes_the_dog():
+    assert species_by_key("dragon") is DOG
+
+
+def test_only_the_maritaca_flies():
+    assert [pet.roam_label for pet in ALL_SPECIES] == ["Walk", "Walk", "Fly"]
+
+
+def test_every_activity_has_an_animation(species):
+    assert set(species.animations) == set(Activity)
+
+
+def test_all_frames_share_one_canvas_so_the_window_never_resizes(species):
+    sizes = {(len(row), len(frame)) for frame in all_frames(species) for row in frame}
+
+    assert sizes == {(32, 27)}
+
+
+def test_frames_only_use_colors_from_the_palette(species):
+    used = {char for frame in all_frames(species) for row in frame for char in row}
+
+    assert used <= {*species.palette, sprites.TRANSPARENT}
+
+
+def test_feet_stay_on_the_ground_line_unless_carried_or_flying(species):
+    grounded = [Activity.STANDING, Activity.SITTING]
+    if not species.flies:
+        grounded.append(Activity.WALKING)
+    ground_lines = {
+        lowest_visible_row(frame)
+        for activity in grounded
+        for frame in species.animations[activity].frames
+    }
+
+    assert ground_lines == {GROUND_LINE}
+
+
+def test_flying_lifts_the_maritaca_off_the_ground():
+    flying = PARAKEET.animations[Activity.WALKING].frames
+
+    assert all(lowest_visible_row(frame) < GROUND_LINE for frame in flying)
+
+
+def test_every_frame_has_an_eye_that_can_blink(species):
+    for frame in all_frames(species):
+        text = "".join(frame)
+        assert sprites.EYE in text
+        assert sprites.EYE_SHINE in text
+
+
+def test_each_pet_is_drawn_in_its_own_colors():
+    body_colors = [
+        pet.image(pet.portrait).pixelColor(*find(pet.portrait, "B")).name() for pet in ALL_SPECIES
+    ]
+
+    assert body_colors == ["#dc9a57", "#a3a8b0", "#4cae4f"]  # tan, gray, green
+
+
+def test_rendered_frame_keeps_transparent_background_and_eye_colors():
+    image = DOG.image(DOG.portrait)
+    eye, shine = find(DOG.portrait, sprites.EYE), find(DOG.portrait, sprites.EYE_SHINE)
+
+    assert (image.width(), image.height()) == (32, 27)
+    assert image.pixelColor(0, 0).alpha() == 0
+    assert image.pixelColor(*eye).name() == "#221612"
+    assert image.pixelColor(*shine).name() == "#ffffff"
+
+
+def test_blinking_turns_the_eye_into_a_closed_line():
+    image = DOG.image(DOG.portrait, blinking=True)
+    eye, shine = find(DOG.portrait, sprites.EYE), find(DOG.portrait, sprites.EYE_SHINE)
+
+    assert image.pixelColor(*eye).name() == "#dc9a57"  # fur
+    assert image.pixelColor(*shine).name() == "#221612"  # dark line
