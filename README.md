@@ -22,17 +22,33 @@ is, its name, where you left it and whether it was sitting.
 ## Requirements
 
 - Linux with an X11 or Wayland desktop (tested on KDE Plasma 6, Wayland).
-- Python 3.12+ and [uv](https://docs.astral.sh/uv/).
 - On Wayland, XWayland must be available (it is by default on KDE Plasma and GNOME).
-  Debian/Ubuntu also need `libxcb-cursor0` for Qt's X11 backend.
+- From source only: Python 3.12+ and [uv](https://docs.astral.sh/uv/). Debian/Ubuntu
+  also need `libxcb-cursor0` for Qt's X11 backend.
 
 ## Running
+
+The AppImage (see [Building the AppImage](#building-the-appimage)) is a single file with
+the pet, Python and Qt inside, so there is nothing else to install. Make it executable
+(downloads lose that bit) and run it, or double-click it in the file manager:
+
+```bash
+chmod +x VirtualPet-0.1.0-x86_64.AppImage
+./VirtualPet-0.1.0-x86_64.AppImage
+```
+
+It runs on x86-64 Linux distributions whose glibc is at least as new as the build
+machine's. Like every AppImage it mounts itself with FUSE, which common desktop
+distributions have; where it is missing, `--appimage-extract-and-run` works too, but then
+Ctrl+C or logging out stops the pet without saving where it was.
+
+From source:
 
 ```bash
 uv run virtual-pet
 ```
 
-To install it as a regular command (`virtual-pet`) for your user:
+To install it from source as a regular command (`virtual-pet`) for your user:
 
 ```bash
 uv tool install .
@@ -72,6 +88,7 @@ src/virtual_pet/
 ├── behavior.py     # the pet's brain: roaming, resting, sitting, being carried (no Qt)
 ├── config.py       # settings file (JSON) loading and saving
 ├── dialogs.py      # dialog used to adopt a pet and to change it later
+├── icon.py         # the app's icon: a paw print, drawn like the pets
 ├── pet_window.py   # transparent, frameless, always-on-top window and mouse handling
 ├── species.py      # what makes a kind of pet: colors, animations, gait, flying or not
 ├── sprites.py      # pixel-art building blocks shared by all pets
@@ -79,12 +96,45 @@ src/virtual_pet/
     ├── dog.py      # each pet's pixel art, palette and animations
     ├── cat.py
     └── parakeet.py # the maritaca
+appimage/
+├── build.py            # builds the AppImage (see below)
+├── virtual-pet.spec    # PyInstaller: what goes into the bundle
+├── AppRun              # starts the bundled pet inside the AppImage
+├── virtual-pet.desktop # menu entry
+└── licenses/           # license texts the build can't get from the bundled packages
 ```
 
 Each pet is drawn as text grids, one character per pixel, colored through its
 species' palette. Edit the grids to redraw a pet. The tests check that every frame
 of every pet keeps the same size and stands on the same ground line (except when
 carried or flying).
+
+### Building the AppImage
+
+```bash
+uv run --group build appimage/build.py
+```
+
+This writes `dist/VirtualPet-<version>-x86_64.AppImage` on the machine that runs it.
+PyInstaller bundles the pet with its Python and Qt, leaving
+out what every desktop Linux already has (the AppImage project's
+[excludelist](https://github.com/AppImageCommunity/pkg2appimage/blob/master/excludelist)).
+The bundle goes into an AppDir with the launcher, menu entry, icons and licenses, and
+appimagetool packs it. The finished AppImage then runs the app's process tests
+(`--skip-tests` skips them).
+
+- The AppImage needs glibc at least as new as the build machine's (the build prints the
+  version), so build on the oldest distribution it should run on, for example in a
+  [distrobox](https://distrobox.it/) container.
+- The build machine needs the libraries that go into the bundle: on Debian/Ubuntu
+  `libxcb-cursor0`, and GTK 3 for Qt's GTK theme. The build stops and names any that
+  are missing.
+- The first build downloads appimagetool and the AppImage runtime (pinned versions,
+  checked by SHA-256) and, for the license texts of the Python that uv installs, that
+  Python's full build (about 130 MB). All of it stays in `build/appimage/tools/`.
+- Everything in the AppImage comes with its license: the texts and an index,
+  `THIRD-PARTY-NOTICES.txt`, are in its `usr/share/licenses/`. The build stops if it
+  can't find the license of a bundled file (`--allow-missing-licenses` builds anyway).
 
 ### Agent skills
 
@@ -106,4 +156,6 @@ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 PARTICULAR PURPOSE. See [LICENSE](LICENSE) for the full text.
 
 The agent skills in `.claude/skills/` keep their own licenses (see
-[Agent skills](#agent-skills)).
+[Agent skills](#agent-skills)). The AppImage also contains third-party software (Python,
+Qt for Python, ICU, PyInstaller's bootloader and libraries of the build machine's
+distribution), each under its own license, listed in its `THIRD-PARTY-NOTICES.txt`.
