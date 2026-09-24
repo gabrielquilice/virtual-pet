@@ -234,12 +234,19 @@ def pet_environment(tmp_path) -> dict[str, str]:
 
 
 @pytest.fixture
-def start_pet(pet_environment):
+def pet_command() -> list[str]:
+    """The app from these sources, or the built app named by VIRTUAL_PET_EXECUTABLE."""
+    executable = os.environ.get("VIRTUAL_PET_EXECUTABLE")
+    return [executable] if executable else [sys.executable, "-m", "virtual_pet"]
+
+
+@pytest.fixture
+def start_pet(pet_environment, pet_command):
     """Start the real app and wait until it holds its single-instance lock."""
     started: list[subprocess.Popen[bytes]] = []
 
     def start() -> subprocess.Popen[bytes]:
-        pet = subprocess.Popen([sys.executable, "-m", "virtual_pet"], env=pet_environment)
+        pet = subprocess.Popen(pet_command, env=pet_environment)
         started.append(pet)
         lock = Path(pet_environment["XDG_RUNTIME_DIR"], "virtual-pet.lock")
         deadline = time.monotonic() + 15
@@ -254,6 +261,7 @@ def start_pet(pet_environment):
             pet.wait()
 
 
+@pytest.mark.process
 def test_pet_quits_gracefully_and_remembers_its_state(pet_environment, start_pet):
     pet = start_pet()
 
@@ -269,12 +277,11 @@ def test_pet_quits_gracefully_and_remembers_its_state(pet_environment, start_pet
     }
 
 
-def test_only_one_pet_runs_at_a_time(pet_environment, start_pet):
+@pytest.mark.process
+def test_only_one_pet_runs_at_a_time(pet_environment, pet_command, start_pet):
     first = start_pet()
     try:
-        second = subprocess.run(
-            [sys.executable, "-m", "virtual_pet"], env=pet_environment, timeout=10, check=False
-        )
+        second = subprocess.run(pet_command, env=pet_environment, timeout=10, check=False)
         first_still_running = first.poll() is None
     finally:
         first.terminate()
@@ -285,6 +292,7 @@ def test_only_one_pet_runs_at_a_time(pet_environment, start_pet):
     assert first_exit_code == 0
 
 
+@pytest.mark.process
 def test_ctrl_c_during_the_first_run_dialog_quits(pet_environment, start_pet):
     Path(pet_environment["XDG_CONFIG_HOME"], "virtual-pet", "config.json").unlink()
     pet = start_pet()  # shows the naming dialog, as nobody has named the dog yet

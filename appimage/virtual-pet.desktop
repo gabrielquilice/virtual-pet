@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Virtual Pet
+GenericName=Desktop Pet
+Comment=A little pixel-art pet that lives on your desktop
+Exec=virtual-pet
+Icon=virtual-pet
+Terminal=false
+Categories=Game;Amusement;
+Keywords=pet;dog;cat;parakeet;maritaca;
+StartupWMClass=virtual-pet

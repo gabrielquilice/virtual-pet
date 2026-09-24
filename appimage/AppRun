@@ -1,0 +1,5 @@
+#!/bin/sh
+# Starts the pet bundled in this AppImage. exec keeps the AppImage's process id, so the
+# signals sent to it (Ctrl+C, a logout's SIGTERM) reach the pet, which saves before quitting.
+here="$(dirname "$(readlink -f "$0")")"
+exec "$here/usr/lib/virtual-pet/virtual-pet" "$@"

@@ -21,6 +21,9 @@ requires = ["uv_build>=0.12.10,<0.13.0"]
 build-backend = "uv_build"
 
 [dependency-groups]
+build = [
+    "pyinstaller>=6.22.3",
+]
 dev = [
     "hypothesis>=6.168.1",
     "pytest>=9.1.1",
@@ -50,6 +53,13 @@ ignore = [
     "PLR2004", # magic values are fine in tests
     "ANN",     # annotations are optional in tests
     "S311",    # seeded pseudo-random generators make tests deterministic
+    "S603",    # tests start the app they test, from source or a built one
+]
+"appimage/*.py" = [
+    "INP001",  # a folder of build scripts, not a package
+    "S603",    # running the build tools is what the build script is for
+    "S607",    # those tools are found on PATH
+    "T201",    # a command-line script reports its progress by printing
 ]
 
 [tool.ruff.format]
@@ -72,6 +82,9 @@ addopts = [
     "--cov-report=term-missing",
 ]
 filterwarnings = ["error"]
+markers = [
+    "process: starts the real app in a subprocess (VIRTUAL_PET_EXECUTABLE picks a built one)",
+]
 
 [tool.coverage.run]
 branch = true
