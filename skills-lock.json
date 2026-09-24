@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "modern-python": {
+      "source": "trailofbits/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/modern-python/skills/modern-python/SKILL.md",
+      "computedHash": "ed7e08dc6f4b06456cbd07db3d4d4e52a1f239b552a29614c76e7d602a440d70"
+    },
+    "qt-ui-design": {
+      "source": "TheQtCompanyRnD/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/qt-ui-design/SKILL.md",
+      "computedHash": "152a8aa244cc4a49654dc509cb693672d07ad43eed91e4078ccae5ad99049f78"
+    },
+    "tdd": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/tdd/SKILL.md",
+      "computedHash": "e753a5da75292bbe59d302d89566bc2c53d0e73944da2f0e944a7578883c07d0"
+    }
+  }
+}
