@@ -45,8 +45,8 @@ the pet, Python and Qt inside, so there is nothing else to install. Make it exec
 (downloads lose that bit) and run it, or double-click it in the file manager:
 
 ```bash
-chmod +x VirtualPet-0.2.0-x86_64.AppImage
-./VirtualPet-0.2.0-x86_64.AppImage
+chmod +x VirtualPet-0.3.0-x86_64.AppImage
+./VirtualPet-0.3.0-x86_64.AppImage
 ```
 
 It runs on x86-64 Linux distributions whose glibc is at least as new as the build
@@ -189,15 +189,15 @@ The version is in `pyproject.toml`, and a release is the commit that sets it, ta
 
 ```bash
 uv version --bump minor        # or patch, or major: changes pyproject.toml and uv.lock
-git commit --message "chore(release): 0.3.0" pyproject.toml uv.lock
-git tag --annotate v0.3.0 --message "Virtual Pet 0.3.0"
+git commit --message "chore(release): 0.4.0" pyproject.toml uv.lock
+git tag --annotate v0.4.0 --message "Virtual Pet 0.4.0"
 git push --follow-tags
-uv run appimage/build.py       # dist/VirtualPet-0.3.0-x86_64.AppImage
+uv run appimage/build.py       # dist/VirtualPet-0.4.0-x86_64.AppImage
 ```
 
 The build asks git which commit it is building, so it runs in a clone of the repository.
 Only a clean checkout of the release's tag makes `VirtualPet-<version>-x86_64.AppImage`.
-Any other commit adds itself to the name (`VirtualPet-0.3.0+g1a2b3c4-x86_64.AppImage`),
+Any other commit adds itself to the name (`VirtualPet-0.4.0+g1a2b3c4-x86_64.AppImage`),
 followed by `.dirty` when files git tracks have uncommitted changes, and a release tag
 that isn't the version in `pyproject.toml` stops the build. The version also goes into
 the AppImage's menu entry (`X-AppImage-Version`), which AppImage managers show.
