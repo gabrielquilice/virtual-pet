@@ -3,6 +3,8 @@ name = "virtual-pet"
 version = "0.1.0"
 description = "A little dog that lives on your desktop."
 readme = "README.md"
+license = "GPL-3.0-only"
+license-files = ["LICENSE"]
 authors = [
     { name = "Gabriel Quilice", email = "gabrielnquilice@gmail.com" }
 ]
@@ -37,7 +39,7 @@ src = ["src"]
 select = ["ALL"]
 ignore = [
     "D",       # docstrings are written where they help, not enforced everywhere
-    "CPY001",  # no copyright header policy (no license chosen yet)
+    "CPY001",  # the copyright notice is in the README, not in every file
     "COM812",  # conflicts with the formatter
     "ISC001",  # conflicts with the formatter
 ]

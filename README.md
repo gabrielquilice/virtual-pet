@@ -94,3 +94,16 @@ They are unmodified third-party copies, each with its license in its folder:
 - `modern-python` ([Trail of Bits](https://github.com/trailofbits/skills), CC BY-SA 4.0): uv, ruff, ty and pytest setup.
 - `qt-ui-design` ([The Qt Company](https://github.com/TheQtCompanyRnD/agent-skills), BSD-3-Clause): UI design and audit guidance.
 - `tdd` ([Matt Pocock](https://github.com/mattpocock/skills), MIT): test-first red → green loop.
+
+## License
+
+Copyright (C) 2026 Gabriel Quilice
+
+Virtual Pet is free software: you can redistribute it and/or modify it under the terms
+of the GNU General Public License, version 3, as published by the Free Software
+Foundation. It is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See [LICENSE](LICENSE) for the full text.
+
+The agent skills in `.claude/skills/` keep their own licenses (see
+[Agent skills](#agent-skills)).

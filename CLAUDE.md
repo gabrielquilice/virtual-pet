@@ -58,6 +58,7 @@ Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[depe
 - Identifiers, file names, comments, docs and UI strings are in English. The user writes in Portuguese.
 - Commits follow Conventional Commits (`type(scope): summary`) in English, with a short body and a `Co-Authored-By` trailer for the Claude model that made the change.
 - New or changed pet art must be shown to the user as images first: enlarged poses, plus real size on dark and light backgrounds. Wait for approval before it touches the code. The current gray tabby cat is the one the user chose to keep.
+- The project is GPL-3.0-only: the full text is in `LICENSE`, the copyright notice in the README's License section, and `pyproject.toml` declares it. Code or art copied into the program needs a GPL-3.0-compatible license, and every third-party file keeps its license text next to it.
 - Agent skills are project-scoped in `.claude/skills/` and pinned in `skills-lock.json`.
   - Install only trusted skills, and never with `-g`: `npx skills add <owner/repo> --skill <name> -a claude-code -y --copy`.
   - A personal skill in `~/.claude/skills` with the same name overrides the project one.
