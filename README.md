@@ -96,8 +96,9 @@ src/virtual_pet/
 ├── config.py       # settings file (JSON) loading and saving
 ├── dialogs.py      # dialogs used to adopt a pet and to change it (and the language) later
 ├── i18n.py         # the interface in the user's language
-├── icon.py         # the app's icon: a paw print, drawn like the pets
+├── icon.py         # the app's icon: a cream paw print on a rounded orange tile
 ├── instance.py     # one pet at a time: the lock, and how opening the app again reaches it
+├── paw.png         # the paw's silhouette, which the icon is drawn from
 ├── pet_window.py   # transparent, frameless, always-on-top window and mouse handling
 ├── species.py      # what makes a kind of pet: colors, animations, gait, how it roams
 ├── sprites.py      # pixel-art building blocks shared by all pets

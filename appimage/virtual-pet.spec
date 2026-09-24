@@ -89,7 +89,10 @@ def unresolved(path):
 a = Analysis(
     [str(SOURCES / "virtual_pet" / "__main__.py")],
     pathex=[str(SOURCES)],
-    datas=[(str(TRANSLATIONS / "*.qm"), "virtual_pet/translations")],
+    datas=[
+        (str(TRANSLATIONS / "*.qm"), "virtual_pet/translations"),
+        (str(SOURCES / "virtual_pet" / "paw.png"), "virtual_pet"),  # the icon's paw
+    ],
     excludes=["PySide6.QtNetwork", "PySide6.QtDBus"],  # collected by PySide6's hook, never used
 )
 
