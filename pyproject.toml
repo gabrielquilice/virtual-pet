@@ -55,8 +55,8 @@ ignore = [
     "S311",    # seeded pseudo-random generators make tests deterministic
     "S603",    # tests start the app they test, from source or a built one
 ]
-"appimage/*.py" = [
-    "INP001",  # a folder of build scripts, not a package
+"{appimage,windows}/*.py" = [
+    "INP001",  # folders of build scripts, not packages
     "S603",    # running the build tools is what the build script is for
     "S606",    # it starts itself again under uv, in the build environment
     "S607",    # those tools are found on PATH

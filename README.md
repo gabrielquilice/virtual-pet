@@ -37,6 +37,9 @@ language in Settings.
 - On Wayland, XWayland must be available (it is by default on KDE Plasma and GNOME).
 - From source only: Python 3.12+ and [uv](https://docs.astral.sh/uv/). Debian/Ubuntu
   also need `libxcb-cursor0` for Qt's X11 backend.
+- Windows (experimental): 64-bit Windows 10 version 1903 or newer, or Windows 11. The
+  Windows build is only tested under Wine, never on Windows itself (see
+  [Building for Windows](#building-for-windows)).
 
 ## Running
 
@@ -69,6 +72,16 @@ uv tool install .
 Only one copy of the app runs at a time. Quit it from the pet's right-click menu (or
 with Ctrl+C when started from a terminal).
 
+### On Windows (experimental)
+
+The Windows build is a zip (see [Building for Windows](#building-for-windows)) with a
+`VirtualPet` folder: unzip it anywhere and run `VirtualPet.exe` in it. The program isn't
+signed, so Windows SmartScreen warns about it the first time ("More info", then "Run
+anyway"). From source, `uv run virtual-pet` works as on Linux.
+
+With display scaling that isn't a whole number (125% or 150%, common on Windows laptops),
+the pet's pixels come out slightly uneven, some a screen pixel wider than others.
+
 ### Why XWayland on Wayland?
 
 Wayland doesn't let applications place their own windows or keep them above others,
@@ -80,7 +93,8 @@ shaped to the pet's silhouette, so the empty space around it isn't part of it.
 ## Settings file
 
 Everything is stored in `~/.config/virtual-pet/config.json` (`$XDG_CONFIG_HOME` is
-respected). Delete that file to start over; the next run asks you to adopt a pet again.
+respected), or on Windows in `%LOCALAPPDATA%\virtual-pet\config.json`. Delete that file
+to start over; the next run asks you to adopt a pet again.
 
 ## Development
 
@@ -124,6 +138,9 @@ appimage/
 ├── AppRun              # starts the bundled pet inside the AppImage
 ├── virtual-pet.desktop # menu entry
 └── licenses/           # license texts the build can't get from the bundled packages
+windows/
+├── build.py            # builds the Windows zip under Wine (see below)
+└── virtual-pet.spec    # PyInstaller: what goes into the Windows bundle
 ```
 
 Each pet is drawn as text grids, one character per pixel, colored through its
@@ -182,6 +199,35 @@ appimagetool packs it. The finished AppImage then runs the app's process tests
   `THIRD-PARTY-NOTICES.txt`, are in its `usr/share/licenses/`. The build stops if it
   can't find the license of a bundled file (`--allow-missing-licenses` builds anyway).
 
+### Building for Windows
+
+```bash
+uv run windows/build.py
+```
+
+This writes `dist/VirtualPet-<version>-windows-x64.zip` on this Linux machine, with Wine
+(the `wine` package on Debian and Ubuntu, or WineHQ's; tested with Wine 11), and names
+the version as the AppImage build does.
+PyInstaller can't build for another system, so it runs on Windows' own Python under
+Wine, in a Wine prefix of the build's own (`build/windows/wine`; `~/.wine` is never
+touched, and nothing shows up on the desktop or in its menus):
+
+- The build downloads Windows' Python (python-build-standalone, pinned in
+  `windows/build.py`, about 50 MB, and its full build, as much again, for the license texts),
+  and uv installs the Windows wheels of `uv.lock`'s packages for it. They stay in
+  `build/windows/`.
+- PyInstaller bundles the pet with that Python and Qt, in a folder whose `licenses/`
+  holds the license texts and `THIRD-PARTY-NOTICES.txt`. As for the AppImage, the build
+  stops if it can't find the license of a bundled file.
+- The bundle then starts under Wine, in Portuguese: it must load its translations and
+  answer a second start (`--skip-tests` skips this).
+
+Qt asks Windows for its ICU library (`icuuc.dll`, part of Windows since 10 version 1903),
+which Wine lacks, so the build's Wine prefix gets a stub of it whose functions do nothing.
+Qt only uses them for text encodings the pet never needs, and the stub never goes into the
+bundle. Wine isn't Windows, though: the test shows that the bundle is complete, not how
+the pet behaves on a Windows desktop.
+
 ### Releasing
 
 The version is in `pyproject.toml`, and a release is the commit that sets it, tagged
@@ -193,6 +239,7 @@ git commit --message "chore(release): 0.4.0" pyproject.toml uv.lock
 git tag --annotate v0.4.0 --message "Virtual Pet 0.4.0"
 git push --follow-tags
 uv run appimage/build.py       # dist/VirtualPet-0.4.0-x86_64.AppImage
+uv run windows/build.py        # dist/VirtualPet-0.4.0-windows-x64.zip
 ```
 
 The build asks git which commit it is building, so it runs in a clone of the repository.
@@ -224,4 +271,6 @@ PARTICULAR PURPOSE. See [LICENSE](LICENSE) for the full text.
 The agent skills in `.claude/skills/` keep their own licenses (see
 [Agent skills](#agent-skills)). The AppImage also contains third-party software (Python,
 Qt for Python, ICU, PyInstaller's bootloader and libraries of the build machine's
-distribution), each under its own license, listed in its `THIRD-PARTY-NOTICES.txt`.
+distribution), each under its own license, listed in its `THIRD-PARTY-NOTICES.txt`. So
+does the Windows build (Python, Qt for Python, the Visual C++ runtime and PyInstaller's
+bootloader), in its `licenses/THIRD-PARTY-NOTICES.txt`.

@@ -378,23 +378,22 @@ def python_build_tag() -> str | None:
 
 
 def python_licenses() -> Path:
-    """The license texts of this python-build-standalone build: Python's and its libraries'.
-
-    uv installs these builds without the texts, so they come from the matching full build.
-    """
+    """The license texts of this python-build-standalone build: Python's and its libraries'."""
     version, tag = platform.python_version(), python_build_tag()
-    folder = TOOLS / f"python-{version}+{tag}-licenses"
-    if folder.is_dir():
-        return folder
     triple = sysconfig.get_config_var("HOST_GNU_TYPE")
     name = f"cpython-{version}+{tag}-{triple}-pgo+lto-full.tar.zst"
-    sums = TOOLS / f"python-{tag}-SHA256SUMS"
-    download(f"{PYTHON_BUILDS}/{tag}/SHA256SUMS", sums)
-    lines = sums.read_text(encoding="utf-8").splitlines()
-    expected = {file: digest for digest, file in (line.split() for line in lines)}
-    archive = TOOLS / name
-    if download(f"{PYTHON_BUILDS}/{tag}/{urllib.parse.quote(name)}", archive) != expected[name]:
-        sys.exit(f"{name} does not match the release's SHA256SUMS")
+    return full_build_licenses(name, TOOLS / f"python-{version}+{tag}-licenses")
+
+
+def full_build_licenses(name: str, folder: Path) -> Path:
+    """The license texts in `folder`, taken from the python-build-standalone full build `name`.
+
+    uv installs these builds without the texts, and their install_only archives have none,
+    so they come from the matching full build.
+    """
+    if folder.is_dir():
+        return folder
+    archive = python_build_file(name, folder.parent)
     partial = folder.with_name(folder.name + ".partial")
     shutil.rmtree(partial, ignore_errors=True)
     partial.mkdir()
@@ -406,6 +405,26 @@ def python_licenses() -> Path:
     partial.rename(folder)
     archive.unlink()
     return folder
+
+
+def python_build_file(name: str, tools: Path) -> Path:
+    """A file of a python-build-standalone release, in `tools`, checked against its SHA256SUMS.
+
+    `name` is the file's name, cpython-<version>+<release>-…, which names the release too.
+    """
+    tag = name.split("+", 1)[1].split("-", 1)[0]
+    sums = tools / f"python-{tag}-SHA256SUMS"
+    if not sums.is_file():
+        download(f"{PYTHON_BUILDS}/{tag}/SHA256SUMS", sums)
+    lines = sums.read_text(encoding="utf-8").splitlines()
+    expected = {file: digest for digest, file in (line.split() for line in lines)}
+    archive = tools / name
+    if archive.is_file() and hashlib.sha256(archive.read_bytes()).hexdigest() == expected[name]:
+        return archive
+    if download(f"{PYTHON_BUILDS}/{tag}/{urllib.parse.quote(name)}", archive) != expected[name]:
+        archive.unlink()
+        sys.exit(f"{name} does not match the release's SHA256SUMS")
+    return archive
 
 
 def system_packages(files: list[Path]) -> dict[Path, Package]:
