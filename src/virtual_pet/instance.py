@@ -1,13 +1,18 @@
 """One pet at a time: the lock the running app holds, and how a later start reaches it.
 
 A second start of the app can't get the lock, so it asks the running pet to show itself
-(bringing back a pet that hid) through a Unix socket next to the lock, then ends. That is
-how a hidden pet comes back on desktops without a system tray: by opening the app again.
+(bringing back a pet that hid) through a socket next to the lock, then ends. That is how a
+hidden pet comes back on desktops without a system tray: by opening the app again.
+
+The socket is a Unix socket. Python has none on Windows, so there it is a named pipe
+(Qt's local socket) named after the socket's path.
 """
 
+import hashlib
 import logging
 import os
 import socket
+import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
@@ -16,13 +21,19 @@ from PySide6.QtCore import QDir, QLockFile, QObject, QSocketNotifier, QStandardP
 
 ASKING_TIMEOUT = 2  # seconds; the running pet's socket takes a connection at once, or never
 LONGEST_ADDRESS = 107  # bytes in a Unix socket's address on Linux, less the final NUL
+WINDOWS = sys.platform == "win32"
 
 logger = logging.getLogger(__name__)
 
 
 def runtime_folder() -> Path:
-    """Where the lock and the socket go: the user's private runtime folder, else the temp one."""
-    folder = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.RuntimeLocation)
+    """Where the lock and the socket go: the user's private runtime folder, else the temp one.
+
+    Windows has no such runtime folder (Qt gives the user's home), so there it is the temp
+    folder, which is the user's own too.
+    """
+    location = QStandardPaths.StandardLocation.RuntimeLocation
+    folder = "" if WINDOWS else QStandardPaths.writableLocation(location)
     return Path(folder or QDir.tempPath())
 
 
@@ -34,12 +45,16 @@ def acquire_lock(path: Path) -> QLockFile | None:
 
 
 class ShowRequests(QObject):
-    """A Unix socket where later starts of the app ask the running pet to show itself.
+    """Where later starts of the app ask the running pet to show itself.
 
     Connecting is the request: nothing is read. Only the lock's holder should listen.
     """
 
     received = Signal()
+
+
+class SocketShowRequests(ShowRequests):
+    """The requests' Unix socket, at the socket's path."""
 
     def __init__(self, path: Path) -> None:
         super().__init__()
@@ -75,10 +90,39 @@ class ShowRequests(QObject):
         self.received.emit()
 
 
-def listen_for_show_requests(path: Path) -> ShowRequests | None:
+class PipeShowRequests(ShowRequests):
+    """The requests' named pipe, on Windows; only the user's own starts can connect to it."""
+
+    def __init__(self, path: Path) -> None:
+        super().__init__()
+        from PySide6.QtNetwork import QLocalServer  # noqa: PLC0415 - not in the Linux AppImage
+
+        self._server = QLocalServer(self)
+        self._server.setSocketOptions(QLocalServer.SocketOption.UserAccessOption)
+        self._server.newConnection.connect(self._accept)
+        if not self._server.listen(pipe_name(path)):
+            raise OSError(self._server.errorString())
+
+    def close(self) -> None:
+        """Stop listening."""
+        self._server.close()
+
+    def _accept(self) -> None:
+        while connection := self._server.nextPendingConnection():
+            connection.abort()
+            connection.deleteLater()
+            self.received.emit()
+
+
+def pipe_name(path: Path) -> str:
+    """The name of the named pipe standing for the socket at `path`, which a path can't be."""
+    return f"{path.name}-{hashlib.sha256(os.fsencode(path)).hexdigest()[:16]}"
+
+
+def listen_for_show_requests(path: Path) -> SocketShowRequests | PipeShowRequests | None:
     """Listen at `path` for later starts of the app; None, reported, if that can't be done."""
     try:
-        return ShowRequests(path)
+        return PipeShowRequests(path) if WINDOWS else SocketShowRequests(path)
     except OSError as error:
         logger.warning("Opening the app again won't show the pet: %s", error)
         return None
@@ -86,6 +130,14 @@ def listen_for_show_requests(path: Path) -> ShowRequests | None:
 
 def ask_to_show(path: Path) -> bool:
     """Ask the pet listening at `path` to show itself; False if no pet answers."""
+    if WINDOWS:
+        from PySide6.QtNetwork import QLocalSocket  # noqa: PLC0415 - not in the Linux AppImage
+
+        client = QLocalSocket()
+        client.connectToServer(pipe_name(path))
+        answered = client.waitForConnected(ASKING_TIMEOUT * 1000)
+        client.abort()
+        return answered
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
         client.settimeout(ASKING_TIMEOUT)
         try:
