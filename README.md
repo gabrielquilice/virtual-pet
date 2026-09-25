@@ -7,14 +7,14 @@
 
 A little pixel-art pet that lives on your desktop: a dog, a cat, a maritaca (a green
 Brazilian parakeet), a sea turtle, a fish (a betta), a guinea pig, a penguin, a snake, a
-rabbit or a cockatiel. It moves around on its own, sits when you click it and goes wherever
-you drag it, but never off the screen.
+rabbit, a cockatiel or a fox. It moves around on its own, sits when you click it and goes
+wherever you drag it, but never off the screen.
 
 ## How to play
 
 | Action | What happens |
 | --- | --- |
-| Leave it alone | It moves around the screen, resting now and then. The dog, the cat, the guinea pig and the penguin walk, the maritaca and the cockatiel fly, the sea turtle and the fish swim (they float while they rest), the snake slithers and the rabbit hops. |
+| Leave it alone | It moves around the screen, resting now and then. The dog, the cat, the guinea pig, the penguin and the fox walk, the maritaca and the cockatiel fly, the sea turtle and the fish swim (they float while they rest), the snake slithers and the rabbit hops. |
 | Left click | It sits and stays put (the guinea pig lies down, the sea turtle and the fish rest on the bottom, and the snake coils up). Click again and it goes back to roaming. |
 | Drag | You carry it anywhere on the screen (including another monitor). |
 | Right click | Menu: its name, Sit/Walk (Sit/Fly for the maritaca and the cockatiel, Sit/Swim for the sea turtle and the fish, Coil up/Slither for the snake, Sit/Hop for the rabbit), Hide, Settings… and Quit. |
@@ -133,7 +133,8 @@ src/virtual_pet/
     ├── penguin.py  # a gentoo
     ├── snake.py    # in an emerald tree boa's colors
     ├── rabbit.py   # a white bunny that hops
-    └── cockatiel.py # gray, with a yellow crest
+    ├── cockatiel.py # gray, with a yellow crest
+    └── fox.py      # a red fox
 appimage/
 ├── build.py            # builds the AppImage (see below)
 ├── virtual-pet.spec    # PyInstaller: what goes into the bundle

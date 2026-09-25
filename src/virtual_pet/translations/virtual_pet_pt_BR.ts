@@ -164,5 +164,9 @@ Escolha seu pet e dê um nome a ele.</translation>
         <source>Cockatiel</source>
         <translation>Calopsita</translation>
     </message>
+    <message>
+        <source>Fox</source>
+        <translation>Raposa</translation>
+    </message>
 </context>
 </TS>

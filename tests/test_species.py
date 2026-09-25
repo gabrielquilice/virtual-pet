@@ -8,6 +8,7 @@ from virtual_pet.pets import (
     COCKATIEL,
     DOG,
     FISH,
+    FOX,
     GUINEA_PIG,
     PARAKEET,
     PENGUIN,
@@ -60,6 +61,7 @@ def test_the_pets_to_choose_from_and_their_names():
         ("snake", "Snake"),
         ("rabbit", "Rabbit"),
         ("cockatiel", "Cockatiel"),
+        ("fox", "Fox"),
     ]
 
 
@@ -75,6 +77,7 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         "snake",
         "rabbit",
         "cockatiel",
+        "fox",
     ]
 
     assert [species_by_key(key) for key in keys] == [
@@ -88,6 +91,7 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         SNAKE,
         RABBIT,
         COCKATIEL,
+        FOX,
     ]
 
 
@@ -107,11 +111,12 @@ def test_each_pet_roams_its_own_way():
         "Slither",
         "Hop",
         "Fly",
+        "Walk",
     ]
 
 
 def test_the_snake_coils_up_where_the_others_sit():
-    assert [pet.sit_label for pet in ALL_SPECIES] == [*["Sit"] * 7, "Coil up", "Sit", "Sit"]
+    assert [pet.sit_label for pet in ALL_SPECIES] == [*["Sit"] * 7, "Coil up", "Sit", "Sit", "Sit"]
 
 
 def test_every_activity_has_an_animation(species):
@@ -170,7 +175,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
         pet.image(pet.portrait).pixelColor(*find(pet.portrait, "B")).name() for pet in ALL_SPECIES
     ]
 
-    # tan, gray, green, sage, blue, ginger, white, emerald, warm white, yellow
+    # tan, gray, green, sage, blue, ginger, white, emerald, warm white, yellow, red-orange
     assert body_colors == [
         "#dc9a57",
         "#a3a8b0",
@@ -182,6 +187,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
         "#23a45a",
         "#f2eee6",
         "#f7d64a",
+        "#e2632f",
     ]
 
 
