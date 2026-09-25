@@ -5,19 +5,34 @@
 
 # Virtual Pet
 
-A little pixel-art pet that lives on your desktop: a dog, a cat, a maritaca (a green
-Brazilian parakeet), a sea turtle, a fish (a betta), a guinea pig, a penguin, a snake, a
-rabbit, a cockatiel, a fox or a wolf. It moves around on its own, sits when you click it
-and goes wherever you drag it, but never off the screen.
+A little pixel-art pet that lives on your desktop. It moves around on its own, sits when
+you click it and goes wherever you drag it, but never off the screen.
+
+## The pets
+
+| | Pet | In Portuguese | Gets around | Told to sit |
+| :---: | --- | --- | --- | --- |
+| <img src="docs/pets/dog.png" width="96" height="81" alt="The dog"> | Dog | Cachorro | Walks | Sits |
+| <img src="docs/pets/cat.png" width="96" height="81" alt="The cat"> | Cat | Gato | Walks | Sits with its tail around its paws |
+| <img src="docs/pets/parakeet.png" width="96" height="81" alt="The maritaca"> | Maritaca (a green Brazilian parakeet) | Maritaca | Flies | Fluffs up on the ground |
+| <img src="docs/pets/turtle.png" width="96" height="81" alt="The sea turtle"> | Sea Turtle | Tartaruga-marinha | Swims, and floats while it rests | Rests on the bottom |
+| <img src="docs/pets/fish.png" width="96" height="81" alt="The fish"> | Fish (a betta) | Peixe | Swims, and floats while it rests | Rests on the bottom |
+| <img src="docs/pets/guinea_pig.png" width="96" height="81" alt="The guinea pig"> | Guinea Pig | Porquinho-da-índia | Walks | Lies down like a loaf |
+| <img src="docs/pets/penguin.png" width="96" height="81" alt="The penguin"> | Penguin (a gentoo) | Pinguim | Walks | Sits back on its tail |
+| <img src="docs/pets/snake.png" width="96" height="81" alt="The snake"> | Snake (in an emerald tree boa's colors) | Cobra | Slithers | Coils up |
+| <img src="docs/pets/rabbit.png" width="96" height="81" alt="The rabbit"> | Rabbit | Coelho | Hops | Sits up on its haunches, sniffing |
+| <img src="docs/pets/cockatiel.png" width="96" height="81" alt="The cockatiel"> | Cockatiel | Calopsita | Flies | Fluffs up on the ground, crest down |
+| <img src="docs/pets/fox.png" width="96" height="81" alt="The fox"> | Fox | Raposa | Walks | Sits with its tail around its paws |
+| <img src="docs/pets/wolf.png" width="96" height="81" alt="The wolf"> | Wolf | Lobo | Walks | Sits, and howls now and then |
 
 ## How to play
 
 | Action | What happens |
 | --- | --- |
-| Leave it alone | It moves around the screen, resting now and then. The dog, the cat, the guinea pig, the penguin, the fox and the wolf walk, the maritaca and the cockatiel fly, the sea turtle and the fish swim (they float while they rest), the snake slithers and the rabbit hops. |
-| Left click | It sits and stays put (the guinea pig lies down, the sea turtle and the fish rest on the bottom, the snake coils up, and the wolf howls now and then). Click again and it goes back to roaming. |
+| Leave it alone | It moves around the screen, resting now and then: it walks, flies, swims, slithers or hops, depending on the pet (see [The pets](#the-pets)). |
+| Left click | It sits and stays put, in its own way. Click again and it goes back to roaming. |
 | Drag | You carry it anywhere on the screen (including another monitor). |
-| Right click | Menu: its name, Sit/Walk (Sit/Fly for the maritaca and the cockatiel, Sit/Swim for the sea turtle and the fish, Coil up/Slither for the snake, Sit/Hop for the rabbit), Turn around, Hide, Settings… and Quit. |
+| Right click | Menu: its name, Sit (Coil up for the snake) or, if it sits, the way it roams (Walk, Fly, Swim, Slither or Hop), Turn around, Hide, Settings… and Quit. |
 | Turn around (in the menu) | It faces the other way. If it was on the move, it heads that way instead. |
 | Hide (in the menu) | It leaves the screen and waits in the system tray: click the paw print there to bring it back, where you left it. On desktops without a tray (GNOME without the AppIndicator extension, for example), open the app again instead. |
 | Hover | Shows its name. |

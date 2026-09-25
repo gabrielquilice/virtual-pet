@@ -27,6 +27,9 @@ uv run pyside6-lupdate src/virtual_pet/*.py src/virtual_pet/pets/*.py -locations
 uv run pyside6-lrelease src/virtual_pet/translations/virtual_pet_pt_BR.ts   # the .qm the app loads
 uv run python -c "from virtual_pet.icon import icon_image; icon_image(256).save('docs/icon.png')"
                              # after changing the icon: the README's picture of it
+uv run python -c "from virtual_pet.pets import ALL_SPECIES
+for s in ALL_SPECIES: s.image(s.portrait).scaled(32 * 6, 27 * 6).save(f'docs/pets/{s.key}.png')"
+                             # after changing or adding a pet: the pictures in the README's table
 ```
 
 Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[dependency-groups]`; PyInstaller is in the `build` group.
@@ -45,6 +48,7 @@ Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[depe
 - **Art pipeline: `sprites.py`, `species.py`, `pets/`, `icon.py`**
   - A frame is a text grid, one character per art pixel ("." is transparent). Every frame of every species shares one 32×27 canvas, so the window never resizes. Frames face right and are mirrored at runtime.
   - `sprites.draw(frame, palette)` paints a frame one image pixel per art pixel.
+  - The README's pets table has a row per species: its portrait (`docs/pets/<key>.png`, 6 image pixels per art pixel, shown 96 px wide so it stays sharp at 200%), its names in English and Portuguese, how it roams and what it does told to sit. `tests/test_species.py` fails while a picture differs from the art, a species has no row, or a picture has no species, so a new pet needs its row and its picture.
   - `Species` bundles key, label, palette, animations per `Activity`, gait, `locomotion` and `sit_label`. It renders frames in its palette through a `functools.cache` keyed on the species' identity.
   - `Locomotion` says how the pet roams, which is what its WALKING animation shows. Its value is the menu text for roaming again ("Walk", "Fly", "Swim", "Slither", "Hop").
   - `sit_label` is the menu text for sitting down: "Sit", except the snake's "Coil up".

@@ -1,4 +1,7 @@
+from pathlib import Path
+
 import pytest
+from PySide6.QtGui import QImage
 
 from virtual_pet import sprites
 from virtual_pet.behavior import Activity
@@ -28,6 +31,9 @@ GROUNDED = {  # the poses drawn on the ground line
     Locomotion.SLITHER: {Activity.STANDING, Activity.WALKING, Activity.SITTING},
     Locomotion.HOP: {Activity.STANDING, Activity.WALKING, Activity.SITTING},  # a foot stays down
 }
+README = Path(__file__).resolve().parent.parent / "README.md"
+PICTURES = README.parent / "docs" / "pets"  # the pets table's pictures, one per pet
+PICTURE_SCALE = 6  # image pixels per art pixel: the README shows them at half that
 
 
 @pytest.fixture(params=ALL_SPECIES, ids=lambda species: species.key)
@@ -214,3 +220,24 @@ def test_blinking_turns_the_eye_into_a_closed_line():
 
     assert image.pixelColor(*eye).name() == "#dc9a57"  # fur
     assert image.pixelColor(*shine).name() == "#221612"  # dark line
+
+
+def test_the_readme_shows_each_pet_as_drawn(species):
+    shown = QImage(str(PICTURES / f"{species.key}.png"))
+    drawn = species.image(species.portrait).scaled(
+        sprites.FRAME_WIDTH * PICTURE_SCALE, sprites.FRAME_HEIGHT * PICTURE_SCALE
+    )
+
+    # Redrawn art needs its picture drawn again (the command is in CLAUDE.md).
+    argb = QImage.Format.Format_ARGB32
+    assert shown.convertToFormat(argb) == drawn.convertToFormat(argb)
+
+
+def test_the_readme_has_a_row_for_each_pet(species):
+    assert f'<img src="docs/pets/{species.key}.png"' in README.read_text(encoding="utf-8")
+
+
+def test_the_readme_pictures_no_pet_that_is_gone():
+    pictured = sorted(path.stem for path in PICTURES.glob("*.png"))
+
+    assert pictured == sorted(species.key for species in ALL_SPECIES)
