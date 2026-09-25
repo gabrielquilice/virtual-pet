@@ -10,6 +10,7 @@ from virtual_pet.pets import (
     GUINEA_PIG,
     PARAKEET,
     PENGUIN,
+    RABBIT,
     SNAKE,
     TURTLE,
     species_by_key,
@@ -22,6 +23,7 @@ GROUNDED = {  # the poses drawn on the ground line
     Locomotion.FLY: {Activity.STANDING, Activity.SITTING},  # it takes off to fly
     Locomotion.SWIM: {Activity.SITTING},  # it floats, unless told to rest on the bottom
     Locomotion.SLITHER: {Activity.STANDING, Activity.WALKING, Activity.SITTING},
+    Locomotion.HOP: {Activity.STANDING, Activity.WALKING, Activity.SITTING},  # a foot stays down
 }
 
 
@@ -55,11 +57,12 @@ def test_the_pets_to_choose_from_and_their_names():
         ("guinea_pig", "Guinea Pig"),
         ("penguin", "Penguin"),
         ("snake", "Snake"),
+        ("rabbit", "Rabbit"),
     ]
 
 
 def test_pets_are_found_by_the_key_saved_in_the_settings():
-    keys = ("dog", "cat", "parakeet", "turtle", "fish", "guinea_pig", "penguin", "snake")
+    keys = ("dog", "cat", "parakeet", "turtle", "fish", "guinea_pig", "penguin", "snake", "rabbit")
 
     assert [species_by_key(key) for key in keys] == [
         DOG,
@@ -70,6 +73,7 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         GUINEA_PIG,
         PENGUIN,
         SNAKE,
+        RABBIT,
     ]
 
 
@@ -87,11 +91,12 @@ def test_each_pet_roams_its_own_way():
         "Walk",
         "Walk",
         "Slither",
+        "Hop",
     ]
 
 
 def test_the_snake_coils_up_where_the_others_sit():
-    assert [pet.sit_label for pet in ALL_SPECIES] == [*["Sit"] * 7, "Coil up"]
+    assert [pet.sit_label for pet in ALL_SPECIES] == [*["Sit"] * 7, "Coil up", "Sit"]
 
 
 def test_every_activity_has_an_animation(species):
@@ -149,7 +154,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
         pet.image(pet.portrait).pixelColor(*find(pet.portrait, "B")).name() for pet in ALL_SPECIES
     ]
 
-    # tan, gray, green, sage, blue, ginger, white, emerald
+    # tan, gray, green, sage, blue, ginger, white, emerald, warm white
     assert body_colors == [
         "#dc9a57",
         "#a3a8b0",
@@ -159,6 +164,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
         "#e08a3c",
         "#f6f6f1",
         "#23a45a",
+        "#f2eee6",
     ]
 
 

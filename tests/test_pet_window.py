@@ -6,7 +6,7 @@ from PySide6.QtGui import QTextDocumentFragment
 
 from virtual_pet import i18n
 from virtual_pet.pet_window import PetWindow
-from virtual_pet.pets import CAT, DOG, FISH, PARAKEET, SNAKE, TURTLE
+from virtual_pet.pets import CAT, DOG, FISH, PARAKEET, RABBIT, SNAKE, TURTLE
 
 LEFT = Qt.MouseButton.LeftButton
 BODY = QPoint(46, 46)  # a point on the dog's body, in window coordinates
@@ -222,11 +222,19 @@ def test_menu_offers_a_slither_to_a_coiled_snake(make_window):
     assert "Slither" in menu_texts(window)
 
 
+def test_menu_offers_a_hop_to_a_sitting_rabbit(make_window):
+    window = make_window(species=RABBIT, sitting=True)
+
+    assert "Hop" in menu_texts(window)
+
+
 def test_the_menu_speaks_portuguese(make_window):
     i18n.use_language("pt_BR")
 
     roaming = menu_texts(make_window(species=SNAKE))
     coiled = menu_texts(make_window(species=SNAKE, sitting=True))
+    sitting_rabbit = menu_texts(make_window(species=RABBIT, sitting=True))
 
     assert roaming == ["Rex", "Enrolar-se", "Ocultar", "Configurações…", "Sair"]
     assert coiled[1] == "Rastejar"
+    assert sitting_rabbit[1] == "Saltitar"

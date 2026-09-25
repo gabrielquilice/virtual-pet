@@ -25,7 +25,7 @@ from virtual_pet.species import Species
 from virtual_pet.sprites import FRAME_HEIGHT, FRAME_WIDTH
 
 ICON_SIZE = QSize(FRAME_WIDTH * 2, FRAME_HEIGHT * 2)
-PETS_PER_ROW = 4  # the eight pets in two rows, so the dialog stays compact
+PETS_PER_ROW = 4  # rows of four keep the dialog compact
 SYSTEM_LANGUAGE = ""  # the language field's value for "follow the system"
 # The chosen pet gets a thick border in the system's highlight color: not just a shade change.
 PET_BUTTON_STYLE = """

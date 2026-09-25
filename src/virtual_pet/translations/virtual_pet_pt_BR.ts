@@ -87,6 +87,10 @@ Escolha seu pet e dê um nome a ele.</translation>
         <translation>Rastejar</translation>
     </message>
     <message>
+        <source>Hop</source>
+        <translation>Saltitar</translation>
+    </message>
+    <message>
         <source>Sit</source>
         <translation>Sentar</translation>
     </message>
@@ -151,6 +155,10 @@ Escolha seu pet e dê um nome a ele.</translation>
     <message>
         <source>Sea Turtle</source>
         <translation>Tartaruga-marinha</translation>
+    </message>
+    <message>
+        <source>Rabbit</source>
+        <translation>Coelho</translation>
     </message>
 </context>
 </TS>

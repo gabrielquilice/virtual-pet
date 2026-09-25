@@ -22,6 +22,7 @@ class Locomotion(Enum):
     FLY = QT_TRANSLATE_NOOP("PetWindow", "Fly")
     SWIM = QT_TRANSLATE_NOOP("PetWindow", "Swim")
     SLITHER = QT_TRANSLATE_NOOP("PetWindow", "Slither")
+    HOP = QT_TRANSLATE_NOOP("PetWindow", "Hop")
 
 
 @dataclass(frozen=True, eq=False)  # each species is one of a kind: compared by identity
