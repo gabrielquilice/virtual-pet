@@ -36,18 +36,19 @@ class PetWindow(QWidget):
     around, hide, settings and quit.
     """
 
-    state_changed = Signal()  # the user moved the pet or made it sit/get up
+    state_changed = Signal()  # the user moved the pet, made it sit/get up or turned it
     hide_requested = Signal()
     settings_requested = Signal()
     quit_requested = Signal()
 
-    def __init__(
+    def __init__(  # noqa: PLR0913 - the state it starts in, as keywords with defaults
         self,
         name: str,
         species: Species,
         *,
         position: tuple[int, int] | None = None,
         sitting: bool = False,
+        facing: Facing = Facing.RIGHT,
         rng: random.Random | None = None,
     ) -> None:
         super().__init__(
@@ -72,7 +73,9 @@ class PetWindow(QWidget):
 
         self._rng = rng if rng is not None else random.Random()  # noqa: S311 - not security related
         area, start = self._starting_point(position)
-        self._behavior = PetBehavior(area, start, sitting=sitting, rng=self._rng, gait=species.gait)
+        self._behavior = PetBehavior(
+            area, start, sitting=sitting, facing=facing, rng=self._rng, gait=species.gait
+        )
         self._activity = self._behavior.activity
         self._animation_time = 0.0
         self._until_blink = self._rng.uniform(*BLINK_INTERVAL)
@@ -223,6 +226,7 @@ class PetWindow(QWidget):
     def _turn_around(self) -> None:
         self._behavior.turn_around()
         self._sync()
+        self.state_changed.emit()
 
     def _on_timer(self) -> None:
         now = time.monotonic()

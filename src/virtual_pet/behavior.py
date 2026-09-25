@@ -59,12 +59,13 @@ class Area:
 class PetBehavior:
     """State machine of a pet that strolls around, sits or turns on command and can be carried."""
 
-    def __init__(
+    def __init__(  # noqa: PLR0913 - the state it starts in, as keywords with defaults
         self,
         area: Area,
         position: tuple[float, float],
         *,
         sitting: bool = False,
+        facing: Facing = Facing.RIGHT,
         rng: random.Random | None = None,
         gait: Gait = DEFAULT_GAIT,
     ) -> None:
@@ -73,7 +74,7 @@ class PetBehavior:
         self._x, self._y = area.clamp(*position)
         self._sitting = sitting
         self._carried = False
-        self._facing = Facing.RIGHT
+        self._facing = facing
         self._rng = rng if rng is not None else random.Random()  # noqa: S311 - not security related
         self._target: tuple[float, float] | None = None
         self._rest_left = self._rng.uniform(*LANDING_REST_TIME)

@@ -18,6 +18,7 @@ from virtual_pet.app import (
     keep_gtk_off_opengl,
     prefer_xwayland,
 )
+from virtual_pet.behavior import Facing
 from virtual_pet.config import Config, ConfigStore
 from virtual_pet.pets import DOG, PARAKEET
 
@@ -173,6 +174,21 @@ def test_where_the_dog_is_and_whether_it_sits_are_remembered(controller, store, 
     assert store.load() == Config(pet_name="Rex", position=(300, 300), sitting=True)
 
 
+def test_which_way_the_dog_faces_is_remembered(controller, store):
+    menu = controller.window.context_menu()
+
+    next(action for action in menu.actions() if action.text() == "Turn around").trigger()
+
+    assert store.load().facing is Facing.LEFT
+
+
+def test_the_dog_comes_back_facing_the_way_it_was_left(store, qtbot):
+    controller = PetController(store, Config(pet_name="Rex", facing=Facing.LEFT))
+    qtbot.addWidget(controller.window)
+
+    assert controller.window.facing is Facing.LEFT
+
+
 def test_renaming_in_settings_updates_the_dog_and_is_remembered(controller, store, answer_dialog):
     answer_dialog("Luna")
     controller.window.settings_requested.emit()
@@ -284,12 +300,18 @@ def test_unwritable_settings_do_not_crash_the_pet(tmp_path, qtbot, caplog):
 
 @pytest.fixture
 def pet_environment(tmp_path) -> dict[str, str]:
-    """Environment for running the real app offscreen, with an already named, sitting dog."""
+    """Environment for running the real app offscreen, with a named cat, sitting and facing left."""
     config_home = tmp_path / "config"
     (config_home / "virtual-pet").mkdir(parents=True)
     (config_home / "virtual-pet" / "config.json").write_text(
         json.dumps(
-            {"pet_name": "Rex", "species": "cat", "position": {"x": 100, "y": 200}, "sitting": True}
+            {
+                "pet_name": "Rex",
+                "species": "cat",
+                "position": {"x": 100, "y": 200},
+                "sitting": True,
+                "facing": "left",
+            }
         ),
         encoding="utf-8",
     )
@@ -349,6 +371,7 @@ def test_pet_quits_gracefully_and_remembers_its_state(pet_environment, start_pet
         "species": "cat",
         "position": {"x": 100, "y": 200},
         "sitting": True,
+        "facing": "left",
         "language": None,
     }
 

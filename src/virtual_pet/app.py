@@ -46,6 +46,7 @@ class PetController:
             species_by_key(config.species),
             position=config.position,
             sitting=config.sitting,
+            facing=config.facing,
         )
         self.window.state_changed.connect(self.save)
         self.window.hide_requested.connect(self.hide_pet)
@@ -57,11 +58,12 @@ class PetController:
         self._tray_available = tray_available  # asked at each hide: a tray can come and go
 
     def save(self) -> None:
-        """Remember which pet it is, its name, where it is and whether it sits."""
+        """Remember which pet it is, its name, its spot, whether it sits and which way it faces."""
         position = self.window.pos()
         self._config.species = self.window.species.key
         self._config.position = (position.x(), position.y())
         self._config.sitting = self.window.sitting
+        self._config.facing = self.window.facing
         save_config(self._store, self._config)
 
     def hide_pet(self) -> None:

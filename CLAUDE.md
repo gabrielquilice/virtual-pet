@@ -41,6 +41,7 @@ Add dependencies with `uv add` or `uv add --group dev`. Dev tools live in `[depe
 - **`config.py`** holds `Config` and `ConfigStore`, also plain Python. `Config.language` is the interface's language: a code, or None (the default) to follow the system.
   - Writes are atomic: a temp file, then replace.
   - Loading tolerates bad files and fields and falls back to defaults. Settings without a species keep the dog.
+  - `Config.facing` (a `Facing`) is saved as "left" or "right", so a turned pet comes back turned. Anything else, or none (settings from before the pet could turn), faces right.
 - **Art pipeline: `sprites.py`, `species.py`, `pets/`, `icon.py`**
   - A frame is a text grid, one character per art pixel ("." is transparent). Every frame of every species shares one 32×27 canvas, so the window never resizes. Frames face right and are mirrored at runtime.
   - `sprites.draw(frame, palette)` paints a frame one image pixel per art pixel.

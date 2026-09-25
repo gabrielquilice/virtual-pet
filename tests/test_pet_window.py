@@ -54,6 +54,15 @@ def test_reappears_where_it_was_left(make_window):
     assert window.pos() == QPoint(120, 90)
 
 
+def test_reappears_facing_the_way_it_was_left(make_window):
+    facing_right = make_window().grab().toImage()
+
+    window = make_window(facing=Facing.LEFT)
+
+    assert window.facing is Facing.LEFT
+    assert window.grab().toImage() == facing_right.flipped(Qt.Orientation.Horizontal)
+
+
 def test_position_on_a_disconnected_monitor_falls_back_to_the_main_screen(make_window, screen):
     window = make_window(position=(5000, 5000))
 
@@ -168,11 +177,12 @@ def test_menu_can_make_the_dog_sit(make_window, qtbot):
     assert window.sitting
 
 
-def test_menu_can_turn_the_dog_around(make_window):
+def test_menu_can_turn_the_dog_around(make_window, qtbot):
     window = make_window()
     before = window.grab().toImage()
 
-    trigger(window, "Turn around")
+    with qtbot.waitSignal(window.state_changed):
+        trigger(window, "Turn around")
 
     assert window.facing is Facing.LEFT
     assert window.grab().toImage() == before.flipped(Qt.Orientation.Horizontal)

@@ -2,6 +2,7 @@ import json
 
 import pytest
 
+from virtual_pet.behavior import Facing
 from virtual_pet.config import Config, ConfigStore, normalize_name
 
 
@@ -11,7 +12,12 @@ def test_first_run_has_no_pet_name_yet(tmp_path):
     config = store.load()
 
     assert config == Config(
-        pet_name=None, species="dog", position=None, sitting=False, language=None
+        pet_name=None,
+        species="dog",
+        position=None,
+        sitting=False,
+        facing=Facing.RIGHT,
+        language=None,
     )
 
 
@@ -19,7 +25,12 @@ def test_saved_config_is_loaded_back(tmp_path):
     store = ConfigStore(tmp_path / "virtual-pet" / "config.json")
 
     saved = Config(
-        pet_name="Mimi", species="cat", position=(120, -40), sitting=True, language="pt_BR"
+        pet_name="Mimi",
+        species="cat",
+        position=(120, -40),
+        sitting=True,
+        facing=Facing.LEFT,
+        language="pt_BR",
     )
 
     store.save(saved)
@@ -44,6 +55,7 @@ def test_invalid_values_are_dropped_and_valid_ones_kept(tmp_path):
                 "species": 42,
                 "position": {"x": "10", "y": True},
                 "sitting": "yes",
+                "facing": "up",
                 "language": ["pt_BR"],
             }
         ),
@@ -51,7 +63,12 @@ def test_invalid_values_are_dropped_and_valid_ones_kept(tmp_path):
     )
 
     assert ConfigStore(path).load() == Config(
-        pet_name="Rex", species="dog", position=None, sitting=False, language=None
+        pet_name="Rex",
+        species="dog",
+        position=None,
+        sitting=False,
+        facing=Facing.RIGHT,
+        language=None,
     )
 
 
@@ -97,3 +114,10 @@ def test_settings_from_before_there_was_a_choice_of_language_follow_the_system(t
     path.write_text(json.dumps({"pet_name": "Rex", "species": "cat"}), encoding="utf-8")
 
     assert ConfigStore(path).load().language is None
+
+
+def test_settings_from_before_the_pet_could_turn_face_right(tmp_path):
+    path = tmp_path / "config.json"
+    path.write_text(json.dumps({"pet_name": "Rex", "sitting": True}), encoding="utf-8")
+
+    assert ConfigStore(path).load().facing is Facing.RIGHT

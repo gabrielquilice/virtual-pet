@@ -25,8 +25,8 @@ and goes wherever you drag it, but never off the screen.
 On the first run you choose your pet and give it a name. Settings let you rename it or
 swap it for another kind of pet. There is only ever one pet on the screen: choosing a
 new one replaces the current one, in the same spot. The pet remembers which animal it
-is, its name, where you left it and whether it was sitting. Opening the app while it runs
-starts no second pet: the running one shows itself instead.
+is, its name, where you left it, whether it was sitting and which way it was facing.
+Opening the app while it runs starts no second pet: the running one shows itself instead.
 
 The pet speaks English and Brazilian Portuguese, in which the app is called Pet Virtual.
 It follows your desktop's language (English if it doesn't speak it), unless you choose a

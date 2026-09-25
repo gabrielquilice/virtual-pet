@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TypeGuard
 
+from virtual_pet.behavior import Facing
+
 MAX_NAME_LENGTH = 24
 DEFAULT_SPECIES = "dog"  # also what settings saved before other pets existed get
 
@@ -22,6 +24,7 @@ class Config:
     species: str = DEFAULT_SPECIES
     position: tuple[int, int] | None = None
     sitting: bool = False
+    facing: Facing = Facing.RIGHT
     language: str | None = None  # of the interface; None follows the system's language
 
 
@@ -54,6 +57,7 @@ class ConfigStore:
             species=species if isinstance(species, str) and species else DEFAULT_SPECIES,
             position=_position_from_json(data.get("position")),
             sitting=data.get("sitting") is True,
+            facing=Facing.LEFT if data.get("facing") == "left" else Facing.RIGHT,
             language=language if isinstance(language, str) and language else None,
         )
 
@@ -65,6 +69,7 @@ class ConfigStore:
             "species": config.species,
             "position": None if position is None else {"x": position[0], "y": position[1]},
             "sitting": config.sitting,
+            "facing": config.facing.name.lower(),
             "language": config.language,
         }
         self.path.parent.mkdir(parents=True, exist_ok=True)
