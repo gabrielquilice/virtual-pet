@@ -5,6 +5,7 @@ from PySide6.QtCore import QPoint, QRect, Qt
 from PySide6.QtGui import QTextDocumentFragment
 
 from virtual_pet import i18n
+from virtual_pet.behavior import Facing
 from virtual_pet.pet_window import PetWindow
 from virtual_pet.pets import CAT, COCKATIEL, DOG, FISH, PARAKEET, RABBIT, SNAKE, TURTLE
 
@@ -149,7 +150,7 @@ def test_names_are_shown_exactly_as_typed(make_window, name):
 def test_menu_shows_the_name_and_what_the_dog_can_do(make_window):
     window = make_window()
 
-    assert menu_texts(window) == ["Rex", "Sit", "Hide", "Settings…", "Quit"]
+    assert menu_texts(window) == ["Rex", "Sit", "Turn around", "Hide", "Settings…", "Quit"]
 
 
 def test_menu_offers_a_walk_to_a_sitting_dog(make_window):
@@ -165,6 +166,16 @@ def test_menu_can_make_the_dog_sit(make_window, qtbot):
         trigger(window, "Sit")
 
     assert window.sitting
+
+
+def test_menu_can_turn_the_dog_around(make_window):
+    window = make_window()
+    before = window.grab().toImage()
+
+    trigger(window, "Turn around")
+
+    assert window.facing is Facing.LEFT
+    assert window.grab().toImage() == before.flipped(Qt.Orientation.Horizontal)
 
 
 @pytest.mark.parametrize(
@@ -214,7 +225,7 @@ def test_menu_offers_a_swim_to_a_sitting_swimmer(make_window, swimmer):
 def test_menu_offers_to_coil_up_a_roaming_snake(make_window):
     window = make_window(species=SNAKE)
 
-    assert menu_texts(window) == ["Rex", "Coil up", "Hide", "Settings…", "Quit"]
+    assert menu_texts(window) == ["Rex", "Coil up", "Turn around", "Hide", "Settings…", "Quit"]
 
 
 def test_menu_offers_a_slither_to_a_coiled_snake(make_window):
@@ -236,6 +247,6 @@ def test_the_menu_speaks_portuguese(make_window):
     coiled = menu_texts(make_window(species=SNAKE, sitting=True))
     sitting_rabbit = menu_texts(make_window(species=RABBIT, sitting=True))
 
-    assert roaming == ["Rex", "Enrolar-se", "Ocultar", "Configurações…", "Sair"]
+    assert roaming == ["Rex", "Enrolar-se", "Virar", "Ocultar", "Configurações…", "Sair"]
     assert coiled[1] == "Rastejar"
     assert sitting_rabbit[1] == "Saltitar"

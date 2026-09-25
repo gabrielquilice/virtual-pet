@@ -32,8 +32,8 @@ class PetWindow(QWidget):
     """Shows the pet above every other window and lets the user play with it.
 
     Left click: sit down / get up. Left drag: carry the pet somewhere else.
-    Right click: menu with the pet's name, sit/walk (or fly, swim, coil up/slither), hide,
-    settings and quit.
+    Right click: menu with the pet's name, sit/walk (or fly, swim, coil up/slither), turn
+    around, hide, settings and quit.
     """
 
     state_changed = Signal()  # the user moved the pet or made it sit/get up
@@ -96,6 +96,11 @@ class PetWindow(QWidget):
         return self._behavior.sitting
 
     @property
+    def facing(self) -> Facing:
+        """Which way the pet looks."""
+        return self._behavior.facing
+
+    @property
     def species(self) -> Species:
         return self._species
 
@@ -124,6 +129,7 @@ class PetWindow(QWidget):
         toggle_text = self._species.roam_label if self.sitting else self._species.sit_label
         toggle_text = QCoreApplication.translate("PetWindow", toggle_text)
         menu.addAction(toggle_text).triggered.connect(self._toggle_sitting)
+        menu.addAction(self.tr("Turn around")).triggered.connect(self._turn_around)
         menu.addAction(self.tr("Hide")).triggered.connect(self.hide_requested)
         menu.addAction(self.tr("Settings…")).triggered.connect(self.settings_requested)
         menu.addSeparator()
@@ -213,6 +219,10 @@ class PetWindow(QWidget):
         self._behavior.toggle_sitting()
         self._sync()
         self.state_changed.emit()
+
+    def _turn_around(self) -> None:
+        self._behavior.turn_around()
+        self._sync()
 
     def _on_timer(self) -> None:
         now = time.monotonic()

@@ -230,3 +230,106 @@ def test_a_new_gait_applies_to_the_ongoing_stroll():
         pet.tick(0.1)
 
     assert math.dist(before, pet.position) == pytest.approx(40.0)
+
+
+def walk_to_the_end_of_the_stroll(pet: PetBehavior) -> None:
+    for _ in range(1000):
+        if pet.activity is not Activity.WALKING:
+            return
+        pet.tick(0.05)
+    pytest.fail("the pet never stopped walking")
+
+
+def test_turned_standing_pet_faces_the_other_way_and_back():
+    pet = PetBehavior(SCREEN, (500, 300), rng=random.Random(16))
+
+    pet.turn_around()
+    turned = pet.facing
+    pet.turn_around()
+
+    assert (turned, pet.facing) == (Facing.LEFT, Facing.RIGHT)
+    assert (pet.activity, pet.position) == (Activity.STANDING, (500, 300))
+
+
+def test_sitting_pet_turns_where_it_sits():
+    pet = PetBehavior(SCREEN, (300, 200), sitting=True, rng=random.Random(17))
+
+    pet.turn_around()
+    run(pet, 30)
+
+    assert (pet.activity, pet.facing, pet.position) == (Activity.SITTING, Facing.LEFT, (300, 200))
+
+
+def test_turned_walking_pet_takes_the_rest_of_its_stroll_the_other_way():
+    turned, twin = (PetBehavior(SCREEN, (500, 300), rng=random.Random(18)) for _ in range(2))
+    for pet in (turned, twin):
+        start_walking(pet)
+        run(pet, 0.5)
+    facing, (x, _) = turned.facing, turned.position
+
+    turned.turn_around()
+    walk_to_the_end_of_the_stroll(turned)
+    walk_to_the_end_of_the_stroll(twin)  # where the stroll would have ended
+
+    assert turned.facing is not facing
+    assert turned.position == pytest.approx((2 * x - twin.position[0], twin.position[1]))
+
+
+def slope(start: tuple[float, float], end: tuple[float, float]) -> float:
+    return abs((end[1] - start[1]) / (end[0] - start[0]))
+
+
+def test_pet_turned_toward_a_close_wall_walks_up_to_it_at_the_same_slope():
+    pet = PetBehavior(SCREEN, (0, 300), rng=random.Random(19))
+    start_walking(pet)  # away from the wall behind it
+    start = pet.position
+    run(pet, 0.5)
+    turned_at = pet.position
+
+    pet.turn_around()
+    walk_to_the_end_of_the_stroll(pet)
+
+    assert (pet.position[0], pet.facing) == (SCREEN.left, Facing.LEFT)
+    assert slope(turned_at, pet.position) == pytest.approx(slope(start, turned_at))
+
+
+def test_pet_turned_against_a_wall_stops_to_face_it():
+    pet = PetBehavior(SCREEN, (0, 300), rng=random.Random(20))
+    start_walking(pet)  # away from the wall behind it
+
+    pet.turn_around()
+
+    assert (pet.activity, pet.facing, pet.position) == (Activity.STANDING, Facing.LEFT, (0, 300))
+
+
+def test_pet_strolling_straight_up_or_down_keeps_going_when_turned():
+    column = Area(left=100, top=0, right=100, bottom=600)  # no wider than the pet's window
+    turned, twin = (PetBehavior(column, (100, 300), rng=random.Random(21)) for _ in range(2))
+    for pet in (turned, twin):
+        start_walking(pet)
+    facing = turned.facing
+
+    turned.turn_around()
+    walk_to_the_end_of_the_stroll(turned)
+    walk_to_the_end_of_the_stroll(twin)
+
+    assert turned.facing is not facing
+    assert turned.position == twin.position != (100, 300)
+
+
+@given(
+    seed=st.integers(0, 2**32),
+    width=st.integers(0, 1920),
+    height=st.integers(0, 1080),
+    start=st.tuples(st.floats(-5000, 5000), st.floats(-5000, 5000)),
+    steps=st.lists(st.tuples(st.floats(0, 0.5), st.booleans()), max_size=300),
+)
+def test_turning_never_takes_the_pet_off_its_area(seed, width, height, start, steps):
+    area = Area(left=100, top=50, right=100 + width, bottom=50 + height)
+    pet = PetBehavior(area, start, rng=random.Random(seed))
+
+    for seconds, turn in steps:
+        if turn:
+            pet.turn_around()
+        pet.tick(seconds)
+        assert_inside(pet, area)

@@ -17,7 +17,8 @@ and goes wherever you drag it, but never off the screen.
 | Leave it alone | It moves around the screen, resting now and then. The dog, the cat, the guinea pig, the penguin, the fox and the wolf walk, the maritaca and the cockatiel fly, the sea turtle and the fish swim (they float while they rest), the snake slithers and the rabbit hops. |
 | Left click | It sits and stays put (the guinea pig lies down, the sea turtle and the fish rest on the bottom, the snake coils up, and the wolf howls now and then). Click again and it goes back to roaming. |
 | Drag | You carry it anywhere on the screen (including another monitor). |
-| Right click | Menu: its name, Sit/Walk (Sit/Fly for the maritaca and the cockatiel, Sit/Swim for the sea turtle and the fish, Coil up/Slither for the snake, Sit/Hop for the rabbit), Hide, Settings… and Quit. |
+| Right click | Menu: its name, Sit/Walk (Sit/Fly for the maritaca and the cockatiel, Sit/Swim for the sea turtle and the fish, Coil up/Slither for the snake, Sit/Hop for the rabbit), Turn around, Hide, Settings… and Quit. |
+| Turn around (in the menu) | It faces the other way. If it was on the move, it heads that way instead. |
 | Hide (in the menu) | It leaves the screen and waits in the system tray: click the paw print there to bring it back, where you left it. On desktops without a tray (GNOME without the AppIndicator extension, for example), open the app again instead. |
 | Hover | Shows its name. |
 
@@ -111,7 +112,7 @@ uv run ty check src/       # type check
 ```
 src/virtual_pet/
 ├── app.py          # entry point: Qt setup, first run, single instance, saving
-├── behavior.py     # the pet's brain: roaming, resting, sitting, being carried (no Qt)
+├── behavior.py     # the pet's brain: roaming, resting, sitting, turning, being carried (no Qt)
 ├── config.py       # settings file (JSON) loading and saving
 ├── dialogs.py      # dialogs used to adopt a pet and to change it (and the language) later
 ├── i18n.py         # the interface in the user's language

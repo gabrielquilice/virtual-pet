@@ -57,7 +57,7 @@ class Area:
 
 
 class PetBehavior:
-    """State machine of a pet that strolls around, sits on command and can be carried."""
+    """State machine of a pet that strolls around, sits or turns on command and can be carried."""
 
     def __init__(
         self,
@@ -117,8 +117,7 @@ class PetBehavior:
         step = self._gait.speed * seconds
         if distance <= step:
             self._x, self._y = target
-            self._target = None
-            self._rest_left = self._rng.uniform(*REST_TIME)
+            self._end_stroll()
         else:
             self._x += dx / distance * step
             self._y += dy / distance * step
@@ -128,6 +127,29 @@ class PetBehavior:
         self._sitting = not self._sitting
         self._target = None
         self._rest_left = 0.0  # when getting up, go for a stroll immediately
+
+    def turn_around(self) -> None:
+        """Face the other way; a walking pet takes the rest of its stroll that way.
+
+        The stroll is mirrored, so it keeps its slope. A wall in the way ends it early, and at
+        once if the pet is against that wall: then it only turns to face it.
+        """
+        self._facing = Facing.LEFT if self._facing is Facing.RIGHT else Facing.RIGHT
+        if self._target is None:
+            return
+        target_x, target_y = self._target
+        dx = target_x - self._x
+        if dx == 0:  # a stroll straight up or down, in an area no wider than the window
+            return
+        wall = self._area.left if dx > 0 else self._area.right
+        room = abs(wall - self._x)
+        if room == 0:
+            self._end_stroll()
+        elif room < abs(dx):
+            rise = (target_y - self._y) * room / abs(dx)
+            self._target = self._area.clamp(wall, self._y + rise)
+        else:
+            self._target = self._area.clamp(self._x - dx, target_y)
 
     def pick_up(self) -> None:
         """The user grabbed the pet."""
@@ -153,6 +175,11 @@ class PetBehavior:
     def set_gait(self, gait: Gait) -> None:
         """Move the way another kind of pet does, from now on."""
         self._gait = gait
+
+    def _end_stroll(self) -> None:
+        """Stop walking and rest a while before the next stroll."""
+        self._target = None
+        self._rest_left = self._rng.uniform(*REST_TIME)
 
     def _start_stroll(self) -> None:
         gait = self._gait

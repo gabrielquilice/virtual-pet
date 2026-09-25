@@ -205,7 +205,14 @@ def test_choosing_a_language_in_settings_translates_the_menu_and_is_remembered(
     controller.window.settings_requested.emit()
 
     menu = [action.text() for action in controller.window.context_menu().actions()]
-    assert [text for text in menu if text] == ["Rex", "Sentar", "Ocultar", "Configurações…", "Sair"]
+    assert [text for text in menu if text] == [
+        "Rex",
+        "Sentar",
+        "Virar",
+        "Ocultar",
+        "Configurações…",
+        "Sair",
+    ]
     assert store.load().language == "pt_BR"
 
 
