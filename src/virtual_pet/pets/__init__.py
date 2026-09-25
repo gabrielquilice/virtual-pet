@@ -3,6 +3,7 @@
 import logging
 
 from virtual_pet.pets.cat import CAT
+from virtual_pet.pets.cockatiel import COCKATIEL
 from virtual_pet.pets.dog import DOG
 from virtual_pet.pets.fish import FISH
 from virtual_pet.pets.guinea_pig import GUINEA_PIG
@@ -13,7 +14,7 @@ from virtual_pet.pets.snake import SNAKE
 from virtual_pet.pets.turtle import TURTLE
 from virtual_pet.species import Species
 
-ALL_SPECIES = (DOG, CAT, PARAKEET, TURTLE, FISH, GUINEA_PIG, PENGUIN, SNAKE, RABBIT)
+ALL_SPECIES = (DOG, CAT, PARAKEET, TURTLE, FISH, GUINEA_PIG, PENGUIN, SNAKE, RABBIT, COCKATIEL)
 
 logger = logging.getLogger(__name__)
 

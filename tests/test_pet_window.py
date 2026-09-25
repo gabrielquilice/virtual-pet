@@ -6,7 +6,7 @@ from PySide6.QtGui import QTextDocumentFragment
 
 from virtual_pet import i18n
 from virtual_pet.pet_window import PetWindow
-from virtual_pet.pets import CAT, DOG, FISH, PARAKEET, RABBIT, SNAKE, TURTLE
+from virtual_pet.pets import CAT, COCKATIEL, DOG, FISH, PARAKEET, RABBIT, SNAKE, TURTLE
 
 LEFT = Qt.MouseButton.LeftButton
 BODY = QPoint(46, 46)  # a point on the dog's body, in window coordinates
@@ -197,8 +197,9 @@ def test_swapped_pet_shows_up_in_its_own_colors(make_window):
     assert image.pixelColor(x * 3 + 1, y * 3 + 1).name() == "#4cae4f"  # green feathers
 
 
-def test_menu_offers_a_flight_to_a_sitting_maritaca(make_window):
-    window = make_window(species=PARAKEET, sitting=True)
+@pytest.mark.parametrize("flyer", [PARAKEET, COCKATIEL], ids=lambda species: species.key)
+def test_menu_offers_a_flight_to_a_sitting_bird(make_window, flyer):
+    window = make_window(species=flyer, sitting=True)
 
     assert "Fly" in menu_texts(window)
 

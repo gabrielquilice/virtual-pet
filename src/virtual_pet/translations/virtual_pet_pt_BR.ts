@@ -160,5 +160,9 @@ Escolha seu pet e dê um nome a ele.</translation>
         <source>Rabbit</source>
         <translation>Coelho</translation>
     </message>
+    <message>
+        <source>Cockatiel</source>
+        <translation>Calopsita</translation>
+    </message>
 </context>
 </TS>

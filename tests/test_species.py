@@ -5,6 +5,7 @@ from virtual_pet.behavior import Activity
 from virtual_pet.pets import (
     ALL_SPECIES,
     CAT,
+    COCKATIEL,
     DOG,
     FISH,
     GUINEA_PIG,
@@ -58,11 +59,23 @@ def test_the_pets_to_choose_from_and_their_names():
         ("penguin", "Penguin"),
         ("snake", "Snake"),
         ("rabbit", "Rabbit"),
+        ("cockatiel", "Cockatiel"),
     ]
 
 
 def test_pets_are_found_by_the_key_saved_in_the_settings():
-    keys = ("dog", "cat", "parakeet", "turtle", "fish", "guinea_pig", "penguin", "snake", "rabbit")
+    keys = [
+        "dog",
+        "cat",
+        "parakeet",
+        "turtle",
+        "fish",
+        "guinea_pig",
+        "penguin",
+        "snake",
+        "rabbit",
+        "cockatiel",
+    ]
 
     assert [species_by_key(key) for key in keys] == [
         DOG,
@@ -74,6 +87,7 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         PENGUIN,
         SNAKE,
         RABBIT,
+        COCKATIEL,
     ]
 
 
@@ -92,11 +106,12 @@ def test_each_pet_roams_its_own_way():
         "Walk",
         "Slither",
         "Hop",
+        "Fly",
     ]
 
 
 def test_the_snake_coils_up_where_the_others_sit():
-    assert [pet.sit_label for pet in ALL_SPECIES] == [*["Sit"] * 7, "Coil up", "Sit"]
+    assert [pet.sit_label for pet in ALL_SPECIES] == [*["Sit"] * 7, "Coil up", "Sit", "Sit"]
 
 
 def test_every_activity_has_an_animation(species):
@@ -125,8 +140,9 @@ def test_poses_on_the_ground_stand_on_the_ground_line(species):
     assert ground_lines == {GROUND_LINE}
 
 
-def test_flying_lifts_the_maritaca_off_the_ground():
-    flying = PARAKEET.animations[Activity.WALKING].frames
+@pytest.mark.parametrize("flyer", [PARAKEET, COCKATIEL], ids=lambda species: species.key)
+def test_flying_lifts_birds_off_the_ground(flyer):
+    flying = flyer.animations[Activity.WALKING].frames
 
     assert all(lowest_visible_row(frame) < GROUND_LINE for frame in flying)
 
@@ -154,7 +170,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
         pet.image(pet.portrait).pixelColor(*find(pet.portrait, "B")).name() for pet in ALL_SPECIES
     ]
 
-    # tan, gray, green, sage, blue, ginger, white, emerald, warm white
+    # tan, gray, green, sage, blue, ginger, white, emerald, warm white, yellow
     assert body_colors == [
         "#dc9a57",
         "#a3a8b0",
@@ -165,6 +181,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
         "#f6f6f1",
         "#23a45a",
         "#f2eee6",
+        "#f7d64a",
     ]
 
 
