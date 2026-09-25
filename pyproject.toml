@@ -1,6 +1,6 @@
 [project]
 name = "virtual-pet"
-version = "0.3.0"
+version = "0.4.0"
 description = "A little pixel-art pet that lives on your desktop."
 readme = "README.md"
 license = "GPL-3.0-only"
