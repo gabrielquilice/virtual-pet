@@ -11,6 +11,7 @@ from virtual_pet.pets.guinea_pig import GUINEA_PIG
 from virtual_pet.pets.parakeet import PARAKEET
 from virtual_pet.pets.penguin import PENGUIN
 from virtual_pet.pets.rabbit import RABBIT
+from virtual_pet.pets.snail import SNAIL
 from virtual_pet.pets.snake import SNAKE
 from virtual_pet.pets.turtle import TURTLE
 from virtual_pet.pets.wolf import WOLF
@@ -29,6 +30,7 @@ ALL_SPECIES = (
     COCKATIEL,
     FOX,
     WOLF,
+    SNAIL,
 )
 
 logger = logging.getLogger(__name__)

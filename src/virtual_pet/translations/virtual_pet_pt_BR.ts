@@ -95,12 +95,20 @@ Escolha seu pet e dê um nome a ele.</translation>
         <translation>Saltitar</translation>
     </message>
     <message>
+        <source>Crawl</source>
+        <translation>Rastejar</translation>
+    </message>
+    <message>
         <source>Sit</source>
         <translation>Sentar</translation>
     </message>
     <message>
         <source>Coil up</source>
         <translation>Enrolar-se</translation>
+    </message>
+    <message>
+        <source>Retreat into shell</source>
+        <translation>Entrar na concha</translation>
     </message>
 </context>
 <context>
@@ -175,6 +183,10 @@ Escolha seu pet e dê um nome a ele.</translation>
     <message>
         <source>Wolf</source>
         <translation>Lobo</translation>
+    </message>
+    <message>
+        <source>Snail</source>
+        <translation>Caracol</translation>
     </message>
 </context>
 </TS>

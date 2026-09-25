@@ -16,6 +16,7 @@ from virtual_pet.pets import (
     PARAKEET,
     PENGUIN,
     RABBIT,
+    SNAIL,
     SNAKE,
     TURTLE,
     WOLF,
@@ -30,6 +31,7 @@ GROUNDED = {  # the poses drawn on the ground line
     Locomotion.SWIM: {Activity.SITTING},  # it floats, unless told to rest on the bottom
     Locomotion.SLITHER: {Activity.STANDING, Activity.WALKING, Activity.SITTING},
     Locomotion.HOP: {Activity.STANDING, Activity.WALKING, Activity.SITTING},  # a foot stays down
+    Locomotion.CRAWL: {Activity.STANDING, Activity.WALKING, Activity.SITTING},
 }
 README = Path(__file__).resolve().parent.parent / "README.md"
 PICTURES = README.parent / "docs" / "pets"  # the pets table's pictures, one per pet
@@ -70,6 +72,7 @@ def test_the_pets_to_choose_from_and_their_names():
         ("cockatiel", "Cockatiel"),
         ("fox", "Fox"),
         ("wolf", "Wolf"),
+        ("snail", "Snail"),
     ]
 
 
@@ -87,6 +90,7 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         "cockatiel",
         "fox",
         "wolf",
+        "snail",
     ]
 
     assert [species_by_key(key) for key in keys] == [
@@ -102,6 +106,7 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         COCKATIEL,
         FOX,
         WOLF,
+        SNAIL,
     ]
 
 
@@ -123,11 +128,17 @@ def test_each_pet_roams_its_own_way():
         "Fly",
         "Walk",
         "Walk",
+        "Crawl",
     ]
 
 
-def test_the_snake_coils_up_where_the_others_sit():
-    assert [pet.sit_label for pet in ALL_SPECIES] == [*["Sit"] * 7, "Coil up", *["Sit"] * 4]
+def test_the_snake_coils_up_and_the_snail_retreats_where_the_others_sit():
+    assert [pet.sit_label for pet in ALL_SPECIES] == [
+        *["Sit"] * 7,
+        "Coil up",
+        *["Sit"] * 4,
+        "Retreat into shell",
+    ]
 
 
 def test_every_activity_has_an_animation(species):
@@ -187,7 +198,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
     ]
 
     # tan, gray, green, sage, blue, ginger, white, emerald, warm white, yellow, red-orange,
-    # warm gray
+    # warm gray, grayish beige
     assert body_colors == [
         "#dc9a57",
         "#a3a8b0",
@@ -201,6 +212,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
         "#f7d64a",
         "#e2632f",
         "#988f85",
+        "#cdbfa6",
     ]
 
 

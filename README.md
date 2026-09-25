@@ -24,15 +24,16 @@ you click it and goes wherever you drag it, but never off the screen.
 | <img src="docs/pets/cockatiel.png" width="96" height="81" alt="The cockatiel"> | Cockatiel | Calopsita | Flies | Fluffs up on the ground, crest down |
 | <img src="docs/pets/fox.png" width="96" height="81" alt="The fox"> | Fox | Raposa | Walks | Sits with its tail around its paws |
 | <img src="docs/pets/wolf.png" width="96" height="81" alt="The wolf"> | Wolf | Lobo | Walks | Sits, and howls now and then |
+| <img src="docs/pets/snail.png" width="96" height="81" alt="The snail"> | Snail (a garden snail) | Caracol | Crawls | Retreats into its shell |
 
 ## How to play
 
 | Action | What happens |
 | --- | --- |
-| Leave it alone | It moves around the screen, resting now and then: it walks, flies, swims, slithers or hops, depending on the pet (see [The pets](#the-pets)). |
+| Leave it alone | It moves around the screen, resting now and then: it walks, flies, swims, slithers, crawls or hops, depending on the pet (see [The pets](#the-pets)). |
 | Left click | It sits and stays put, in its own way. Click again and it goes back to roaming. |
 | Drag | You carry it anywhere on the screen (including another monitor). |
-| Right click | Menu: its name, Sit (Coil up for the snake) or, if it sits, the way it roams (Walk, Fly, Swim, Slither or Hop), Turn around, Hide, Settings… and Quit. |
+| Right click | Menu: its name, Sit (Coil up for the snake, Retreat into shell for the snail) or, if it sits, the way it roams (Walk, Fly, Swim, Slither, Crawl or Hop), Turn around, Hide, Settings… and Quit. |
 | Turn around (in the menu) | It faces the other way. If it was on the move, it heads that way instead. |
 | Hide (in the menu) | It leaves the screen and waits in the system tray: click the paw print there to bring it back, where you left it. On desktops without a tray (GNOME without the AppIndicator extension, for example), open the app again instead. |
 | Hover | Shows its name. |
@@ -151,7 +152,8 @@ src/virtual_pet/
     ├── rabbit.py   # a white bunny that hops
     ├── cockatiel.py # gray, with a yellow crest
     ├── fox.py      # a red fox
-    └── wolf.py     # a gray wolf that howls
+    ├── wolf.py     # a gray wolf that howls
+    └── snail.py    # a garden snail
 appimage/
 ├── build.py            # builds the AppImage (see below)
 ├── virtual-pet.spec    # PyInstaller: what goes into the bundle

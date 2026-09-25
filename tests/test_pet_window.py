@@ -7,7 +7,7 @@ from PySide6.QtGui import QTextDocumentFragment
 from virtual_pet import i18n
 from virtual_pet.behavior import Facing
 from virtual_pet.pet_window import PetWindow
-from virtual_pet.pets import CAT, COCKATIEL, DOG, FISH, PARAKEET, RABBIT, SNAKE, TURTLE
+from virtual_pet.pets import CAT, COCKATIEL, DOG, FISH, PARAKEET, RABBIT, SNAIL, SNAKE, TURTLE
 
 LEFT = Qt.MouseButton.LeftButton
 BODY = QPoint(46, 46)  # a point on the dog's body, in window coordinates
@@ -250,13 +250,36 @@ def test_menu_offers_a_hop_to_a_sitting_rabbit(make_window):
     assert "Hop" in menu_texts(window)
 
 
+def test_menu_offers_a_roaming_snail_to_retreat_into_its_shell(make_window):
+    window = make_window(species=SNAIL)
+
+    assert menu_texts(window) == [
+        "Rex",
+        "Retreat into shell",
+        "Turn around",
+        "Hide",
+        "Settings…",
+        "Quit",
+    ]
+
+
+def test_menu_offers_a_crawl_to_a_snail_in_its_shell(make_window):
+    window = make_window(species=SNAIL, sitting=True)
+
+    assert "Crawl" in menu_texts(window)
+
+
 def test_the_menu_speaks_portuguese(make_window):
     i18n.use_language("pt_BR")
 
     roaming = menu_texts(make_window(species=SNAKE))
     coiled = menu_texts(make_window(species=SNAKE, sitting=True))
     sitting_rabbit = menu_texts(make_window(species=RABBIT, sitting=True))
+    roaming_snail = menu_texts(make_window(species=SNAIL))
+    snail_in_its_shell = menu_texts(make_window(species=SNAIL, sitting=True))
 
     assert roaming == ["Rex", "Enrolar-se", "Virar", "Ocultar", "Configurações…", "Sair"]
     assert coiled[1] == "Rastejar"
     assert sitting_rabbit[1] == "Saltitar"
+    assert roaming_snail[1] == "Entrar na concha"
+    assert snail_in_its_shell[1] == "Rastejar"
