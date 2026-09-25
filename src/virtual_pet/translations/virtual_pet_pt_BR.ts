@@ -168,5 +168,9 @@ Escolha seu pet e dê um nome a ele.</translation>
         <source>Fox</source>
         <translation>Raposa</translation>
     </message>
+    <message>
+        <source>Wolf</source>
+        <translation>Lobo</translation>
+    </message>
 </context>
 </TS>

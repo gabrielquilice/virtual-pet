@@ -47,6 +47,7 @@ def test_every_pet_is_offered_with_the_dog_preselected(dialog):
         ("Rabbit", False),
         ("Cockatiel", False),
         ("Fox", False),
+        ("Wolf", False),
     ]
 
 
@@ -59,7 +60,7 @@ def test_pets_are_offered_in_rows_of_four(dialog):
     assert list(rows.values()) == [
         ["Dog", "Cat", "Maritaca", "Sea Turtle"],
         ["Fish", "Guinea Pig", "Penguin", "Snake"],
-        ["Rabbit", "Cockatiel", "Fox"],
+        ["Rabbit", "Cockatiel", "Fox", "Wolf"],
     ]
 
 
@@ -199,6 +200,7 @@ def test_the_settings_speak_portuguese(qtbot):
         "Coelho",
         "Calopsita",
         "Raposa",
+        "Lobo",
     ]
     assert {"&Nome:", "&Idioma:"} <= {label.text() for label in dialog.findChildren(QLabel)}
     assert [button.text() for button in buttons.buttons()] == ["Salvar", "Cancelar"]
