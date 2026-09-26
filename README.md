@@ -54,9 +54,8 @@ language in Settings.
 - On Wayland, XWayland must be available (it is by default on KDE Plasma and GNOME).
 - From source only: Python 3.12+ and [uv](https://docs.astral.sh/uv/). Debian/Ubuntu
   also need `libxcb-cursor0` for Qt's X11 backend.
-- Windows (experimental): 64-bit Windows 10 version 1903 or newer, or Windows 11. The
-  Windows build is only tested under Wine, never on Windows itself (see
-  [Building for Windows](#building-for-windows)).
+- Windows: 64-bit Windows 11, where the Windows build was tried on several PCs. Windows 10
+  version 1903 or newer should work too, but hasn't been tried.
 
 ## Running
 
@@ -89,7 +88,7 @@ uv tool install .
 Only one copy of the app runs at a time. Quit it from the pet's right-click menu (or
 with Ctrl+C when started from a terminal).
 
-### On Windows (experimental)
+### On Windows
 
 The Windows build is a zip (see [Building for Windows](#building-for-windows)) with a
 `VirtualPet` folder: unzip it anywhere and run `VirtualPet.exe` in it. The program isn't
@@ -248,7 +247,7 @@ Qt asks Windows for its ICU library (`icuuc.dll`, part of Windows since 10 versi
 which Wine lacks, so the build's Wine prefix gets a stub of it whose functions do nothing.
 Qt only uses them for text encodings the pet never needs, and the stub never goes into the
 bundle. Wine isn't Windows, though: the test shows that the bundle is complete, not how
-the pet behaves on a Windows desktop.
+the pet behaves on a Windows desktop, which only trying it on Windows tells.
 
 ### Releasing
 
