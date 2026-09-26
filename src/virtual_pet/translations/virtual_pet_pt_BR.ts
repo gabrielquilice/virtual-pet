@@ -188,5 +188,9 @@ Escolha seu pet e dê um nome a ele.</translation>
         <source>Snail</source>
         <translation>Caracol</translation>
     </message>
+    <message>
+        <source>Frog</source>
+        <translation>Sapo</translation>
+    </message>
 </context>
 </TS>

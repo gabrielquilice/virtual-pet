@@ -12,6 +12,7 @@ from virtual_pet.pets import (
     DOG,
     FISH,
     FOX,
+    FROG,
     GUINEA_PIG,
     PARAKEET,
     PENGUIN,
@@ -73,6 +74,7 @@ def test_the_pets_to_choose_from_and_their_names():
         ("fox", "Fox"),
         ("wolf", "Wolf"),
         ("snail", "Snail"),
+        ("frog", "Frog"),
     ]
 
 
@@ -91,6 +93,7 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         "fox",
         "wolf",
         "snail",
+        "frog",
     ]
 
     assert [species_by_key(key) for key in keys] == [
@@ -107,6 +110,7 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         FOX,
         WOLF,
         SNAIL,
+        FROG,
     ]
 
 
@@ -129,6 +133,7 @@ def test_each_pet_roams_its_own_way():
         "Walk",
         "Walk",
         "Crawl",
+        "Hop",
     ]
 
 
@@ -138,6 +143,7 @@ def test_the_snake_coils_up_and_the_snail_retreats_where_the_others_sit():
         "Coil up",
         *["Sit"] * 4,
         "Retreat into shell",
+        "Sit",
     ]
 
 
@@ -198,7 +204,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
     ]
 
     # tan, gray, green, sage, blue, ginger, white, emerald, warm white, yellow, red-orange,
-    # warm gray, grayish beige
+    # warm gray, grayish beige, leaf green
     assert body_colors == [
         "#dc9a57",
         "#a3a8b0",
@@ -213,6 +219,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
         "#e2632f",
         "#988f85",
         "#cdbfa6",
+        "#8fca3c",
     ]
 
 

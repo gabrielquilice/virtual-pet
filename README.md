@@ -25,6 +25,7 @@ you click it and goes wherever you drag it, but never off the screen.
 | <img src="docs/pets/fox.png" width="96" height="81" alt="The fox"> | Fox | Raposa | Walks | Sits with its tail around its paws |
 | <img src="docs/pets/wolf.png" width="96" height="81" alt="The wolf"> | Wolf | Lobo | Walks | Sits, and howls now and then |
 | <img src="docs/pets/snail.png" width="96" height="81" alt="The snail"> | Snail (a garden snail) | Caracol | Crawls | Retreats into its shell |
+| <img src="docs/pets/frog.png" width="96" height="81" alt="The frog"> | Frog | Sapo | Hops | Sits, and croaks now and then |
 
 ## How to play
 
@@ -152,7 +153,8 @@ src/virtual_pet/
     ├── cockatiel.py # gray, with a yellow crest
     ├── fox.py      # a red fox
     ├── wolf.py     # a gray wolf that howls
-    └── snail.py    # a garden snail
+    ├── snail.py    # a garden snail
+    └── frog.py     # a green frog that croaks
 appimage/
 ├── build.py            # builds the AppImage (see below)
 ├── virtual-pet.spec    # PyInstaller: what goes into the bundle
