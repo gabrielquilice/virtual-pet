@@ -52,6 +52,36 @@ def test_roaming_pet_pauses_between_strolls():
     assert longest_rest >= 1.0
 
 
+def rests_between_strolls(pet: PetBehavior, strolls: int) -> list[float]:
+    """How long the pet stands still after each of its next strolls."""
+    rests: list[float] = []
+    rest = None  # seconds since the last stroll ended
+    was_walking = False
+    for _ in range(100_000):
+        walking = pet.activity is Activity.WALKING
+        if walking and rest is not None:
+            rests.append(rest)
+            if len(rests) == strolls:
+                return rests
+            rest = None
+        elif was_walking and not walking:
+            rest = 0.0
+        if rest is not None:
+            rest += 0.05
+        was_walking = walking
+        pet.tick(0.05)
+    pytest.fail("the pet stopped strolling")
+
+
+def test_pauses_last_as_long_as_the_gait_rests():
+    gait = Gait(speed=200, max_slope=0.4, distance=(80, 120), rest=(4.0, 8.0))
+    pet = PetBehavior(SCREEN, (500, 300), rng=random.Random(16), gait=gait)
+
+    rests = rests_between_strolls(pet, 10)
+
+    assert all(4.0 - 0.1 <= rest <= 8.0 + 0.1 for rest in rests)
+
+
 def assert_inside(pet: PetBehavior, area: Area) -> None:
     x, y = pet.position
     assert area.left <= x <= area.right

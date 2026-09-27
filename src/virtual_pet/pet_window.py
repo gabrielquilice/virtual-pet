@@ -20,6 +20,7 @@ from PySide6.QtWidgets import QApplication, QMenu, QWidget
 
 from virtual_pet import sprites
 from virtual_pet.behavior import Activity, Area, Facing, PetBehavior
+from virtual_pet.color_change import ColorChange
 from virtual_pet.species import Species
 
 WALKING_TICK_MS = 33  # about 30 updates per second, for smooth movement
@@ -77,6 +78,8 @@ class PetWindow(QWidget):
             area, start, sitting=sitting, facing=facing, rng=self._rng, gait=species.gait
         )
         self._activity = self._behavior.activity
+        self._colors = ColorChange(len(species.palettes), sprites.FRAME_WIDTH, self._rng)
+        self._shown_colors: tuple[int, ...] | None = None  # each column's palette, if it changes
         self._animation_time = 0.0
         self._until_blink = self._rng.uniform(*BLINK_INTERVAL)
         self._frame: sprites.Frame = ()
@@ -111,6 +114,7 @@ class PetWindow(QWidget):
         """Swap the pet for another kind of animal, in the same spot."""
         self._species = species
         self._behavior.set_gait(species.gait)
+        self._colors = ColorChange(len(species.palettes), sprites.FRAME_WIDTH, self._rng)
         self._frame = ()  # force a redraw with the new look
         self._sync()
 
@@ -140,8 +144,9 @@ class PetWindow(QWidget):
         return menu
 
     def advance(self, seconds: float) -> None:
-        """Let `seconds` of the pet's life go by: walk, rest, animate, blink."""
+        """Let `seconds` of the pet's life go by: walk, rest, animate, blink, change color."""
         self._behavior.tick(seconds)
+        self._colors.tick(seconds, self._behavior.activity)
         self._animation_time += seconds
         self._until_blink -= seconds
         if self._until_blink < -BLINK_DURATION:
@@ -162,7 +167,9 @@ class PetWindow(QWidget):
     @override
     def paintEvent(self, event: QPaintEvent) -> None:
         with QPainter(self) as painter:
-            image = self._species.image(self._frame, blinking=self._blinking)
+            image = self._species.image(
+                self._frame, blinking=self._blinking, colors=self._shown_colors
+            )
             painter.drawImage(self.rect(), image)
 
     @override
@@ -250,11 +257,16 @@ class PetWindow(QWidget):
         if self._behavior.facing is Facing.LEFT:
             frame = sprites.mirrored(frame)
         blinking = self._until_blink <= 0 and activity is not Activity.CARRIED
+        colors = None
+        if self._species.colorings:
+            colors = self._colors.columns
+            if self._behavior.facing is Facing.LEFT:
+                colors = colors[::-1]  # the head, where color waves start, is on the left
         if frame != self._frame:
             # Clicks on the transparent parts of the window reach whatever is behind it.
             self.setMask(sprites.silhouette(frame, sprites.PIXEL_SIZE))
-        if (frame, blinking) != (self._frame, self._blinking):
-            self._frame, self._blinking = frame, blinking
+        if (frame, blinking, colors) != (self._frame, self._blinking, self._shown_colors):
+            self._frame, self._blinking, self._shown_colors = frame, blinking, colors
             self.update()
 
     def _watch_screens(self) -> None:

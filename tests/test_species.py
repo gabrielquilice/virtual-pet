@@ -8,6 +8,7 @@ from virtual_pet.behavior import Activity
 from virtual_pet.pets import (
     ALL_SPECIES,
     CAT,
+    CHAMELEON,
     COCKATIEL,
     DOG,
     FISH,
@@ -75,6 +76,7 @@ def test_the_pets_to_choose_from_and_their_names():
         ("wolf", "Wolf"),
         ("snail", "Snail"),
         ("frog", "Frog"),
+        ("chameleon", "Chameleon"),
     ]
 
 
@@ -94,6 +96,7 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         "wolf",
         "snail",
         "frog",
+        "chameleon",
     ]
 
     assert [species_by_key(key) for key in keys] == [
@@ -111,6 +114,7 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         WOLF,
         SNAIL,
         FROG,
+        CHAMELEON,
     ]
 
 
@@ -134,6 +138,7 @@ def test_each_pet_roams_its_own_way():
         "Walk",
         "Crawl",
         "Hop",
+        "Walk",
     ]
 
 
@@ -143,6 +148,7 @@ def test_the_snake_coils_up_and_the_snail_retreats_where_the_others_sit():
         "Coil up",
         *["Sit"] * 4,
         "Retreat into shell",
+        "Sit",
         "Sit",
     ]
 
@@ -204,7 +210,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
     ]
 
     # tan, gray, green, sage, blue, ginger, white, emerald, warm white, yellow, red-orange,
-    # warm gray, grayish beige, leaf green
+    # warm gray, grayish beige, leaf green, chameleon green
     assert body_colors == [
         "#dc9a57",
         "#a3a8b0",
@@ -220,7 +226,41 @@ def test_each_pet_is_drawn_in_its_own_colors():
         "#988f85",
         "#cdbfa6",
         "#8fca3c",
+        "#3fa34d",
     ]
+
+
+def test_each_coloring_colors_everything_the_usual_palette_does(species):
+    for coloring in species.colorings:
+        assert set(coloring) == set(species.palette)
+
+
+def test_only_the_chameleon_changes_color():
+    assert [pet.key for pet in ALL_SPECIES if pet.colorings] == ["chameleon"]
+
+
+def test_each_column_is_drawn_in_the_coloring_it_is_given():
+    frame = CHAMELEON.portrait
+    turquoise = CHAMELEON.colorings[0]
+    half = sprites.FRAME_WIDTH // 2
+    colors = (0,) * half + (1,) * half  # the tail's half green, the head's half turquoise
+
+    image = CHAMELEON.image(frame, colors=colors)
+
+    for y, row in enumerate(frame):
+        for x, char in enumerate(row):
+            if char != sprites.TRANSPARENT:
+                palette = CHAMELEON.palette if x < half else turquoise
+                assert image.pixelColor(x, y).name() == palette[char]
+
+
+def test_a_chameleon_blinks_in_the_color_it_has_turned():
+    eye = find(CHAMELEON.portrait, sprites.EYE)
+    turquoise = CHAMELEON.colorings[0]
+
+    image = CHAMELEON.image(CHAMELEON.portrait, blinking=True, colors=(1,) * sprites.FRAME_WIDTH)
+
+    assert image.pixelColor(*eye).name() == turquoise["B"]
 
 
 def test_rendered_frame_keeps_transparent_background_and_eye_colors():

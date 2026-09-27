@@ -9,7 +9,7 @@ window never changes size.
 import functools
 import itertools
 import textwrap
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
 from PySide6.QtCore import QRect, Qt
@@ -33,13 +33,20 @@ def art(text: str) -> Frame:
 
 def draw(frame: Frame, palette: Mapping[str, str]) -> QImage:
     """Paint a frame in the palette's colors, one image pixel per art pixel."""
-    colors = {char: QColor(value) for char, value in palette.items()}
+    return draw_columns(frame, (palette,), (0,) * len(frame[0]))
+
+
+def draw_columns(
+    frame: Frame, palettes: Sequence[Mapping[str, str]], columns: Sequence[int]
+) -> QImage:
+    """Paint a frame with each column in its own palette: `columns[x]` indexes `palettes`."""
+    colors = [{char: QColor(value) for char, value in palette.items()} for palette in palettes]
     image = QImage(len(frame[0]), len(frame), QImage.Format.Format_ARGB32_Premultiplied)
     image.fill(Qt.GlobalColor.transparent)
     for y, row in enumerate(frame):
         for x, char in enumerate(row):
             if char != TRANSPARENT:
-                image.setPixelColor(x, y, colors[char])
+                image.setPixelColor(x, y, colors[columns[x]][char])
     return image
 
 

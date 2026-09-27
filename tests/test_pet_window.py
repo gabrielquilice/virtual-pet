@@ -4,10 +4,23 @@ import pytest
 from PySide6.QtCore import QPoint, QRect, Qt
 from PySide6.QtGui import QTextDocumentFragment
 
-from virtual_pet import i18n
+from virtual_pet import i18n, sprites
 from virtual_pet.behavior import Facing
 from virtual_pet.pet_window import PetWindow
-from virtual_pet.pets import CAT, COCKATIEL, DOG, FISH, FROG, PARAKEET, RABBIT, SNAIL, SNAKE, TURTLE
+from virtual_pet.pets import (
+    CAT,
+    CHAMELEON,
+    COCKATIEL,
+    DOG,
+    FISH,
+    FROG,
+    PARAKEET,
+    RABBIT,
+    SNAIL,
+    SNAKE,
+    TURTLE,
+)
+from virtual_pet.pets.chameleon import SIT_A
 
 LEFT = Qt.MouseButton.LeftButton
 BODY = QPoint(46, 46)  # a point on the dog's body, in window coordinates
@@ -284,3 +297,72 @@ def test_the_menu_speaks_portuguese(make_window):
     assert sitting_rabbit[1] == "Saltitar"
     assert roaming_snail[1] == "Entrar na concha"
     assert snail_in_its_shell[1] == "Rastejar"
+
+
+GREEN = CHAMELEON.palette["B"]
+OTHER_COLORS = {coloring["B"] for coloring in CHAMELEON.colorings}
+
+
+def body_colors(window: PetWindow) -> set[str]:
+    """The chameleon's body colors on screen: its usual green and the colors it can turn."""
+    image = window.grab().toImage()
+    shown = {
+        image.pixelColor(x, y).name() for x in range(image.width()) for y in range(image.height())
+    }
+    return shown & {GREEN, *OTHER_COLORS}
+
+
+def run(window: PetWindow, seconds: float) -> None:
+    for _ in range(round(seconds / 0.1)):
+        window.advance(0.1)
+
+
+def test_a_chameleon_keeping_still_turns_another_color(make_window):
+    window = make_window(species=CHAMELEON, sitting=True)
+    assert body_colors(window) == {GREEN}
+
+    run(window, 3)
+
+    assert len(body_colors(window)) == 1
+    assert body_colors(window) <= OTHER_COLORS
+
+
+def test_a_carried_chameleon_keeps_its_colors_even_in_the_middle_of_a_wave(make_window, qtbot):
+    window = make_window(species=CHAMELEON, sitting=True)
+    window.show()
+    qtbot.waitExposed(window)
+    run(window, 1.5)  # the wave has run halfway
+    halfway = body_colors(window)
+    assert GREEN in halfway
+    assert halfway & OTHER_COLORS
+
+    qtbot.mousePress(window, LEFT, pos=QPoint(46, 46))
+    qtbot.mouseMove(window, QPoint(146, 46))
+    run(window, 10)
+
+    assert body_colors(window) == halfway
+
+
+def test_a_chameleon_walking_off_turns_green_again(make_window):
+    window = make_window(species=CHAMELEON, sitting=True)
+    run(window, 3)
+    assert body_colors(window) <= OTHER_COLORS
+
+    trigger(window, "Walk")
+    run(window, 2.5)
+
+    assert body_colors(window) == {GREEN}
+
+
+def test_the_color_wave_starts_at_the_head_whichever_way_the_chameleon_faces(make_window):
+    window = make_window(species=CHAMELEON, sitting=True, facing=Facing.LEFT)
+    run(window, 1.5)  # the wave has run halfway
+    image = window.grab().toImage()
+    frame = sprites.mirrored(SIT_A)
+
+    def color_of_body_at(columns: range) -> str:
+        x, y = next((x, y) for y, row in enumerate(frame) for x in columns if row[x] == "B")
+        return image.pixelColor(x * sprites.PIXEL_SIZE + 1, y * sprites.PIXEL_SIZE + 1).name()
+
+    assert color_of_body_at(range(6)) in OTHER_COLORS  # the head, on the left
+    assert color_of_body_at(range(24, 30)) == GREEN  # the tail

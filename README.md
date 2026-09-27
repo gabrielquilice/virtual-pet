@@ -26,6 +26,7 @@ you click it and goes wherever you drag it, but never off the screen.
 | <img src="docs/pets/wolf.png" width="96" height="81" alt="The wolf"> | Wolf | Lobo | Walks | Sits, and howls now and then |
 | <img src="docs/pets/snail.png" width="96" height="81" alt="The snail"> | Snail (a garden snail) | Caracol | Crawls | Retreats into its shell |
 | <img src="docs/pets/frog.png" width="96" height="81" alt="The frog"> | Frog | Sapo | Hops | Sits, and croaks now and then |
+| <img src="docs/pets/chameleon.png" width="96" height="81" alt="The chameleon"> | Chameleon (a veiled chameleon) | Camaleão | Walks slowly, turning green again | Lies down. Whenever it keeps still, a new color runs over it from head to tail |
 
 ## How to play
 
@@ -129,6 +130,7 @@ uv run ty check src/       # type check
 src/virtual_pet/
 ├── app.py          # entry point: Qt setup, first run, single instance, saving
 ├── behavior.py     # the pet's brain: roaming, resting, sitting, turning, being carried (no Qt)
+├── color_change.py # how the chameleon changes color, in waves from head to tail (no Qt)
 ├── config.py       # settings file (JSON) loading and saving
 ├── dialogs.py      # dialogs used to adopt a pet and to change it (and the language) later
 ├── i18n.py         # the interface in the user's language
@@ -154,7 +156,8 @@ src/virtual_pet/
     ├── fox.py      # a red fox
     ├── wolf.py     # a gray wolf that howls
     ├── snail.py    # a garden snail
-    └── frog.py     # a green frog that croaks
+    ├── frog.py     # a green frog that croaks
+    └── chameleon.py # a veiled chameleon that changes color
 appimage/
 ├── build.py            # builds the AppImage (see below)
 ├── virtual-pet.spec    # PyInstaller: what goes into the bundle

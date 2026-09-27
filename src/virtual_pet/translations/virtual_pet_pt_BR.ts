@@ -224,5 +224,9 @@ Escolha seu pet e dê um nome a ele.</translation>
         <source>Frog</source>
         <translation>Sapo</translation>
     </message>
+    <message>
+        <source>Chameleon</source>
+        <translation>Camaleão</translation>
+    </message>
 </context>
 </TS>

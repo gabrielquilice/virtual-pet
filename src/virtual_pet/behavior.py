@@ -9,7 +9,7 @@ import random
 from dataclasses import dataclass
 from enum import Enum, auto
 
-REST_TIME = (1.5, 5.0)  # seconds standing still between strolls
+REST_TIME = (1.5, 5.0)  # seconds standing still between strolls, unless the gait says
 LANDING_REST_TIME = (0.5, 1.2)  # seconds before strolling after appearing or being put down
 MAX_TICK = 0.1  # longer gaps (e.g. waking up from sleep) are not simulated
 
@@ -37,6 +37,7 @@ class Gait:
     speed: float = 45.0  # pixels per second
     max_slope: float = 0.4  # steepest stroll (vertical / horizontal); low values suit side views
     distance: tuple[float, float] = (80.0, 320.0)  # length range of a single stroll
+    rest: tuple[float, float] = REST_TIME  # seconds standing still between strolls
 
 
 DEFAULT_GAIT = Gait()
@@ -180,7 +181,7 @@ class PetBehavior:
     def _end_stroll(self) -> None:
         """Stop walking and rest a while before the next stroll."""
         self._target = None
-        self._rest_left = self._rng.uniform(*REST_TIME)
+        self._rest_left = self._rng.uniform(*self._gait.rest)
 
     def _start_stroll(self) -> None:
         gait = self._gait
