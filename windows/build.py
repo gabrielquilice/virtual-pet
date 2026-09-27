@@ -98,6 +98,7 @@ def main() -> None:
     common.step("2/4 Bundling the pet with PyInstaller")
     write_icon(WORK / "virtual-pet.ico")
     write_version_info(WORK / "version-info.txt", release, version)
+    (WORK / "VERSION").write_text(version, encoding="utf-8")  # bundled by the spec
     bundle, manifest = run_pyinstaller(python)
     common.step("3/4 Gathering the licenses and zipping the bundle")
     missing = add_licenses(bundle / "licenses", manifest, version)

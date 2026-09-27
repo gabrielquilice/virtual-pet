@@ -101,7 +101,7 @@ def main() -> None:
     if version != release:
         print(f"Building {version}: not a clean checkout of tag v{release}")
     step("1/4 Bundling the pet with PyInstaller")
-    bundle, manifest = run_pyinstaller()
+    bundle, manifest = run_pyinstaller(version)
     step("2/4 Laying out the AppDir and gathering the licenses")
     appdir = make_appdir(bundle)
     missing = add_licenses(appdir / "usr" / "share" / "licenses", manifest, version)
@@ -183,8 +183,10 @@ def step(title: str) -> None:
     print(f"\n==> {title}", flush=True)
 
 
-def run_pyinstaller() -> tuple[Path, dict]:
+def run_pyinstaller(version: str) -> tuple[Path, dict]:
     """Bundle the app; returns the bundle's folder and where each of its files came from."""
+    WORK.mkdir(parents=True, exist_ok=True)
+    (WORK / "VERSION").write_text(version, encoding="utf-8")  # bundled by the spec
     subprocess.run(
         [
             sys.executable,

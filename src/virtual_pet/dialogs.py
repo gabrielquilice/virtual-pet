@@ -2,27 +2,39 @@
 
 from typing import NamedTuple
 
-from PySide6.QtCore import QCoreApplication, QSize, Qt
-from PySide6.QtGui import QIcon, QPixmap
+from PySide6.QtCore import QCoreApplication, QSize, Qt, QUrl
+from PySide6.QtGui import QDesktopServices, QIcon, QPixmap
 from PySide6.QtWidgets import (
     QComboBox,
     QDialog,
     QDialogButtonBox,
     QFormLayout,
     QGridLayout,
+    QHBoxLayout,
     QLabel,
     QLayout,
     QLineEdit,
+    QMessageBox,
+    QPushButton,
     QToolButton,
     QVBoxLayout,
     QWidget,
 )
 
 from virtual_pet.config import MAX_NAME_LENGTH, normalize_name
-from virtual_pet.i18n import LANGUAGES
+from virtual_pet.i18n import LANGUAGES, arg
 from virtual_pet.pets import ALL_SPECIES, DOG
 from virtual_pet.species import Species
 from virtual_pet.sprites import FRAME_HEIGHT, FRAME_WIDTH
+from virtual_pet.update_check import (
+    CheckFailed,
+    DevBuild,
+    UpdateAvailable,
+    UpdateCheck,
+    UpToDate,
+    check_for_update,
+)
+from virtual_pet.version import app_version
 
 ICON_SIZE = QSize(FRAME_WIDTH * 2, FRAME_HEIGHT * 2)
 PETS_PER_ROW = 4  # rows of four keep the dialog compact
@@ -138,6 +150,48 @@ class SettingsDialog(PetDialog):
             max(self._language_field.findData(current.language), 0)
         )
         self._form.addRow(self.tr("&Language:"), self._language_field)
+
+        version_row = QHBoxLayout()
+        version_row.addWidget(QLabel(app_version()))
+        self._update_button = QPushButton(self.tr("Check for Updates"))
+        self._update_button.clicked.connect(self._check_for_updates)
+        version_row.addWidget(self._update_button)
+        self._form.addRow(self.tr("Version:"), version_row)
+
+    def _check_for_updates(self) -> None:
+        original_text = self._update_button.text()
+        self._update_button.setEnabled(False)
+        self._update_button.setText(self.tr("Checking…"))
+        self._update_button.repaint()  # the blocking check below would otherwise hide it
+        result = check_for_update(app_version())
+        self._update_button.setText(original_text)
+        self._update_button.setEnabled(True)
+        self._show_update_result(result)
+
+    def _show_update_result(self, result: UpdateCheck) -> None:
+        box = QMessageBox(self)
+        box.setWindowTitle(self.tr("Check for Updates"))
+        box.setWindowModality(Qt.WindowModality.WindowModal)
+        match result:
+            case UpdateAvailable(version, url):
+                box.setIcon(QMessageBox.Icon.Information)
+                box.setText(arg(self.tr("Version %1 is available."), version))
+                get_it = box.addButton(self.tr("Get It"), QMessageBox.ButtonRole.AcceptRole)
+                box.addButton(QMessageBox.StandardButton.Close)
+                box.buttonClicked.connect(
+                    lambda button: QDesktopServices.openUrl(QUrl(url)) if button is get_it else None
+                )
+            case UpToDate():
+                box.setIcon(QMessageBox.Icon.Information)
+                box.setText(self.tr("You have the latest version."))
+            case DevBuild():
+                box.setIcon(QMessageBox.Icon.Information)
+                box.setText(self.tr("This isn't a release build: nothing to compare it to."))
+            case CheckFailed():
+                box.setIcon(QMessageBox.Icon.Warning)
+                box.setText(self.tr("Could not check for updates."))
+        self._update_box = box  # kept alive until the user closes it
+        box.open()
 
     def preferences(self) -> Preferences:
         """The chosen pet, its name and the chosen language (None: the system's)."""

@@ -133,6 +133,38 @@ Escolha seu pet e dê um nome a ele.</translation>
         <source>&amp;Language:</source>
         <translation>&amp;Idioma:</translation>
     </message>
+    <message>
+        <source>Check for Updates</source>
+        <translation>Buscar Atualizações</translation>
+    </message>
+    <message>
+        <source>Version:</source>
+        <translation>Versão:</translation>
+    </message>
+    <message>
+        <source>Checking…</source>
+        <translation>Verificando…</translation>
+    </message>
+    <message>
+        <source>Version %1 is available.</source>
+        <translation>A versão %1 está disponível.</translation>
+    </message>
+    <message>
+        <source>Get It</source>
+        <translation>Baixar</translation>
+    </message>
+    <message>
+        <source>You have the latest version.</source>
+        <translation>Você está com a versão mais recente.</translation>
+    </message>
+    <message>
+        <source>This isn&apos;t a release build: nothing to compare it to.</source>
+        <translation>Esta não é uma build de release: não há o que comparar.</translation>
+    </message>
+    <message>
+        <source>Could not check for updates.</source>
+        <translation>Não foi possível buscar atualizações.</translation>
+    </message>
 </context>
 <context>
     <name>Species</name>

@@ -16,8 +16,10 @@ from pathlib import Path
 
 from PyInstaller.depend.bindepend import get_imports
 
-SOURCES = Path(SPECPATH).parent / "src"
+ROOT = Path(SPECPATH).parent
+SOURCES = ROOT / "src"
 TRANSLATIONS = SOURCES / "virtual_pet" / "translations"
+VERSION_FILE = ROOT / "build" / "appimage" / "VERSION"  # written by build.py, outside workpath
 # Qt's translation of its own texts (the Cancel button...) into each language the pet speaks.
 QT_TRANSLATIONS = {
     f"PySide6/Qt/translations/qtbase_{path.stem.removeprefix('virtual_pet_')}.qm"
@@ -92,6 +94,7 @@ a = Analysis(
     datas=[
         (str(TRANSLATIONS / "*.qm"), "virtual_pet/translations"),
         (str(SOURCES / "virtual_pet" / "paw.png"), "virtual_pet"),  # the icon's paw
+        (str(VERSION_FILE), "virtual_pet"),  # what Settings shows as the version
     ],
     excludes=["PySide6.QtNetwork", "PySide6.QtDBus"],  # collected by PySide6's hook, never used
 )

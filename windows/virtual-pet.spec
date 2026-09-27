@@ -58,6 +58,7 @@ a = Analysis(
     datas=[
         (str(TRANSLATIONS / "*.qm"), "virtual_pet/translations"),
         (str(SOURCES / "virtual_pet" / "paw.png"), "virtual_pet"),  # the icon's paw
+        (str(WORK / "VERSION"), "virtual_pet"),  # what Settings shows as the version
     ],
     excludes=["PySide6.QtDBus"],  # QtNetwork stays: Windows' show requests use its local socket
 )

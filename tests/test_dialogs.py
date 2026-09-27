@@ -1,10 +1,20 @@
 import pytest
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QComboBox, QDialogButtonBox, QLabel, QLineEdit, QToolButton
+from PySide6.QtWidgets import (
+    QComboBox,
+    QDialogButtonBox,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QToolButton,
+)
 
-from virtual_pet import i18n
+from virtual_pet import dialogs, i18n
 from virtual_pet.dialogs import PetChoice, PetDialog, Preferences, SettingsDialog
 from virtual_pet.pets import CAT, PARAKEET
+from virtual_pet.update_check import CheckFailed, DevBuild, UpdateAvailable, UpToDate
+from virtual_pet.version import app_version
 
 LEFT = Qt.MouseButton.LeftButton
 
@@ -184,6 +194,64 @@ def test_the_first_run_dialog_asks_for_no_language(dialog):
     assert language_field(dialog) is None
 
 
+def test_settings_show_the_app_version(settings):
+    assert app_version() in [label.text() for label in settings.findChildren(QLabel)]
+
+
+def update_button(dialog: SettingsDialog) -> QPushButton:
+    return next(button for button in dialog.findChildren(QPushButton) if "Update" in button.text())
+
+
+def update_box(dialog: SettingsDialog) -> QMessageBox:
+    return dialog.findChild(QMessageBox)
+
+
+def test_checking_for_updates_reenables_the_button_and_reports_the_result(settings, monkeypatch):
+    monkeypatch.setattr(dialogs, "check_for_update", lambda _version: UpToDate())
+
+    update_button(settings).click()
+
+    assert update_button(settings).isEnabled()
+    assert update_button(settings).text() == "Check for Updates"
+    assert update_box(settings).text() == "You have the latest version."
+
+
+def test_an_available_update_offers_a_button_that_opens_it(settings, monkeypatch):
+    monkeypatch.setattr(
+        dialogs,
+        "check_for_update",
+        lambda _version: UpdateAvailable("0.9.0", "https://example.com/releases/latest"),
+    )
+    opened = []
+    monkeypatch.setattr(
+        dialogs.QDesktopServices, "openUrl", lambda url: opened.append(url.toString())
+    )
+
+    update_button(settings).click()
+    box = update_box(settings)
+
+    assert "0.9.0" in box.text()
+    get_it = next(b for b in box.buttons() if b.text() == "Get It")
+    get_it.click()
+    assert opened == ["https://example.com/releases/latest"]
+
+
+def test_a_dev_build_cannot_be_compared(settings, monkeypatch):
+    monkeypatch.setattr(dialogs, "check_for_update", lambda _version: DevBuild())
+
+    update_button(settings).click()
+
+    assert update_box(settings).text() == "This isn't a release build: nothing to compare it to."
+
+
+def test_a_failed_check_is_reported(settings, monkeypatch):
+    monkeypatch.setattr(dialogs, "check_for_update", lambda _version: CheckFailed())
+
+    update_button(settings).click()
+
+    assert update_box(settings).text() == "Could not check for updates."
+
+
 def test_the_settings_speak_portuguese(qtbot):
     i18n.use_language("pt_BR")
     dialog = SettingsDialog(Preferences(PetChoice(CAT, "Mimi"), "pt_BR"))
@@ -207,7 +275,9 @@ def test_the_settings_speak_portuguese(qtbot):
         "Caracol",
         "Sapo",
     ]
-    assert {"&Nome:", "&Idioma:"} <= {label.text() for label in dialog.findChildren(QLabel)}
+    assert {"&Nome:", "&Idioma:", "Versão:"} <= {
+        label.text() for label in dialog.findChildren(QLabel)
+    }
     assert [button.text() for button in buttons.buttons()] == ["Salvar", "Cancelar"]
     assert language_field(dialog).itemText(0) == "Padrão do sistema"
 
