@@ -229,7 +229,7 @@ Escolha seu pet e dê um nome a ele.</translation>
         <translation>Camaleão</translation>
     </message>
     <message>
-        <source>Chicken</source>
+        <source>Galinha</source>
         <translation>Galinha</translation>
     </message>
 </context>

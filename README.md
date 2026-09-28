@@ -27,7 +27,7 @@ you click it and goes wherever you drag it, but never off the screen.
 | <img src="docs/pets/snail.png" width="96" height="81" alt="The snail"> | Snail (a garden snail) | Caracol | Crawls | Retreats into its shell |
 | <img src="docs/pets/frog.png" width="96" height="81" alt="The frog"> | Frog | Sapo | Hops | Sits, and croaks now and then |
 | <img src="docs/pets/chameleon.png" width="96" height="81" alt="The chameleon"> | Chameleon (a veiled chameleon) | Camaleão | Walks slowly, turning green again | Lies down. Whenever it keeps still, a new color runs over it from head to tail |
-| <img src="docs/pets/chicken.png" width="96" height="81" alt="The chicken"> | Chicken (a brown hen) | Galinha | Walks, and scratches the ground and pecks at it whenever it stops | Settles on the ground like a hen on her nest |
+| <img src="docs/pets/chicken.png" width="96" height="81" alt="The galinha"> | Galinha (a brown hen) | Galinha | Walks, and scratches the ground and pecks at it whenever it stops | Settles on the ground like a hen on her nest |
 
 ## How to play
 
@@ -159,7 +159,7 @@ src/virtual_pet/
     ├── snail.py    # a garden snail
     ├── frog.py     # a green frog that croaks
     ├── chameleon.py # a veiled chameleon that changes color
-    └── chicken.py  # a brown hen that scratches the ground
+    └── chicken.py  # the galinha, a brown hen that scratches the ground
 appimage/
 ├── build.py            # builds the AppImage (see below)
 ├── virtual-pet.spec    # PyInstaller: what goes into the bundle

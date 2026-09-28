@@ -61,7 +61,7 @@ def test_every_pet_is_offered_with_the_dog_preselected(dialog):
         ("Snail", False),
         ("Frog", False),
         ("Chameleon", False),
-        ("Chicken", False),
+        ("Galinha", False),
     ]
 
 
@@ -75,7 +75,7 @@ def test_pets_are_offered_in_rows_of_four(dialog):
         ["Dog", "Cat", "Maritaca", "Sea Turtle"],
         ["Fish", "Guinea Pig", "Penguin", "Snake"],
         ["Rabbit", "Cockatiel", "Fox", "Wolf"],
-        ["Snail", "Frog", "Chameleon", "Chicken"],
+        ["Snail", "Frog", "Chameleon", "Galinha"],
     ]
 
 
