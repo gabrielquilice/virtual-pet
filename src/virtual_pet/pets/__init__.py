@@ -4,6 +4,7 @@ import logging
 
 from virtual_pet.pets.cat import CAT
 from virtual_pet.pets.chameleon import CHAMELEON
+from virtual_pet.pets.chicken import CHICKEN
 from virtual_pet.pets.cockatiel import COCKATIEL
 from virtual_pet.pets.dog import DOG
 from virtual_pet.pets.fish import FISH
@@ -35,6 +36,7 @@ ALL_SPECIES = (
     SNAIL,
     FROG,
     CHAMELEON,
+    CHICKEN,
 )
 
 logger = logging.getLogger(__name__)
