@@ -9,6 +9,7 @@ from virtual_pet.pets import (
     ALL_SPECIES,
     CAT,
     CHAMELEON,
+    CHICKEN,
     COCKATIEL,
     DOG,
     FISH,
@@ -77,6 +78,7 @@ def test_the_pets_to_choose_from_and_their_names():
         ("snail", "Snail"),
         ("frog", "Frog"),
         ("chameleon", "Chameleon"),
+        ("chicken", "Chicken"),
     ]
 
 
@@ -97,6 +99,7 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         "snail",
         "frog",
         "chameleon",
+        "chicken",
     ]
 
     assert [species_by_key(key) for key in keys] == [
@@ -115,6 +118,7 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         SNAIL,
         FROG,
         CHAMELEON,
+        CHICKEN,
     ]
 
 
@@ -139,6 +143,7 @@ def test_each_pet_roams_its_own_way():
         "Crawl",
         "Hop",
         "Walk",
+        "Walk",
     ]
 
 
@@ -148,8 +153,7 @@ def test_the_snake_coils_up_and_the_snail_retreats_where_the_others_sit():
         "Coil up",
         *["Sit"] * 4,
         "Retreat into shell",
-        "Sit",
-        "Sit",
+        *["Sit"] * 3,
     ]
 
 
@@ -186,6 +190,17 @@ def test_flying_lifts_birds_off_the_ground(flyer):
     assert all(lowest_visible_row(frame) < GROUND_LINE for frame in flying)
 
 
+def test_a_chicken_stops_to_scratch_the_ground_and_peck_at_it():
+    standing = CHICKEN.animations[Activity.STANDING]
+    toes = {frame[GROUND_LINE - 1] for frame in standing.frames}  # the row its toes are on
+    eyes = [find(frame, sprites.EYE)[1] for frame in standing.frames]
+    first_peck = eyes.index(max(eyes))  # its head at its lowest
+
+    assert len(toes) > 1  # its feet move: it scratches
+    assert max(eyes) >= GROUND_LINE - 5  # its head comes down to the ground: it pecks
+    assert CHICKEN.gait.rest[0] > first_peck / standing.fps  # before it walks off
+
+
 @pytest.mark.parametrize("swimmer", [TURTLE, FISH], ids=lambda species: species.key)
 def test_swimmers_float_until_they_rest_on_the_bottom(swimmer):
     floating = [
@@ -210,7 +225,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
     ]
 
     # tan, gray, green, sage, blue, ginger, white, emerald, warm white, yellow, red-orange,
-    # warm gray, grayish beige, leaf green, chameleon green
+    # warm gray, grayish beige, leaf green, chameleon green, golden brown
     assert body_colors == [
         "#dc9a57",
         "#a3a8b0",
@@ -227,6 +242,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
         "#cdbfa6",
         "#8fca3c",
         "#3fa34d",
+        "#c98b4a",
     ]
 
 
