@@ -1,4 +1,4 @@
-"""The galinha: a golden brown hen that scratches the ground and pecks at it when it stops."""
+"""The chicken: a golden brown hen that scratches the ground and pecks at it when it stops."""
 
 from virtual_pet.behavior import Activity, Gait
 from virtual_pet.i18n import QT_TRANSLATE_NOOP
@@ -443,7 +443,7 @@ PECKING = (LOOK_DOWN, LOOK_DOWN, PECK, LOOK_DOWN, PECK, LOOK_DOWN)
 
 CHICKEN = Species(
     key="chicken",
-    label=QT_TRANSLATE_NOOP("Species", "Galinha"),
+    label=QT_TRANSLATE_NOOP("Species", "Chicken"),
     palette={
         "K": "#2e1b10",  # outline
         "B": "#c98b4a",  # golden brown feathers

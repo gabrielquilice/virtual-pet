@@ -78,7 +78,7 @@ def test_the_pets_to_choose_from_and_their_names():
         ("snail", "Snail"),
         ("frog", "Frog"),
         ("chameleon", "Chameleon"),
-        ("chicken", "Galinha"),
+        ("chicken", "Chicken"),
     ]
 
 
