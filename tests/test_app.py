@@ -9,15 +9,25 @@ from pathlib import Path
 import pytest
 from PySide6.QtCore import QPoint, Qt, QTimer
 from PySide6.QtGui import QTextDocumentFragment
-from PySide6.QtWidgets import QComboBox, QLineEdit, QSystemTrayIcon, QToolButton, QWidget
+from PySide6.QtWidgets import (
+    QApplication,
+    QCheckBox,
+    QComboBox,
+    QLineEdit,
+    QSystemTrayIcon,
+    QToolButton,
+    QWidget,
+)
 
 from virtual_pet.app import (
+    APP_NAME,
     PetController,
     config_path,
     ensure_pet,
     keep_gtk_off_opengl,
     prefer_xwayland,
 )
+from virtual_pet.autostart import DesktopEntry, desktop_exec, system_autostart
 from virtual_pet.behavior import Facing
 from virtual_pet.config import Config, ConfigStore
 from virtual_pet.pets import DOG, PARAKEET
@@ -34,12 +44,14 @@ def shown_name(controller: PetController) -> str:
 def answer_dialog(qapp):
     """Schedule an answer for the next modal dialog.
 
-    Picks `pet` (by its label) and `language` (by its code) if given, types `name` and
-    confirms; cancels if `name` is None.
+    Picks `pet` (by its label) and `language` (by its code) and sets starting with the system
+    (`starts`) if given, types `name` and confirms; cancels if `name` is None.
     """
     timers = []
 
-    def answer(name: str | None, pet: str | None, language: str | None) -> None:
+    def answer(
+        name: str | None, pet: str | None, language: str | None, *, starts: bool | None
+    ) -> None:
         dialog = qapp.activeModalWidget()
         if dialog is None:
             return
@@ -53,13 +65,21 @@ def answer_dialog(qapp):
         if language is not None:
             field = dialog.findChild(QComboBox)
             field.setCurrentIndex(field.findData(language))
+        if starts is not None:
+            dialog.findChild(QCheckBox).setChecked(starts)
         dialog.findChild(QLineEdit).setText(name)
         dialog.accept()
 
-    def schedule(name: str | None, pet: str | None = None, language: str | None = None) -> None:
+    def schedule(
+        name: str | None,
+        pet: str | None = None,
+        language: str | None = None,
+        *,
+        starts: bool | None = None,
+    ) -> None:
         timer = QTimer()
         timer.setSingleShot(True)
-        timer.timeout.connect(lambda: answer(name, pet, language))
+        timer.timeout.connect(lambda: answer(name, pet, language, starts=starts))
         timer.start(0)
         timers.append(timer)
 
@@ -151,6 +171,52 @@ def test_later_runs_do_not_ask_for_the_name_again(tmp_path, answer_dialog):
     answer_dialog(None)  # would cancel a dialog, if one were (wrongly) shown
 
     assert ensure_pet(store, store.load()) == Config(pet_name="Rex", sitting=True)
+
+
+@pytest.fixture
+def entry(tmp_path) -> DesktopEntry:
+    return DesktopEntry(tmp_path / "autostart" / "virtual-pet.desktop", ["/apps/pet"])
+
+
+def test_by_default_the_first_run_leaves_the_system_start_alone(tmp_path, entry, answer_dialog):
+    store = ConfigStore(tmp_path / "config.json")
+
+    answer_dialog("Rex")
+    ensure_pet(store, store.load(), entry)
+
+    assert not entry.path.exists()
+
+
+def test_the_first_run_can_make_the_pet_start_with_the_system(tmp_path, entry, answer_dialog):
+    store = ConfigStore(tmp_path / "config.json")
+
+    answer_dialog("Rex", starts=True)
+    ensure_pet(store, store.load(), entry)
+
+    assert entry.is_enabled()
+    assert "starts_with_system" not in store.path.read_text()  # the system's entry says it
+
+
+def test_the_first_run_shows_a_system_start_left_by_an_earlier_install(
+    tmp_path, entry, answer_dialog
+):
+    store = ConfigStore(tmp_path / "config.json")
+    entry.enable()
+
+    answer_dialog("Rex", starts=False)
+    ensure_pet(store, store.load(), entry)
+
+    assert not entry.is_enabled()
+
+
+def test_the_first_run_asks_this_systems_start_by_default(tmp_path, monkeypatch, answer_dialog):
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "home-config"))
+    store = ConfigStore(tmp_path / "config.json")
+
+    answer_dialog("Rex", starts=True)
+    ensure_pet(store, store.load())
+
+    assert system_autostart(APP_NAME).is_enabled()
 
 
 @pytest.fixture
@@ -280,6 +346,61 @@ def test_without_a_tray_the_pet_hides_until_the_app_is_opened_again(shown_pet, q
     assert visible_windows(qapp) == [controller.window]
 
 
+@pytest.fixture
+def starting_controller(store, entry, qtbot) -> PetController:
+    controller = PetController(store, Config(pet_name="Rex"), autostart=entry)
+    qtbot.addWidget(controller.window)
+    return controller
+
+
+def test_the_settings_can_make_the_pet_start_with_the_system(
+    starting_controller, entry, answer_dialog
+):
+    answer_dialog("Rex", starts=True)
+    starting_controller.window.settings_requested.emit()
+
+    assert entry.is_enabled()
+
+
+def test_the_settings_can_stop_the_pet_starting_with_the_system(
+    starting_controller, entry, answer_dialog
+):
+    entry.enable()
+
+    answer_dialog("Rex", starts=False)
+    starting_controller.window.settings_requested.emit()
+
+    assert not entry.path.exists()
+
+
+def test_the_settings_show_what_the_system_says(starting_controller, entry, answer_dialog):
+    entry.enable()
+    entry.path.write_text("[Desktop Entry]\nExec=/elsewhere\nHidden=true\n", encoding="utf-8")
+
+    answer_dialog("Rex")  # leaves the box as the dialog shows it: off, as the desktop turned it
+    starting_controller.window.settings_requested.emit()
+
+    assert "Exec=/elsewhere" in entry.path.read_text(encoding="utf-8")  # untouched
+
+
+def test_failing_to_start_with_the_system_does_not_crash_the_pet(store, tmp_path, qtbot, caplog):
+    not_a_folder = tmp_path / "file"
+    not_a_folder.write_text("")
+    entry = DesktopEntry(not_a_folder / "virtual-pet.desktop", ["/apps/pet"])
+    controller = PetController(store, Config(pet_name="Rex"), autostart=entry)
+    qtbot.addWidget(controller.window)
+
+    def answer() -> None:
+        dialog = QApplication.activeModalWidget()
+        dialog.findChild(QCheckBox).setChecked(True)
+        dialog.accept()
+
+    QTimer.singleShot(0, answer)
+    controller.window.settings_requested.emit()
+
+    assert "Could not change starting with the system" in caplog.text
+
+
 def test_cancelling_the_settings_keeps_the_name(controller, answer_dialog):
     answer_dialog(None)
     controller.window.settings_requested.emit()
@@ -374,6 +495,24 @@ def test_pet_quits_gracefully_and_remembers_its_state(pet_environment, start_pet
         "facing": "left",
         "language": None,
     }
+
+
+@pytest.mark.process
+def test_a_pet_that_starts_with_the_system_points_its_entry_at_itself(
+    pet_environment, pet_command, start_pet
+):
+    entry = Path(pet_environment["XDG_CONFIG_HOME"]) / "autostart" / "virtual-pet.desktop"
+    entry.parent.mkdir()
+    entry.write_text("[Desktop Entry]\nType=Application\nExec=/moved/away\n", encoding="utf-8")
+
+    pet = start_pet()
+    deadline = time.monotonic() + 15
+    while "/moved/away" in entry.read_text(encoding="utf-8") and time.monotonic() < deadline:
+        time.sleep(0.05)
+    pet.terminate()
+    pet.wait(timeout=15)
+
+    assert f"Exec={desktop_exec(pet_command)}\n" in entry.read_text(encoding="utf-8")
 
 
 @pytest.mark.process

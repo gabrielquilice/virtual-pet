@@ -1,8 +1,10 @@
 import pytest
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QPoint, Qt
 from PySide6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QDialogButtonBox,
+    QFormLayout,
     QLabel,
     QLineEdit,
     QMessageBox,
@@ -193,6 +195,46 @@ def test_an_unknown_saved_language_shows_as_the_system_default(qtbot):
 
 def test_the_first_run_dialog_asks_for_no_language(dialog):
     assert language_field(dialog) is None
+
+
+def starts_field(dialog: PetDialog) -> QCheckBox:
+    return dialog.findChild(QCheckBox)
+
+
+def test_the_first_run_offers_to_start_with_the_system_unchecked(dialog):
+    field = starts_field(dialog)
+
+    assert (field.text(), field.isChecked(), dialog.starts_with_system()) == (
+        "&Start with the system",
+        False,
+        False,
+    )
+
+
+def test_the_first_run_can_start_with_the_system(dialog, qtbot):
+    field = starts_field(dialog)
+
+    qtbot.mouseClick(field, LEFT, pos=QPoint(5, field.height() // 2))  # on the box itself
+
+    assert dialog.starts_with_system()
+
+
+def test_settings_show_whether_the_pet_starts_with_the_system(qtbot):
+    dialog = SettingsDialog(Preferences(PetChoice(CAT, "Mimi"), None, starts_with_system=True))
+    qtbot.addWidget(dialog)
+
+    starts_field(dialog).setChecked(False)
+
+    assert dialog.preferences() == Preferences(
+        PetChoice(CAT, "Mimi"), None, starts_with_system=False
+    )
+
+
+def test_settings_ask_for_the_language_before_starting_with_the_system(settings):
+    form = settings.findChild(QFormLayout)
+    fields = [form.itemAt(row, QFormLayout.ItemRole.FieldRole).widget() for row in range(4)]
+
+    assert fields[2:] == [language_field(settings), starts_field(settings)]
 
 
 def test_settings_show_the_app_version(settings):

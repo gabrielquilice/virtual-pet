@@ -5,6 +5,7 @@ from typing import NamedTuple
 from PySide6.QtCore import QCoreApplication, QSize, Qt, QUrl
 from PySide6.QtGui import QDesktopServices, QIcon, QPixmap
 from PySide6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QDialog,
     QDialogButtonBox,
@@ -53,17 +54,28 @@ class PetChoice(NamedTuple):
     name: str
 
 
+class Adoption(NamedTuple):
+    """What the first run asks: the pet, and whether it starts with the system."""
+
+    pet: PetChoice
+    starts_with_system: bool
+
+
 class Preferences(NamedTuple):
-    """What the Settings change: the pet, and the language of the interface."""
+    """What the Settings change: the pet, the interface's language, starting with the system."""
 
     pet: PetChoice
     language: str | None  # None follows the system's language
+    starts_with_system: bool = False
 
 
 class PetDialog(QDialog):
-    """Asks which pet to have and what to call it; confirming needs a name."""
+    """Asks which pet to have, what to call it and whether it starts with the system.
 
-    def __init__(
+    Confirming needs a name.
+    """
+
+    def __init__(  # noqa: PLR0913 - what it shows and what it starts with, as keywords
         self,
         *,
         title: str,
@@ -71,6 +83,7 @@ class PetDialog(QDialog):
         confirm_text: str,
         current: PetChoice | None = None,
         hint: str = "",
+        starts_with_system: bool = False,
     ) -> None:
         super().__init__()
         self.setWindowTitle(title)
@@ -104,6 +117,9 @@ class PetDialog(QDialog):
         self._form = QFormLayout()
         self._form.addRow(self.tr("Pet:"), picker)
         self._form.addRow(self.tr("&Name:"), self._name_field)
+        self._starts_field = QCheckBox(self.tr("&Start with the system"))
+        self._starts_field.setChecked(starts_with_system)
+        self._form.addRow("", self._starts_field)
         layout = QVBoxLayout(self)
         # Never smaller than its contents, which Qt allows otherwise: it opens a window at most
         # 2/3 as wide as the screen, and the pet cards would overlap (longer names, small screen).
@@ -123,6 +139,10 @@ class PetDialog(QDialog):
         species = next((s for button, s in self._pet_buttons if button.isChecked()), DOG)
         return PetChoice(species, normalize_name(self._name_field.text()))
 
+    def starts_with_system(self) -> bool:
+        """Whether the pet is to start when the user logs in."""
+        return self._starts_field.isChecked()
+
     def _update_confirm_button(self) -> None:
         self._confirm_button.setEnabled(bool(self.choice().name))
 
@@ -140,6 +160,7 @@ class SettingsDialog(PetDialog):
             ),
             confirm_text=translate("SettingsDialog", "Save"),
             current=current.pet,
+            starts_with_system=current.starts_with_system,
         )
         self._language_field = QComboBox()
         self._language_field.addItem(self.tr("System default"), SYSTEM_LANGUAGE)
@@ -149,7 +170,7 @@ class SettingsDialog(PetDialog):
         self._language_field.setCurrentIndex(
             max(self._language_field.findData(current.language), 0)
         )
-        self._form.addRow(self.tr("&Language:"), self._language_field)
+        self._form.insertRow(2, self.tr("&Language:"), self._language_field)  # before Start
 
         version_row = QHBoxLayout()
         version_row.addWidget(QLabel(app_version()))
@@ -194,8 +215,9 @@ class SettingsDialog(PetDialog):
         box.open()
 
     def preferences(self) -> Preferences:
-        """The chosen pet, its name and the chosen language (None: the system's)."""
-        return Preferences(self.choice(), self._language_field.currentData() or None)
+        """The chosen pet, its name, the language (None: the system's), starting with it."""
+        language = self._language_field.currentData() or None
+        return Preferences(self.choice(), language, self.starts_with_system())
 
 
 def _pet_button(species: Species, dialog: QWidget) -> QToolButton:
@@ -211,8 +233,11 @@ def _pet_button(species: Species, dialog: QWidget) -> QToolButton:
     return button
 
 
-def ask_for_new_pet() -> PetChoice | None:
-    """Ask which pet to adopt and its name; None if the user closes the dialog."""
+def ask_for_new_pet(*, starts_with_system: bool = False) -> Adoption | None:
+    """Ask which pet to adopt, its name and whether it starts with the system.
+
+    None if the user closes the dialog.
+    """
     translate = QCoreApplication.translate
     dialog = PetDialog(
         title=translate("PetDialog", "Welcome!"),
@@ -226,11 +251,17 @@ def ask_for_new_pet() -> PetChoice | None:
             "Tip: click your pet to make it sit (click again to let it roam), "
             "drag it anywhere on the screen, and right-click it for more options.",
         ),
+        starts_with_system=starts_with_system,
     )
-    return dialog.choice() if dialog.exec() == QDialog.DialogCode.Accepted else None
+    if dialog.exec() != QDialog.DialogCode.Accepted:
+        return None
+    return Adoption(dialog.choice(), dialog.starts_with_system())
 
 
 def ask_for_changes(current: Preferences) -> Preferences | None:
-    """Let the user rename the pet, swap it or change the language; None if cancelled."""
+    """Let the user rename or swap the pet, or change the language or starting with the system.
+
+    None if cancelled.
+    """
     dialog = SettingsDialog(current)
     return dialog.preferences() if dialog.exec() == QDialog.DialogCode.Accepted else None

@@ -10,6 +10,7 @@ from pathlib import Path
 from PySide6.QtCore import QStandardPaths, QTimer
 from PySide6.QtWidgets import QApplication, QSystemTrayIcon
 
+from virtual_pet.autostart import Autostart, refresh, system_autostart
 from virtual_pet.config import Config, ConfigStore
 from virtual_pet.dialogs import PetChoice, Preferences, ask_for_changes, ask_for_new_pet
 from virtual_pet.i18n import APP_DISPLAY_NAME, use_language
@@ -30,7 +31,10 @@ logger = logging.getLogger(__name__)
 
 
 class PetController:
-    """Keeps the pet's window, its tray icon, the settings dialog and the saved config in sync."""
+    """Keeps the pet's window, its tray icon, the settings dialog and the saved config in sync.
+
+    Starting with the system isn't in the config: the system's own entry says (`autostart`).
+    """
 
     def __init__(
         self,
@@ -38,8 +42,10 @@ class PetController:
         config: Config,
         *,
         tray_available: Callable[[], bool] = QSystemTrayIcon.isSystemTrayAvailable,
+        autostart: Autostart | None = None,
     ) -> None:
         self._store = store
+        self._autostart = autostart or system_autostart(APP_NAME)
         self._config = config
         self.window = PetWindow(
             config.pet_name or "",
@@ -78,9 +84,10 @@ class PetController:
         self.window.show()
 
     def open_settings(self) -> None:
-        """Let the user rename the pet, swap it (there is only ever one) or change the language."""
+        """Let the user rename the pet, swap it (there is only ever one), change the language or
+        whether it starts with the system."""
         pet = PetChoice(self.window.species, self._config.pet_name or "")
-        current = Preferences(pet, self._config.language)
+        current = Preferences(pet, self._config.language, self._autostart.is_enabled())
         choice = ask_for_changes(current)
         if choice is None or choice == current:
             return
@@ -90,6 +97,8 @@ class PetController:
         if choice.language != current.language:
             self._config.language = choice.language
             use_language(choice.language)
+        if choice.starts_with_system != current.starts_with_system:
+            start_with_system(self._autostart, enabled=choice.starts_with_system)
         self.save()
 
 
@@ -101,17 +110,35 @@ def save_config(store: ConfigStore, config: Config) -> None:
         logger.warning("Could not save settings to %s: %s", store.path, error)
 
 
-def ensure_pet(store: ConfigStore, config: Config) -> Config | None:
-    """Ask which pet to adopt, and its name, if there is none yet (the first run).
+def start_with_system(autostart: Autostart, *, enabled: bool) -> None:
+    """Turn starting with the system on or off; failing to do so is reported, never fatal."""
+    try:
+        if enabled:
+            autostart.enable()
+        else:
+            autostart.disable()
+    except OSError as error:
+        logger.warning("Could not change starting with the system: %s", error)
+
+
+def ensure_pet(
+    store: ConfigStore, config: Config, autostart: Autostart | None = None
+) -> Config | None:
+    """Ask which pet to adopt, its name and whether it starts with the system, if there is no
+    pet yet (the first run).
 
     Returns None when the user closes the adoption dialog without choosing.
     """
     if config.pet_name is None:
-        choice = ask_for_new_pet()
-        if choice is None:
+        autostart = autostart or system_autostart(APP_NAME)
+        starting = autostart.is_enabled()  # off, unless an earlier install left it on
+        adoption = ask_for_new_pet(starts_with_system=starting)
+        if adoption is None:
             return None
-        config.pet_name, config.species = choice.name, choice.species.key
+        config.pet_name, config.species = adoption.pet.name, adoption.pet.species.key
         save_config(store, config)
+        if adoption.starts_with_system != starting:
+            start_with_system(autostart, enabled=adoption.starts_with_system)
     return config
 
 
@@ -189,10 +216,12 @@ def main() -> int:
         store = ConfigStore(config_path())
         config = store.load()
         use_language(config.language)  # before the first window, for its texts and title
-        config = ensure_pet(store, config)
+        autostart = system_autostart(APP_NAME)
+        config = ensure_pet(store, config, autostart)
         if config is None:
             return 0
-        controller = PetController(store, config)
+        refresh(autostart)  # the pet may have moved since it was set to start with the system
+        controller = PetController(store, config, autostart=autostart)
         if requests is not None:
             requests.received.connect(controller.show_pet)
         app.aboutToQuit.connect(controller.save)

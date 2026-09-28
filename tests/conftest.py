@@ -15,3 +15,9 @@ def english_interface():
     yield
     if QCoreApplication.instance() is not None:
         i18n.use_language(i18n.ENGLISH)
+
+
+@pytest.fixture(autouse=True)
+def private_config_folder(tmp_path, monkeypatch):
+    """Nothing a test does reaches the user's own settings, such as their autostart folder."""
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "xdg-config"))

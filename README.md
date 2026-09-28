@@ -46,6 +46,13 @@ new one replaces the current one, in the same spot. The pet remembers which anim
 is, its name, where you left it, whether it was sitting and which way it was facing.
 Opening the app while it runs starts no second pet: the running one shows itself instead.
 
+Both the first run and Settings offer to start the pet with the system, off unless you
+tick it. On Linux that is an entry in `~/.config/autostart`, on Windows a value in your
+user's Run key, so the desktop's own list of startup apps shows it and can turn it off
+too; Settings show what that list says. The pet isn't installed in a fixed place, so
+each start points the entry at where the pet is now: if you move the AppImage or the
+unzipped folder, open it once from its new place.
+
 The pet speaks English and Brazilian Portuguese, in which the app is called Pet Virtual.
 It follows your desktop's language (English if it doesn't speak it), unless you choose a
 language in Settings.
@@ -112,7 +119,8 @@ shaped to the pet's silhouette, so the empty space around it isn't part of it.
 
 Everything is stored in `~/.config/virtual-pet/config.json` (`$XDG_CONFIG_HOME` is
 respected), or on Windows in `%LOCALAPPDATA%\virtual-pet\config.json`. Delete that file
-to start over; the next run asks you to adopt a pet again.
+to start over; the next run asks you to adopt a pet again. Starting with the system
+isn't in that file: it stays as it was until you change it in Settings.
 
 ## Development
 
@@ -129,10 +137,11 @@ uv run ty check src/       # type check
 ```
 src/virtual_pet/
 ├── app.py          # entry point: Qt setup, first run, single instance, saving
+├── autostart.py    # starting with the system: an XDG autostart entry, or Windows' Run key
 ├── behavior.py     # the pet's brain: roaming, resting, sitting, turning, being carried (no Qt)
 ├── color_change.py # how the chameleon changes color, in waves from head to tail (no Qt)
 ├── config.py       # settings file (JSON) loading and saving
-├── dialogs.py      # dialogs used to adopt a pet and to change it (and the language) later
+├── dialogs.py      # dialogs to adopt a pet and change it, the language or autostart later
 ├── i18n.py         # the interface in the user's language
 ├── icon.py         # the app's icon: a cream paw print on a rounded orange tile
 ├── instance.py     # one pet at a time: the lock, and how opening the app again reaches it

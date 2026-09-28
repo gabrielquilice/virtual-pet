@@ -23,6 +23,10 @@
         <translation>&amp;Nome:</translation>
     </message>
     <message>
+        <source>&amp;Start with the system</source>
+        <translation>&amp;Iniciar com o sistema</translation>
+    </message>
+    <message>
         <source>Welcome!</source>
         <translation>Boas-vindas!</translation>
     </message>
