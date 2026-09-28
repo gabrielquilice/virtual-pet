@@ -117,7 +117,7 @@ class PetDialog(QDialog):
         self._form = QFormLayout()
         self._form.addRow(self.tr("Pet:"), picker)
         self._form.addRow(self.tr("&Name:"), self._name_field)
-        self._starts_field = QCheckBox(self.tr("&Start with the system"))
+        self._starts_field = QCheckBox(self.tr("&Show the pet when the system starts"))
         self._starts_field.setChecked(starts_with_system)
         self._form.addRow("", self._starts_field)
         layout = QVBoxLayout(self)

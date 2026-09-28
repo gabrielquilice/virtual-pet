@@ -23,8 +23,8 @@
         <translation>&amp;Nome:</translation>
     </message>
     <message>
-        <source>&amp;Start with the system</source>
-        <translation>&amp;Iniciar com o sistema</translation>
+        <source>&amp;Show the pet when the system starts</source>
+        <translation>&amp;Exibir o pet ao iniciar o sistema</translation>
     </message>
     <message>
         <source>Welcome!</source>

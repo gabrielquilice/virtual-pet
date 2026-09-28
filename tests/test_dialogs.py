@@ -205,7 +205,7 @@ def test_the_first_run_offers_to_start_with_the_system_unchecked(dialog):
     field = starts_field(dialog)
 
     assert (field.text(), field.isChecked(), dialog.starts_with_system()) == (
-        "&Start with the system",
+        "&Show the pet when the system starts",
         False,
         False,
     )
