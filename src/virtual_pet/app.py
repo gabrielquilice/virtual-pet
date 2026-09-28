@@ -88,7 +88,14 @@ class PetController:
         whether it starts with the system."""
         pet = PetChoice(self.window.species, self._config.pet_name or "")
         current = Preferences(pet, self._config.language, self._autostart.is_enabled())
-        choice = ask_for_changes(current)
+        # The pet's window bypasses the window manager to stay on top and never steal focus
+        # (see PetWindow.__init__), which on X11 also keeps it drawn above every other window,
+        # Settings included: hiding it while the dialog is open is the only reliable fix.
+        self.window.hide()
+        try:
+            choice = ask_for_changes(current)
+        finally:
+            self.window.show()
         if choice is None or choice == current:
             return
         self._config.pet_name = choice.pet.name

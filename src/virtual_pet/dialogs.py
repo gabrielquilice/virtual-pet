@@ -87,7 +87,7 @@ class PetDialog(QDialog):
     ) -> None:
         super().__init__()
         self.setWindowTitle(title)
-        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint)  # above the pet, which is on top
+        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint)  # so other windows don't cover it
         self.setStyleSheet(PET_BUTTON_STYLE)
         current = current or PetChoice(DOG, "")
 
