@@ -209,6 +209,7 @@ def test_the_first_run_shows_a_system_start_left_by_an_earlier_install(
     assert not entry.is_enabled()
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="it would write the user's Run key")
 def test_the_first_run_asks_this_systems_start_by_default(tmp_path, monkeypatch, answer_dialog):
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "home-config"))
     store = ConfigStore(tmp_path / "config.json")
