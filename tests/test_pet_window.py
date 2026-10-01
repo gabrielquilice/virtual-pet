@@ -386,3 +386,28 @@ def test_a_flung_dog_glides_carried_and_stops_further_along(shown_window, qtbot)
 
     assert shown_window.pos() != released  # it kept going after being let go
     assert shown_window.pos().y() <= released.y()  # and did not fall
+
+
+def test_a_slow_drag_with_jittery_samples_is_not_a_throw(shown_window, qtbot):
+    qtbot.mousePress(shown_window, LEFT, pos=BODY)
+    qtbot.mouseMove(shown_window, BODY + QPoint(-30, -30))
+    qtbot.mouseMove(shown_window, BODY + QPoint(-31, -30))  # 1 px a moment later: jitter
+    qtbot.mouseRelease(shown_window, LEFT, pos=BODY)
+
+    assert not shown_window.flying
+
+
+def test_clicking_a_thrown_dog_catches_it_without_making_it_sit(shown_window, qtbot):
+    qtbot.mousePress(shown_window, LEFT, pos=BODY)
+    qtbot.mouseMove(shown_window, BODY + QPoint(-30, -30))
+    qtbot.wait(20)
+    qtbot.mouseMove(shown_window, BODY + QPoint(-130, -30))
+    qtbot.wait(5)
+    qtbot.mouseMove(shown_window, BODY + QPoint(-230, -30))
+    qtbot.mouseRelease(shown_window, LEFT, pos=BODY)
+    assert shown_window.flying
+
+    qtbot.mouseClick(shown_window, LEFT, pos=BODY)
+
+    assert not shown_window.flying
+    assert not shown_window.sitting

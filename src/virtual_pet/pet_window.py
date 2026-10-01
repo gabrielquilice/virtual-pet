@@ -30,6 +30,7 @@ BLINK_INTERVAL = (2.0, 6.0)  # seconds between blinks
 BLINK_DURATION = 0.15  # seconds
 MIN_THROW_SAMPLES = 2  # cursor positions needed to tell how fast it moves
 THROW_WINDOW = 0.08  # seconds of cursor movement before the release that make up a throw
+MIN_THROW_SPAN = 0.02  # seconds those positions must span: closer ones are jitter, not speed
 
 
 class PetWindow(QWidget):
@@ -228,7 +229,13 @@ class PetWindow(QWidget):
             return
         dragged, self._dragging, self._press_position = self._dragging, False, None
         if not dragged:
-            self._toggle_sitting()
+            if self._behavior.flying:  # a click catches a thrown pet, like grabbing it does
+                self._behavior.pick_up()
+                self._behavior.put_down()
+                self._sync()
+                self.state_changed.emit()
+            else:
+                self._toggle_sitting()
             return
         self._behavior.put_down(self._release_velocity(), self._throw_strength)
         self.setCursor(Qt.CursorShape.OpenHandCursor)
@@ -259,7 +266,7 @@ class PetWindow(QWidget):
         if len(recent) < MIN_THROW_SAMPLES:  # held still, or too little to tell
             return (0.0, 0.0)
         (start, first), (end, last) = recent[0], recent[-1]
-        if end <= start:
+        if end - start < MIN_THROW_SPAN:
             return (0.0, 0.0)
         return ((last.x() - first.x()) / (end - start), (last.y() - first.y()) / (end - start))
 
