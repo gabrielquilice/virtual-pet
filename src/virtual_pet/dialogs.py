@@ -17,11 +17,13 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QMessageBox,
     QPushButton,
+    QSlider,
     QToolButton,
     QVBoxLayout,
     QWidget,
 )
 
+from virtual_pet.behavior import DEFAULT_THROW_STRENGTH, THROW_STRENGTH_RANGE
 from virtual_pet.config import MAX_NAME_LENGTH, normalize_name
 from virtual_pet.i18n import LANGUAGES, arg
 from virtual_pet.pets import ALL_SPECIES, DOG
@@ -67,6 +69,7 @@ class Preferences(NamedTuple):
     pet: PetChoice
     language: str | None  # None follows the system's language
     starts_with_system: bool = False
+    throw_strength: int = DEFAULT_THROW_STRENGTH  # percent of the usual strength of a throw
 
 
 class PetDialog(QDialog):
@@ -172,12 +175,30 @@ class SettingsDialog(PetDialog):
         )
         self._form.insertRow(2, self.tr("&Language:"), self._language_field)  # before Start
 
+        low, high = THROW_STRENGTH_RANGE
+        self._throw_field = QSlider(Qt.Orientation.Horizontal)
+        self._throw_field.setRange(low, high)
+        self._throw_field.setValue(current.throw_strength)
+        self._throw_label = QLabel()
+        self._throw_label.setMinimumWidth(self._throw_label.fontMetrics().horizontalAdvance("000%"))
+        self._throw_field.valueChanged.connect(self._show_throw_strength)
+        self._show_throw_strength(self._throw_field.value())
+        throw_row = QHBoxLayout()
+        throw_row.addWidget(self._throw_field)
+        throw_row.addWidget(self._throw_label)
+        throw_title = QLabel(self.tr("&Throw strength:"))
+        throw_title.setBuddy(self._throw_field)
+        self._form.insertRow(3, throw_title, throw_row)  # before Start
+
         version_row = QHBoxLayout()
         version_row.addWidget(QLabel(app_version()))
         self._update_button = QPushButton(self.tr("Check for Updates"))
         self._update_button.clicked.connect(self._check_for_updates)
         version_row.addWidget(self._update_button)
         self._form.addRow(self.tr("Version:"), version_row)
+
+    def _show_throw_strength(self, percent: int) -> None:
+        self._throw_label.setText(f"{percent}%")
 
     def _check_for_updates(self) -> None:
         original_text = self._update_button.text()
@@ -217,7 +238,9 @@ class SettingsDialog(PetDialog):
     def preferences(self) -> Preferences:
         """The chosen pet, its name, the language (None: the system's), starting with it."""
         language = self._language_field.currentData() or None
-        return Preferences(self.choice(), language, self.starts_with_system())
+        return Preferences(
+            self.choice(), language, self.starts_with_system(), self._throw_field.value()
+        )
 
 
 def _pet_button(species: Species, dialog: QWidget) -> QToolButton:

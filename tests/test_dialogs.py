@@ -233,9 +233,10 @@ def test_settings_show_whether_the_pet_starts_with_the_system(qtbot):
 
 def test_settings_ask_for_the_language_before_starting_with_the_system(settings):
     form = settings.findChild(QFormLayout)
-    fields = [form.itemAt(row, QFormLayout.ItemRole.FieldRole).widget() for row in range(4)]
+    fields = [form.itemAt(row, QFormLayout.ItemRole.FieldRole).widget() for row in range(5)]
 
-    assert fields[2:] == [language_field(settings), starts_field(settings)]
+    # the throw speed's field is a layout, not a widget
+    assert fields[2:] == [language_field(settings), None, starts_field(settings)]
 
 
 def test_settings_show_the_app_version(settings):
@@ -345,3 +346,16 @@ def test_the_pet_cards_never_overlap_or_leave_the_dialog(qtbot, language):
     ]
     outside = [card.topLeft() for card in cards if not dialog.rect().contains(card)]
     assert (overlapping, outside) == ([], [])
+
+
+def test_settings_slider_shows_and_returns_the_throw_strength(qtbot):
+    dialog = SettingsDialog(Preferences(PetChoice(CAT, "Mimi"), None, throw_strength=150))
+    qtbot.addWidget(dialog)
+
+    assert dialog._throw_field.value() == 150  # noqa: SLF001
+    assert dialog._throw_label.text() == "150%"  # noqa: SLF001
+
+    dialog._throw_field.setValue(180)  # noqa: SLF001
+
+    assert dialog._throw_label.text() == "180%"  # noqa: SLF001
+    assert dialog.preferences().throw_strength == 180

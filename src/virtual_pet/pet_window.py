@@ -3,6 +3,7 @@
 import html
 import random
 import time
+from collections import deque
 from typing import override
 
 from PySide6.QtCore import QCoreApplication, QPoint, Qt, QTimer, Signal
@@ -19,7 +20,7 @@ from PySide6.QtGui import (
 from PySide6.QtWidgets import QApplication, QMenu, QWidget
 
 from virtual_pet import sprites
-from virtual_pet.behavior import Activity, Area, Facing, PetBehavior
+from virtual_pet.behavior import DEFAULT_THROW_STRENGTH, Activity, Area, Facing, PetBehavior
 from virtual_pet.color_change import ColorChange
 from virtual_pet.species import Species
 
@@ -27,6 +28,8 @@ WALKING_TICK_MS = 33  # about 30 updates per second, for smooth movement
 RESTING_TICK_MS = 100  # enough for tail wags and blinks, and easier on the battery
 BLINK_INTERVAL = (2.0, 6.0)  # seconds between blinks
 BLINK_DURATION = 0.15  # seconds
+MIN_THROW_SAMPLES = 2  # cursor positions needed to tell how fast it moves
+THROW_WINDOW = 0.08  # seconds of cursor movement before the release that make up a throw
 
 
 class PetWindow(QWidget):
@@ -50,6 +53,7 @@ class PetWindow(QWidget):
         position: tuple[int, int] | None = None,
         sitting: bool = False,
         facing: Facing = Facing.RIGHT,
+        throw_strength: int = DEFAULT_THROW_STRENGTH,
         rng: random.Random | None = None,
     ) -> None:
         super().__init__(
@@ -87,6 +91,8 @@ class PetWindow(QWidget):
         self._press_position: QPoint | None = None  # where a left-button press started
         self._grab_offset = QPoint()  # cursor position relative to the window's corner
         self._dragging = False
+        self._throw_strength = throw_strength
+        self._cursor_trail: deque[tuple[float, QPoint]] = deque()  # recent cursor positions
 
         self._last_tick = time.monotonic()
         self._timer = QTimer(self)
@@ -105,6 +111,15 @@ class PetWindow(QWidget):
     def facing(self) -> Facing:
         """Which way the pet looks."""
         return self._behavior.facing
+
+    def set_throw_strength(self, percent: int) -> None:
+        """Throw the pet at `percent` of the usual speed, from the next throw on."""
+        self._throw_strength = percent
+
+    @property
+    def flying(self) -> bool:
+        """Whether the pet was thrown and is still in the air or sliding."""
+        return self._behavior.flying
 
     @property
     def species(self) -> Species:
@@ -145,7 +160,10 @@ class PetWindow(QWidget):
 
     def advance(self, seconds: float) -> None:
         """Let `seconds` of the pet's life go by: walk, rest, animate, blink, change color."""
+        was_flying = self._behavior.flying
         self._behavior.tick(seconds)
+        if was_flying and not self._behavior.flying:
+            self.state_changed.emit()  # the thrown pet stopped
         self._colors.tick(seconds, self._behavior.activity)
         self._animation_time += seconds
         self._until_blink -= seconds
@@ -179,6 +197,7 @@ class PetWindow(QWidget):
             return
         if self._dragging:  # the previous drag never got its release (e.g. a broken grab)
             self._behavior.put_down()
+        self._cursor_trail.clear()
         self._press_position = event.globalPosition().toPoint()
         self._grab_offset = self._press_position - self.pos()
         self._dragging = False
@@ -197,6 +216,7 @@ class PetWindow(QWidget):
             self.setCursor(Qt.CursorShape.ClosedHandCursor)
         screen = QGuiApplication.screenAt(cursor) or self.screen()
         self._behavior.set_area(self._area_on(screen))
+        self._track_cursor(cursor)
         corner = cursor - self._grab_offset
         self._behavior.move_to(corner.x(), corner.y())
         self._sync()
@@ -210,7 +230,7 @@ class PetWindow(QWidget):
         if not dragged:
             self._toggle_sitting()
             return
-        self._behavior.put_down()
+        self._behavior.put_down(self._release_velocity(), self._throw_strength)
         self.setCursor(Qt.CursorShape.OpenHandCursor)
         self._sync()
         self.state_changed.emit()
@@ -224,6 +244,24 @@ class PetWindow(QWidget):
         self._last_tick = time.monotonic()
         if self.isVisible():
             self._timer.start()
+
+    def _track_cursor(self, cursor: QPoint) -> None:
+        now = time.monotonic()
+        self._cursor_trail.append((now, cursor))
+        while now - self._cursor_trail[0][0] > THROW_WINDOW:
+            self._cursor_trail.popleft()
+
+    def _release_velocity(self) -> tuple[float, float]:
+        """How fast the cursor was moving when the button was let go, in pixels per second."""
+        trail, self._cursor_trail = self._cursor_trail, deque()
+        now = time.monotonic()
+        recent = [(t, point) for t, point in trail if now - t <= THROW_WINDOW]
+        if len(recent) < MIN_THROW_SAMPLES:  # held still, or too little to tell
+            return (0.0, 0.0)
+        (start, first), (end, last) = recent[0], recent[-1]
+        if end <= start:
+            return (0.0, 0.0)
+        return ((last.x() - first.x()) / (end - start), (last.y() - first.y()) / (end - start))
 
     def _toggle_sitting(self) -> None:
         self._behavior.toggle_sitting()
@@ -250,7 +288,8 @@ class PetWindow(QWidget):
         activity = self._behavior.activity
         if activity is not self._activity:
             self._activity, self._animation_time = activity, 0.0
-        interval = WALKING_TICK_MS if activity is Activity.WALKING else RESTING_TICK_MS
+        moving = activity is Activity.WALKING or self._behavior.flying
+        interval = WALKING_TICK_MS if moving else RESTING_TICK_MS
         if self._timer.interval() != interval:
             self._timer.setInterval(interval)
         frame = self._species.animations[activity].frame_at(self._animation_time)

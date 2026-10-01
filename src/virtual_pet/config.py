@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TypeGuard
 
-from virtual_pet.behavior import Facing
+from virtual_pet.behavior import DEFAULT_THROW_STRENGTH, THROW_STRENGTH_RANGE, Facing
 
 MAX_NAME_LENGTH = 24
 DEFAULT_SPECIES = "dog"  # also what settings saved before other pets existed get
@@ -26,6 +26,7 @@ class Config:
     sitting: bool = False
     facing: Facing = Facing.RIGHT
     language: str | None = None  # of the interface; None follows the system's language
+    throw_strength: int = DEFAULT_THROW_STRENGTH  # percent of the usual strength of a throw
 
 
 def normalize_name(raw: str) -> str:
@@ -59,6 +60,7 @@ class ConfigStore:
             sitting=data.get("sitting") is True,
             facing=Facing.LEFT if data.get("facing") == "left" else Facing.RIGHT,
             language=language if isinstance(language, str) and language else None,
+            throw_strength=_throw_strength_from_json(data.get("throw_strength")),
         )
 
     def save(self, config: Config) -> None:
@@ -71,6 +73,7 @@ class ConfigStore:
             "sitting": config.sitting,
             "facing": config.facing.name.lower(),
             "language": config.language,
+            "throw_strength": config.throw_strength,
         }
         self.path.parent.mkdir(parents=True, exist_ok=True)
         fd, temp_name = tempfile.mkstemp(dir=self.path.parent, prefix=".config-", suffix=".tmp")
@@ -90,6 +93,13 @@ def _position_from_json(value: object) -> tuple[int, int] | None:
     if _is_int(x) and _is_int(y):
         return (x, y)
     return None
+
+
+def _throw_strength_from_json(value: object) -> int:
+    low, high = THROW_STRENGTH_RANGE
+    if _is_int(value) and low <= value <= high:
+        return value
+    return DEFAULT_THROW_STRENGTH
 
 
 def _is_int(value: object) -> TypeGuard[int]:

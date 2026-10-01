@@ -363,3 +363,123 @@ def test_turning_never_takes_the_pet_off_its_area(seed, width, height, start, st
             pet.turn_around()
         pet.tick(seconds)
         assert_inside(pet, area)
+
+
+def throw(pet: PetBehavior, velocity: tuple[float, float]) -> None:
+    pet.pick_up()
+    pet.put_down(velocity)
+
+
+def test_pet_let_go_slowly_is_not_thrown():
+    pet = PetBehavior(SCREEN, (500, 300), sitting=True, rng=random.Random(10))
+
+    throw(pet, (100, 50))
+
+    assert not pet.flying
+    assert pet.activity is Activity.SITTING
+
+
+def test_thrown_pet_stays_carried_while_it_glides_and_stops_where_friction_leaves_it():
+    pet = PetBehavior(SCREEN, (300, 300), rng=random.Random(11))
+
+    throw(pet, (1000, -200))
+    pet.tick(0.05)
+
+    assert pet.flying
+    assert pet.activity is Activity.CARRIED
+
+    while pet.flying:
+        pet.tick(0.05)
+
+    x, y = pet.position
+    assert 300 < x < SCREEN.right  # it went the way it was thrown, and stopped before the wall
+    assert y < 300  # and did not fall to the floor
+
+
+def test_thrown_pet_hardly_bounces_off_a_wall():
+    pet = PetBehavior(SCREEN, (900, 300), rng=random.Random(12))
+
+    throw(pet, (2000, 0))
+    while pet.flying:
+        pet.tick(0.05)
+
+    assert SCREEN.right - 200 < pet.position[0] <= SCREEN.right
+
+
+def test_thrown_sitting_pet_keeps_sitting_once_landed():
+    pet = PetBehavior(SCREEN, (500, 300), sitting=True, rng=random.Random(13))
+
+    throw(pet, (-900, -900))
+    run(pet, 10)
+
+    assert pet.activity is Activity.SITTING
+
+
+def test_thrown_roaming_pet_strolls_again_after_landing():
+    pet = PetBehavior(SCREEN, (500, 300), rng=random.Random(14))
+
+    throw(pet, (900, -300))
+    run(pet, 10)
+    landed = pet.position
+    run(pet, 10)
+
+    assert pet.position != landed
+
+
+def test_grabbing_a_flying_pet_catches_it():
+    pet = PetBehavior(SCREEN, (500, 300), rng=random.Random(15))
+
+    throw(pet, (900, -300))
+    pet.tick(0.05)
+    pet.pick_up()
+    held = pet.position
+    run(pet, 2)
+
+    assert not pet.flying
+    assert pet.position == held
+
+
+@given(
+    vx=st.floats(-10_000, 10_000),
+    vy=st.floats(-10_000, 10_000),
+    x=st.floats(0, 1000),
+    y=st.floats(0, 600),
+)
+def test_thrown_pet_never_leaves_its_area_and_always_comes_to_rest(vx, vy, x, y):
+    pet = PetBehavior(SCREEN, (x, y), rng=random.Random(16))
+
+    throw(pet, (vx, vy))
+    for _ in range(600):
+        pet.tick(0.05)
+        left, top = pet.position
+        assert SCREEN.left <= left <= SCREEN.right
+        assert SCREEN.top <= top <= SCREEN.bottom
+
+    assert not pet.flying
+
+
+def test_throw_strength_scales_how_fast_the_pet_takes_off():
+    slow = PetBehavior(SCREEN, (300, 300), rng=random.Random(17))
+    fast = PetBehavior(SCREEN, (300, 300), rng=random.Random(17))
+
+    slow.pick_up()
+    slow.put_down((1000, 0), 50)
+    fast.pick_up()
+    fast.put_down((1000, 0), 200)
+    for pet in (slow, fast):
+        while pet.flying:
+            pet.tick(0.05)
+
+    assert slow.position[0] < fast.position[0]
+
+
+def test_a_stronger_throw_bounces_off_a_wall_harder():
+    def bounce_back(strength: int) -> float:
+        pet = PetBehavior(SCREEN, (990, 300), rng=random.Random(18))
+        pet.pick_up()
+        pet.put_down((1000, 0), strength)
+        while pet.flying:
+            pet.tick(0.05)
+        return SCREEN.right - pet.position[0]
+
+    assert bounce_back(50) < bounce_back(100) < bounce_back(200)

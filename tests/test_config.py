@@ -121,3 +121,15 @@ def test_settings_from_before_the_pet_could_turn_face_right(tmp_path):
     path.write_text(json.dumps({"pet_name": "Rex", "sitting": True}), encoding="utf-8")
 
     assert ConfigStore(path).load().facing is Facing.RIGHT
+
+
+def test_throw_strength_is_saved_and_defaults_when_missing_or_out_of_range(tmp_path):
+    store = ConfigStore(tmp_path / "config.json")
+    assert store.load().throw_strength == 100
+
+    store.save(Config(throw_strength=180))
+    assert store.load().throw_strength == 180
+
+    for bad in (0, 201, 5000, "fast", True, None):
+        store.path.write_text(json.dumps({"throw_strength": bad}), encoding="utf-8")
+        assert store.load().throw_strength == 100

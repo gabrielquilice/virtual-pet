@@ -138,6 +138,10 @@ Escolha seu pet e dê um nome a ele.</translation>
         <translation>&amp;Idioma:</translation>
     </message>
     <message>
+        <source>&amp;Throw strength:</source>
+        <translation>&amp;Força de arremesso:</translation>
+    </message>
+    <message>
         <source>Check for Updates</source>
         <translation>Buscar Atualizações</translation>
     </message>

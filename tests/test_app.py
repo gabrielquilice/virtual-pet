@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QLineEdit,
+    QSlider,
     QSystemTrayIcon,
     QToolButton,
     QWidget,
@@ -50,7 +51,12 @@ def answer_dialog(qapp):
     timers = []
 
     def answer(
-        name: str | None, pet: str | None, language: str | None, *, starts: bool | None
+        name: str | None,
+        pet: str | None,
+        language: str | None,
+        *,
+        starts: bool | None,
+        throw_strength: int | None,
     ) -> None:
         dialog = qapp.activeModalWidget()
         if dialog is None:
@@ -67,6 +73,8 @@ def answer_dialog(qapp):
             field.setCurrentIndex(field.findData(language))
         if starts is not None:
             dialog.findChild(QCheckBox).setChecked(starts)
+        if throw_strength is not None:
+            dialog.findChild(QSlider).setValue(throw_strength)
         dialog.findChild(QLineEdit).setText(name)
         dialog.accept()
 
@@ -76,10 +84,13 @@ def answer_dialog(qapp):
         language: str | None = None,
         *,
         starts: bool | None = None,
+        throw_strength: int | None = None,
     ) -> None:
         timer = QTimer()
         timer.setSingleShot(True)
-        timer.timeout.connect(lambda: answer(name, pet, language, starts=starts))
+        timer.timeout.connect(
+            lambda: answer(name, pet, language, starts=starts, throw_strength=throw_strength)
+        )
         timer.start(0)
         timers.append(timer)
 
@@ -262,6 +273,16 @@ def test_renaming_in_settings_updates_the_dog_and_is_remembered(controller, stor
 
     assert shown_name(controller) == "Luna"
     assert store.load().pet_name == "Luna"
+
+
+def test_the_throw_strength_chosen_in_settings_is_used_and_remembered(
+    controller, store, answer_dialog
+):
+    answer_dialog("Rex", throw_strength=180)
+    controller.window.settings_requested.emit()
+
+    assert controller.window._throw_strength == 180  # noqa: SLF001
+    assert store.load().throw_strength == 180
 
 
 def test_swapping_the_pet_replaces_it_and_is_remembered(controller, store, answer_dialog):
@@ -495,6 +516,7 @@ def test_pet_quits_gracefully_and_remembers_its_state(pet_environment, start_pet
         "sitting": True,
         "facing": "left",
         "language": None,
+        "throw_strength": 100,
     }
 
 

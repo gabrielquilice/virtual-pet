@@ -366,3 +366,23 @@ def test_the_color_wave_starts_at_the_head_whichever_way_the_chameleon_faces(mak
 
     assert color_of_body_at(range(6)) in OTHER_COLORS  # the head, on the left
     assert color_of_body_at(range(24, 30)) == GREEN  # the tail
+
+
+def test_a_flung_dog_glides_carried_and_stops_further_along(shown_window, qtbot):
+    qtbot.mousePress(shown_window, LEFT, pos=BODY)
+    qtbot.mouseMove(shown_window, BODY + QPoint(-30, -30))
+    qtbot.wait(20)
+    qtbot.mouseMove(shown_window, BODY + QPoint(-130, -30))
+    qtbot.wait(5)
+    qtbot.mouseMove(shown_window, BODY + QPoint(-230, -30))
+    qtbot.mouseRelease(shown_window, LEFT, pos=BODY)
+
+    assert shown_window.flying
+    released = shown_window.pos()
+
+    with qtbot.waitSignal(shown_window.state_changed, timeout=100):
+        while shown_window.flying:
+            shown_window.advance(0.05)
+
+    assert shown_window.pos() != released  # it kept going after being let go
+    assert shown_window.pos().y() <= released.y()  # and did not fall

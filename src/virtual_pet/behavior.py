@@ -12,6 +12,15 @@ from enum import Enum, auto
 REST_TIME = (1.5, 5.0)  # seconds standing still between strolls, unless the gait says
 LANDING_REST_TIME = (0.5, 1.2)  # seconds before strolling after appearing or being put down
 MAX_TICK = 0.1  # longer gaps (e.g. waking up from sleep) are not simulated
+THROW_SPEED = 1000.0  # pixels per second the pet must be moving at when let go to be thrown
+MAX_THROW_SPEED = 2000.0  # a faster flick is thrown at this speed
+THROW_FRICTION = 2500.0  # pixels per second squared slowing a thrown pet until it stops
+BOUNCE = 0.2  # share of its speed a pet thrown at the usual strength keeps after hitting a wall
+DEFAULT_THROW_STRENGTH = (
+    100  # percent of the usual strength a pet is thrown with: it scales its speed and its bounce
+)
+THROW_STRENGTH_RANGE = (25, 200)  # the least and the most the settings allow
+STOP_SPEED = 40.0  # a thrown pet slower than this stops
 
 
 class Activity(Enum):
@@ -75,6 +84,8 @@ class PetBehavior:
         self._x, self._y = area.clamp(*position)
         self._sitting = sitting
         self._carried = False
+        self._velocity: tuple[float, float] | None = None  # set while a thrown pet is in flight
+        self._bounce = BOUNCE  # of the throw in flight: the stronger, the more
         self._facing = facing
         self._rng = rng if rng is not None else random.Random()  # noqa: S311 - not security related
         self._target: tuple[float, float] | None = None
@@ -94,8 +105,13 @@ class PetBehavior:
         return self._sitting
 
     @property
+    def flying(self) -> bool:
+        """Whether the pet was thrown and hasn't come to rest yet."""
+        return self._velocity is not None
+
+    @property
     def activity(self) -> Activity:
-        if self._carried:
+        if self._carried or self._velocity is not None:
             return Activity.CARRIED
         if self._sitting:
             return Activity.SITTING
@@ -105,9 +121,14 @@ class PetBehavior:
 
     def tick(self, seconds: float) -> None:
         """Advance the simulation by `seconds`."""
-        if self._sitting or self._carried:
+        if self._carried:
             return
         seconds = min(max(seconds, 0.0), MAX_TICK)
+        if self._velocity is not None:
+            self._fly(seconds, self._velocity)
+            return
+        if self._sitting:
+            return
         target = self._target
         if target is None:
             self._rest_left -= seconds
@@ -156,16 +177,31 @@ class PetBehavior:
     def pick_up(self) -> None:
         """The user grabbed the pet."""
         self._carried = True
+        self._velocity = None
         self._target = None
 
     def move_to(self, x: float, y: float) -> None:
         """Place the pet as close to (x, y) as its area allows."""
         self._x, self._y = self._area.clamp(x, y)
 
-    def put_down(self) -> None:
-        """The user let go: back to sitting or, after a short pause, to strolling."""
+    def put_down(
+        self,
+        velocity: tuple[float, float] = (0.0, 0.0),
+        throw_strength: int = DEFAULT_THROW_STRENGTH,
+    ) -> None:
+        """The user let go: back to sitting or, after a short pause, to strolling.
+
+        Let go while moving at `velocity` (pixels per second) faster than `THROW_SPEED`, the pet
+        is thrown instead: it flies, still looking carried, until it comes to rest. It takes off at
+        `throw_strength` percent of that speed, and bounces off walls in proportion to it.
+        """
         self._carried = False
         self._rest_left = self._rng.uniform(*LANDING_REST_TIME)
+        speed = math.hypot(*velocity)
+        if speed >= THROW_SPEED:
+            scale = min(speed, MAX_THROW_SPEED) / speed * throw_strength / 100
+            self._velocity = (velocity[0] * scale, velocity[1] * scale)
+            self._bounce = BOUNCE * throw_strength / 100
 
     def set_area(self, area: Area) -> None:
         """Switch to a new allowed area (another screen, a resolution change...)."""
@@ -177,6 +213,24 @@ class PetBehavior:
     def set_gait(self, gait: Gait) -> None:
         """Move the way another kind of pet does, from now on."""
         self._gait = gait
+
+    def _fly(self, seconds: float, velocity: tuple[float, float]) -> None:
+        """Move a thrown pet: it slows down by friction and a wall sends it back, weakly."""
+        vx, vy = velocity
+        speed = math.hypot(vx, vy)
+        slower = max(speed - THROW_FRICTION * seconds, 0.0) / speed
+        vx, vy = vx * slower, vy * slower
+        x, y = self._x + vx * seconds, self._y + vy * seconds
+        if x < self._area.left or x > self._area.right:
+            vx = -vx * self._bounce
+        if y < self._area.top or y > self._area.bottom:
+            vy = -vy * self._bounce
+        self._x, self._y = self._area.clamp(x, y)
+        if math.hypot(vx, vy) < STOP_SPEED:
+            self._velocity = None
+            self._rest_left = self._rng.uniform(*LANDING_REST_TIME)
+        else:
+            self._velocity = (vx, vy)
 
     def _end_stroll(self) -> None:
         """Stop walking and rest a while before the next stroll."""

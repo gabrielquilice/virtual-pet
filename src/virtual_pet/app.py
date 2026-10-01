@@ -53,6 +53,7 @@ class PetController:
             position=config.position,
             sitting=config.sitting,
             facing=config.facing,
+            throw_strength=config.throw_strength,
         )
         self.window.state_changed.connect(self.save)
         self.window.hide_requested.connect(self.hide_pet)
@@ -87,7 +88,9 @@ class PetController:
         """Let the user rename the pet, swap it (there is only ever one), change the language or
         whether it starts with the system."""
         pet = PetChoice(self.window.species, self._config.pet_name or "")
-        current = Preferences(pet, self._config.language, self._autostart.is_enabled())
+        current = Preferences(
+            pet, self._config.language, self._autostart.is_enabled(), self._config.throw_strength
+        )
         # The pet's window bypasses the window manager to stay on top and never steal focus
         # (see PetWindow.__init__), which on X11 also keeps it drawn above every other window,
         # Settings included: hiding it while the dialog is open is the only reliable fix.
@@ -104,6 +107,9 @@ class PetController:
         if choice.language != current.language:
             self._config.language = choice.language
             use_language(choice.language)
+        if choice.throw_strength != current.throw_strength:
+            self._config.throw_strength = choice.throw_strength
+            self.window.set_throw_strength(choice.throw_strength)
         if choice.starts_with_system != current.starts_with_system:
             start_with_system(self._autostart, enabled=choice.starts_with_system)
         self.save()
