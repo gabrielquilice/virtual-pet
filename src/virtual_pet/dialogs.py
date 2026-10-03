@@ -1,9 +1,9 @@
 """The small dialogs used to adopt a pet on first run and to change it, or the language, later."""
 
-from typing import NamedTuple
+from typing import NamedTuple, override
 
 from PySide6.QtCore import QCoreApplication, QSize, Qt, QUrl
-from PySide6.QtGui import QDesktopServices, QIcon, QPixmap
+from PySide6.QtGui import QDesktopServices, QIcon, QMouseEvent, QPixmap
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -18,6 +18,8 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QPushButton,
     QSlider,
+    QStyle,
+    QStyleOptionSlider,
     QToolButton,
     QVBoxLayout,
     QWidget,
@@ -150,6 +152,35 @@ class PetDialog(QDialog):
         self._confirm_button.setEnabled(bool(self.choice().name))
 
 
+class JumpSlider(QSlider):
+    """A horizontal slider whose groove takes the handle straight to where it is clicked, instead
+    of stepping a page towards it; a click on the handle itself still drags it."""
+
+    @override
+    def mousePressEvent(self, event: QMouseEvent) -> None:
+        if event.button() == Qt.MouseButton.LeftButton:
+            option = QStyleOptionSlider()
+            self.initStyleOption(option)
+            style = self.style()
+            handle = style.subControlRect(
+                QStyle.ComplexControl.CC_Slider, option, QStyle.SubControl.SC_SliderHandle, self
+            )
+            click = event.position().toPoint()
+            if not handle.contains(click):
+                groove = style.subControlRect(
+                    QStyle.ComplexControl.CC_Slider, option, QStyle.SubControl.SC_SliderGroove, self
+                )
+                self.setValue(
+                    QStyle.sliderValueFromPosition(
+                        self.minimum(),
+                        self.maximum(),
+                        click.x() - groove.x() - handle.width() // 2,
+                        groove.width() - handle.width(),
+                    )
+                )
+        super().mousePressEvent(event)  # on the handle now, so it goes on as a drag
+
+
 class SettingsDialog(PetDialog):
     """The pet dialog plus the language of the interface: the Settings."""
 
@@ -176,7 +207,7 @@ class SettingsDialog(PetDialog):
         self._form.insertRow(2, self.tr("&Language:"), self._language_field)  # before Start
 
         low, high = THROW_STRENGTH_RANGE
-        self._throw_field = QSlider(Qt.Orientation.Horizontal)
+        self._throw_field = JumpSlider(Qt.Orientation.Horizontal)
         self._throw_field.setRange(low, high)
         self._throw_field.setValue(current.throw_strength)
         self._throw_label = QLabel()

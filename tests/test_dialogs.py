@@ -359,3 +359,19 @@ def test_settings_slider_shows_and_returns_the_throw_strength(qtbot):
 
     assert dialog._throw_label.text() == "180%"  # noqa: SLF001
     assert dialog.preferences().throw_strength == 180
+
+
+def test_clicking_the_throw_strength_groove_jumps_to_that_spot(qtbot):
+    dialog = SettingsDialog(Preferences(PetChoice(CAT, "Mimi"), None))
+    qtbot.addWidget(dialog)
+    dialog.show()
+    slider = dialog._throw_field  # noqa: SLF001
+    assert slider.value() == 100
+
+    qtbot.mouseClick(slider, Qt.MouseButton.LeftButton, pos=QPoint(slider.width() - 8, 8))
+
+    assert slider.value() > 215  # not one page step from 100
+
+    qtbot.mouseClick(slider, Qt.MouseButton.LeftButton, pos=QPoint(8, 8))
+
+    assert slider.value() < 35

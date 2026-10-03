@@ -19,7 +19,7 @@ BOUNCE = 0.2  # share of its speed a pet thrown at the usual strength keeps afte
 DEFAULT_THROW_STRENGTH = (
     100  # percent of the usual strength a pet is thrown with: it scales its speed and its bounce
 )
-THROW_STRENGTH_RANGE = (25, 200)  # the least and the most the settings allow
+THROW_STRENGTH_RANGE = (25, 225)  # the least and the most the settings allow
 STOP_SPEED = 40.0  # a thrown pet slower than this stops
 
 

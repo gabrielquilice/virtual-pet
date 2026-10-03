@@ -127,9 +127,9 @@ def test_throw_strength_is_saved_and_defaults_when_missing_or_out_of_range(tmp_p
     store = ConfigStore(tmp_path / "config.json")
     assert store.load().throw_strength == 100
 
-    store.save(Config(throw_strength=180))
-    assert store.load().throw_strength == 180
+    store.save(Config(throw_strength=225))
+    assert store.load().throw_strength == 225
 
-    for bad in (0, 201, 5000, "fast", True, None):
+    for bad in (0, 226, 5000, "fast", True, None):
         store.path.write_text(json.dumps({"throw_strength": bad}), encoding="utf-8")
         assert store.load().throw_strength == 100
