@@ -1,16 +1,20 @@
 import json
+from datetime import date
 from typing import Self
 
 import pytest
 
 from virtual_pet.update_check import (
+    DISABLE_VARIABLE,
     LATEST_RELEASE_API,
     RELEASE_PAGE,
+    BackgroundCheck,
     CheckFailed,
     DevBuild,
     UpdateAvailable,
     UpToDate,
     check_for_update,
+    daily_check_due,
 )
 
 
@@ -98,3 +102,25 @@ def test_unreadable_json_is_reported(monkeypatch):
     )
 
     assert check_for_update("0.4.0") == CheckFailed()
+
+
+def test_the_daily_check_is_due_once_per_day(monkeypatch):
+    monkeypatch.delenv(DISABLE_VARIABLE)
+
+    assert daily_check_due(None, date(2026, 10, 3))
+    assert daily_check_due("2026-10-02", date(2026, 10, 3))
+    assert not daily_check_due("2026-10-03", date(2026, 10, 3))
+
+
+def test_the_daily_check_can_be_turned_off_by_the_environment():
+    assert not daily_check_due(None, date(2026, 10, 3))  # conftest sets the variable
+
+
+def test_a_background_check_hands_its_result_back_to_the_main_thread(qtbot, latest_tag):
+    latest_tag("v0.5.0")
+    check = BackgroundCheck("0.4.0")
+
+    with qtbot.waitSignal(check.finished, timeout=5000) as blocker:
+        check.start()
+
+    assert blocker.args == [UpdateAvailable("0.5.0", RELEASE_PAGE)]

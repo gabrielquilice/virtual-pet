@@ -133,3 +133,15 @@ def test_throw_strength_is_saved_and_defaults_when_missing_or_out_of_range(tmp_p
     for bad in (0, 226, 5000, "fast", True, None):
         store.path.write_text(json.dumps({"throw_strength": bad}), encoding="utf-8")
         assert store.load().throw_strength == 100
+
+
+def test_the_day_of_the_last_update_check_is_saved_and_ignored_when_it_is_not_a_date(tmp_path):
+    store = ConfigStore(tmp_path / "config.json")
+    assert store.load().last_update_check is None
+
+    store.save(Config(last_update_check="2026-10-03"))
+    assert store.load().last_update_check == "2026-10-03"
+
+    for bad in ("yesterday", 20261003, True, None):
+        store.path.write_text(json.dumps({"last_update_check": bad}), encoding="utf-8")
+        assert store.load().last_update_check is None

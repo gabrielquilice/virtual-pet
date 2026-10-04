@@ -4,6 +4,7 @@ import signal
 import subprocess
 import sys
 import time
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -14,6 +15,7 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QLineEdit,
+    QMessageBox,
     QSlider,
     QSystemTrayIcon,
     QToolButton,
@@ -32,6 +34,12 @@ from virtual_pet.autostart import DesktopEntry, desktop_exec, system_autostart
 from virtual_pet.behavior import Facing
 from virtual_pet.config import Config, ConfigStore
 from virtual_pet.pets import DOG, PARAKEET
+from virtual_pet.update_check import (
+    DISABLE_VARIABLE,
+    CheckFailed,
+    UpdateAvailable,
+    UpToDate,
+)
 
 LEFT = Qt.MouseButton.LeftButton
 BODY = QPoint(46, 46)
@@ -241,6 +249,79 @@ def controller(store, qtbot) -> PetController:
     controller = PetController(store, Config(pet_name="Rex", position=(300, 300)))
     qtbot.addWidget(controller.window)
     return controller
+
+
+TODAY = date(2026, 10, 3)
+
+
+@pytest.fixture
+def daily_check(monkeypatch):
+    """Turns the daily check on and has the background check answer `result`."""
+    monkeypatch.delenv(DISABLE_VARIABLE)
+
+    def answer(result):
+        monkeypatch.setattr("virtual_pet.update_check.check_for_update", lambda _version: result)
+
+    return answer
+
+
+def update_boxes() -> list[QMessageBox]:
+    return [box for box in QApplication.topLevelWidgets() if isinstance(box, QMessageBox)]
+
+
+def test_the_first_start_of_the_day_looks_for_an_update_and_announces_a_new_version(
+    store, qtbot, daily_check
+):
+    daily_check(UpdateAvailable("9.9.9", "https://example.com/latest"))
+    controller = PetController(store, Config(pet_name="Rex", last_update_check="2026-10-02"))
+    qtbot.addWidget(controller.window)
+    controller.window.show()
+
+    controller.check_for_update_today(TODAY)
+    qtbot.waitUntil(lambda: any(box.isVisible() for box in update_boxes()))
+
+    box = next(box for box in update_boxes() if box.isVisible())
+    assert "9.9.9" in box.text()
+    assert not controller.window.isVisible()  # out of the message's way, as with Settings
+    box.close()
+    assert controller.window.isVisible()
+    assert store.load().last_update_check == "2026-10-03"
+
+
+def test_a_start_after_todays_check_does_not_look_again(store, qtbot, daily_check, monkeypatch):
+    calls = []
+    daily_check(UpdateAvailable("9.9.9", "https://example.com/latest"))
+    monkeypatch.setattr("virtual_pet.update_check.check_for_update", calls.append)
+    controller = PetController(store, Config(last_update_check="2026-10-03"))
+    qtbot.addWidget(controller.window)
+
+    controller.check_for_update_today(TODAY)
+    qtbot.wait(100)
+
+    assert calls == []
+
+
+def test_being_up_to_date_is_not_announced_but_is_remembered(store, qtbot, daily_check):
+    daily_check(UpToDate())
+    controller = PetController(store, Config())
+    qtbot.addWidget(controller.window)
+
+    controller.check_for_update_today(TODAY)
+    qtbot.waitUntil(lambda: store.load().last_update_check == "2026-10-03")
+
+    assert not any(box.isVisible() for box in update_boxes())
+
+
+def test_a_failed_check_is_silent_and_tried_again_on_the_next_start(store, qtbot, daily_check):
+    daily_check(CheckFailed())
+    controller = PetController(store, Config())
+    qtbot.addWidget(controller.window)
+
+    controller.check_for_update_today(TODAY)
+    qtbot.wait(200)
+
+    assert store.load().last_update_check is None
+    assert not any(box.isVisible() for box in update_boxes())
 
 
 def test_where_the_dog_is_and_whether_it_sits_are_remembered(controller, store, qtbot):
@@ -517,6 +598,7 @@ def test_pet_quits_gracefully_and_remembers_its_state(pet_environment, start_pet
         "facing": "left",
         "language": None,
         "throw_strength": 100,
+        "last_update_check": None,
     }
 
 

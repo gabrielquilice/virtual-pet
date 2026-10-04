@@ -5,6 +5,7 @@ import logging
 import os
 import tempfile
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 from typing import TypeGuard
 
@@ -27,6 +28,7 @@ class Config:
     facing: Facing = Facing.RIGHT
     language: str | None = None  # of the interface; None follows the system's language
     throw_strength: int = DEFAULT_THROW_STRENGTH  # percent of the usual strength of a throw
+    last_update_check: str | None = None  # the day (ISO date) the pet last looked for a new version
 
 
 def normalize_name(raw: str) -> str:
@@ -61,6 +63,7 @@ class ConfigStore:
             facing=Facing.LEFT if data.get("facing") == "left" else Facing.RIGHT,
             language=language if isinstance(language, str) and language else None,
             throw_strength=_throw_strength_from_json(data.get("throw_strength")),
+            last_update_check=_date_from_json(data.get("last_update_check")),
         )
 
     def save(self, config: Config) -> None:
@@ -74,6 +77,7 @@ class ConfigStore:
             "facing": config.facing.name.lower(),
             "language": config.language,
             "throw_strength": config.throw_strength,
+            "last_update_check": config.last_update_check,
         }
         self.path.parent.mkdir(parents=True, exist_ok=True)
         fd, temp_name = tempfile.mkstemp(dir=self.path.parent, prefix=".config-", suffix=".tmp")
@@ -100,6 +104,15 @@ def _throw_strength_from_json(value: object) -> int:
     if _is_int(value) and low <= value <= high:
         return value
     return DEFAULT_THROW_STRENGTH
+
+
+def _date_from_json(value: object) -> str | None:
+    if not isinstance(value, str):
+        return None
+    try:
+        return date.fromisoformat(value).isoformat()
+    except ValueError:
+        return None
 
 
 def _is_int(value: object) -> TypeGuard[int]:

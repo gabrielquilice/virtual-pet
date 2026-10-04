@@ -5,14 +5,21 @@ import os
 import signal
 import sys
 from collections.abc import Callable, MutableMapping
+from datetime import date, datetime
 from pathlib import Path
 
-from PySide6.QtCore import QStandardPaths, QTimer
-from PySide6.QtWidgets import QApplication, QSystemTrayIcon
+from PySide6.QtCore import QStandardPaths, Qt, QTimer
+from PySide6.QtWidgets import QApplication, QMessageBox, QSystemTrayIcon
 
 from virtual_pet.autostart import Autostart, refresh, system_autostart
 from virtual_pet.config import Config, ConfigStore
-from virtual_pet.dialogs import PetChoice, Preferences, ask_for_changes, ask_for_new_pet
+from virtual_pet.dialogs import (
+    PetChoice,
+    Preferences,
+    ask_for_changes,
+    ask_for_new_pet,
+    update_message_box,
+)
 from virtual_pet.i18n import APP_DISPLAY_NAME, use_language
 from virtual_pet.icon import app_icon
 from virtual_pet.instance import (
@@ -24,6 +31,14 @@ from virtual_pet.instance import (
 from virtual_pet.pet_window import PetWindow
 from virtual_pet.pets import species_by_key
 from virtual_pet.tray import PetTray
+from virtual_pet.update_check import (
+    BackgroundCheck,
+    CheckFailed,
+    UpdateAvailable,
+    UpdateCheck,
+    daily_check_due,
+)
+from virtual_pet.version import app_version
 
 APP_NAME = "virtual-pet"
 
@@ -63,6 +78,8 @@ class PetController:
         self.tray.show_requested.connect(self.show_pet)
         self.tray.quit_requested.connect(QApplication.quit)
         self._tray_available = tray_available  # asked at each hide: a tray can come and go
+        self._update_check: BackgroundCheck | None = None
+        self._update_box: QMessageBox | None = None
 
     def save(self) -> None:
         """Remember which pet it is, its name, its spot, whether it sits and which way it faces."""
@@ -83,6 +100,32 @@ class PetController:
         """Bring the pet back where it was: from the tray, or when the app is opened again."""
         self.tray.hide()
         self.window.show()
+
+    def check_for_update_today(self, today: date | None = None) -> None:
+        """Look for a new version in the background, once a day, and say so only if there is one."""
+        today = today or datetime.now().astimezone().date()
+        if not daily_check_due(self._config.last_update_check, today):
+            return
+        self._update_check = BackgroundCheck(app_version())
+        self._update_check.finished.connect(lambda result: self._update_checked(result, today))
+        self._update_check.start()
+
+    def _update_checked(self, result: UpdateCheck, today: date) -> None:
+        if not isinstance(result, CheckFailed):  # a failed check, offline say, is tried again
+            self._config.last_update_check = today.isoformat()
+            self.save()
+        if isinstance(result, UpdateAvailable):
+            self._announce(result)
+
+    def _announce(self, update: UpdateAvailable) -> None:
+        box = update_message_box(update)
+        box.setWindowModality(Qt.WindowModality.NonModal)
+        self._update_box = box  # kept alive until the user closes it
+        # As in open_settings, the pet's window would stay drawn over the message.
+        if self.window.isVisible():
+            self.window.hide()
+            box.finished.connect(lambda _result: self.window.show())
+        box.show()
 
     def open_settings(self) -> None:
         """Let the user rename the pet, swap it (there is only ever one), change the language or
@@ -239,6 +282,7 @@ def main() -> int:
             requests.received.connect(controller.show_pet)
         app.aboutToQuit.connect(controller.save)
         controller.window.show()
+        controller.check_for_update_today()
         return app.exec()
     finally:
         if requests is not None:

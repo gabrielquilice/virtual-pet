@@ -7,6 +7,8 @@ from virtual_pet import i18n
 
 # Widgets are exercised on Qt's virtual "offscreen" screen, so tests never open real windows.
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
+# No test, nor a process test's app, reaches GitHub; the ones for the check turn it back on.
+os.environ["VIRTUAL_PET_NO_UPDATE_CHECK"] = "1"
 
 
 @pytest.fixture(autouse=True)

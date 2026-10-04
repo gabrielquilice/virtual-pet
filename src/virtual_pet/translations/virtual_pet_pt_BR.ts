@@ -157,26 +157,6 @@ Escolha seu pet e dê um nome a ele.</translation>
         <source>Checking…</source>
         <translation>Verificando…</translation>
     </message>
-    <message>
-        <source>Version %1 is available.</source>
-        <translation>A versão %1 está disponível.</translation>
-    </message>
-    <message>
-        <source>Get It</source>
-        <translation>Baixar</translation>
-    </message>
-    <message>
-        <source>You have the latest version.</source>
-        <translation>Você está com a versão mais recente.</translation>
-    </message>
-    <message>
-        <source>This isn&apos;t a release build: nothing to compare it to.</source>
-        <translation>Esta não é uma build de release: não há o que comparar.</translation>
-    </message>
-    <message>
-        <source>Could not check for updates.</source>
-        <translation>Não foi possível buscar atualizações.</translation>
-    </message>
 </context>
 <context>
     <name>Species</name>
@@ -247,6 +227,33 @@ Escolha seu pet e dê um nome a ele.</translation>
     <message>
         <source>Octopus</source>
         <translation>Polvo</translation>
+    </message>
+</context>
+<context>
+    <name>UpdateMessage</name>
+    <message>
+        <source>Updates</source>
+        <translation>Atualizações</translation>
+    </message>
+    <message>
+        <source>A new version of Virtual Pet is available:</source>
+        <translation>Uma nova versão do Pet Virtual está disponível:</translation>
+    </message>
+    <message>
+        <source>Get It</source>
+        <translation>Baixar</translation>
+    </message>
+    <message>
+        <source>You have the latest version.</source>
+        <translation>Você está com a versão mais recente.</translation>
+    </message>
+    <message>
+        <source>This isn&apos;t a release build: nothing to compare it to.</source>
+        <translation>Esta não é uma build de release: não há o que comparar.</translation>
+    </message>
+    <message>
+        <source>Could not check for updates.</source>
+        <translation>Não foi possível buscar atualizações.</translation>
     </message>
 </context>
 </TS>

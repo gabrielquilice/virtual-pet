@@ -263,6 +263,18 @@ def test_checking_for_updates_reenables_the_button_and_reports_the_result(settin
     assert update_box(settings).text() == "You have the latest version."
 
 
+def test_the_button_checks_even_when_the_daily_check_is_off_or_done(settings, monkeypatch):
+    calls = []
+    monkeypatch.setenv("VIRTUAL_PET_NO_UPDATE_CHECK", "1")  # as conftest does for every test
+    monkeypatch.setattr(
+        dialogs, "check_for_update", lambda version: calls.append(version) or UpToDate()
+    )
+
+    update_button(settings).click()
+
+    assert calls == [app_version()]
+
+
 def test_an_available_update_offers_a_button_that_opens_it(settings, monkeypatch):
     monkeypatch.setattr(
         dialogs,
@@ -277,7 +289,9 @@ def test_an_available_update_offers_a_button_that_opens_it(settings, monkeypatch
     update_button(settings).click()
     box = update_box(settings)
 
-    assert "0.9.0" in box.text()
+    assert box.text().endswith("\n0.9.0")  # the number on a line of its own, centered
+    label = box.findChild(QLabel, "qt_msgbox_label")
+    assert label.alignment() == Qt.AlignmentFlag.AlignCenter
     get_it = next(b for b in box.buttons() if b.text() == "Get It")
     get_it.click()
     assert opened == ["https://example.com/releases/latest"]

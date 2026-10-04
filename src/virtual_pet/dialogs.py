@@ -27,7 +27,7 @@ from PySide6.QtWidgets import (
 
 from virtual_pet.behavior import DEFAULT_THROW_STRENGTH, THROW_STRENGTH_RANGE
 from virtual_pet.config import MAX_NAME_LENGTH, normalize_name
-from virtual_pet.i18n import LANGUAGES, arg
+from virtual_pet.i18n import LANGUAGES
 from virtual_pet.pets import ALL_SPECIES, DOG
 from virtual_pet.species import Species
 from virtual_pet.sprites import FRAME_HEIGHT, FRAME_WIDTH
@@ -243,27 +243,7 @@ class SettingsDialog(PetDialog):
         self._show_update_result(result)
 
     def _show_update_result(self, result: UpdateCheck) -> None:
-        box = QMessageBox(self)
-        box.setWindowTitle(self.tr("Check for Updates"))
-        box.setWindowModality(Qt.WindowModality.WindowModal)
-        match result:
-            case UpdateAvailable(version, url):
-                box.setIcon(QMessageBox.Icon.Information)
-                box.setText(arg(self.tr("Version %1 is available."), version))
-                get_it = box.addButton(self.tr("Get It"), QMessageBox.ButtonRole.AcceptRole)
-                box.addButton(QMessageBox.StandardButton.Close)
-                box.buttonClicked.connect(
-                    lambda button: QDesktopServices.openUrl(QUrl(url)) if button is get_it else None
-                )
-            case UpToDate():
-                box.setIcon(QMessageBox.Icon.Information)
-                box.setText(self.tr("You have the latest version."))
-            case DevBuild():
-                box.setIcon(QMessageBox.Icon.Information)
-                box.setText(self.tr("This isn't a release build: nothing to compare it to."))
-            case CheckFailed():
-                box.setIcon(QMessageBox.Icon.Warning)
-                box.setText(self.tr("Could not check for updates."))
+        box = update_message_box(result, self)
         self._update_box = box  # kept alive until the user closes it
         box.open()
 
@@ -273,6 +253,49 @@ class SettingsDialog(PetDialog):
         return Preferences(
             self.choice(), language, self.starts_with_system(), self._throw_field.value()
         )
+
+
+def update_message_box(result: UpdateCheck, parent: QWidget | None = None) -> QMessageBox:
+    """The message that tells what a check for updates found, with a way to get a new version."""
+    box = QMessageBox(parent)
+    box.setWindowTitle(QCoreApplication.translate("UpdateMessage", "Updates"))
+    box.setWindowModality(Qt.WindowModality.WindowModal)
+    match result:
+        case UpdateAvailable(version, url):
+            box.setIcon(QMessageBox.Icon.Information)
+            message = QCoreApplication.translate(
+                "UpdateMessage", "A new version of Virtual Pet is available:"
+            )
+            box.setText(f"{message}\n{version}")  # the number on a line of its own
+            _center_text(box)
+            get_it = box.addButton(
+                QCoreApplication.translate("UpdateMessage", "Get It"),
+                QMessageBox.ButtonRole.AcceptRole,
+            )
+            box.addButton(QMessageBox.StandardButton.Close)
+            box.buttonClicked.connect(
+                lambda button: QDesktopServices.openUrl(QUrl(url)) if button is get_it else None
+            )
+        case UpToDate():
+            box.setIcon(QMessageBox.Icon.Information)
+            box.setText(QCoreApplication.translate("UpdateMessage", "You have the latest version."))
+        case DevBuild():
+            box.setIcon(QMessageBox.Icon.Information)
+            box.setText(
+                QCoreApplication.translate(
+                    "UpdateMessage", "This isn't a release build: nothing to compare it to."
+                )
+            )
+        case CheckFailed():
+            box.setIcon(QMessageBox.Icon.Warning)
+            box.setText(QCoreApplication.translate("UpdateMessage", "Could not check for updates."))
+    return box
+
+
+def _center_text(box: QMessageBox) -> None:
+    label = box.findChild(QLabel, "qt_msgbox_label")  # QMessageBox's own, named in Qt's source
+    if label is not None:
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
 
 def _pet_button(species: Species, dialog: QWidget) -> QToolButton:
