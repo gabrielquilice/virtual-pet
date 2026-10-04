@@ -278,6 +278,14 @@ uv version --bump minor        # or patch, or major: changes pyproject.toml and 
 git commit --message "chore(release): 0.5.0" pyproject.toml uv.lock
 git tag --annotate v0.5.0 --message "Virtual Pet 0.5.0"
 git push --follow-tags
+```
+
+The pushed tag starts the Release workflow (`.github/workflows/release.yml`): it runs the
+checks and the tests, builds the AppImage (on Ubuntu 22.04, so it needs glibc 2.35) and the
+Windows zip (under Wine), and attaches both to a draft release on GitHub, which is then
+reviewed and published by hand. The same builds also run locally:
+
+```bash
 uv run appimage/build.py       # dist/VirtualPet-0.5.0-x86_64.AppImage
 uv run windows/build.py        # dist/VirtualPet-0.5.0-windows-x64.zip
 ```
