@@ -12,7 +12,7 @@ from enum import Enum, auto
 REST_TIME = (1.5, 5.0)  # seconds standing still between strolls, unless the gait says
 LANDING_REST_TIME = (0.5, 1.2)  # seconds before strolling after appearing or being put down
 MAX_TICK = 0.1  # longer gaps (e.g. waking up from sleep) are not simulated
-THROW_SPEED = 1000.0  # pixels per second the pet must be moving at when let go to be thrown
+THROW_SPEED = 1400.0  # pixels per second the pet must be moving at when let go to be thrown
 MAX_THROW_SPEED = 2000.0  # a faster flick is thrown at this speed
 THROW_FRICTION = 2500.0  # pixels per second squared slowing a thrown pet until it stops
 BOUNCE = 0.2  # share of its speed a pet thrown at the usual strength keeps after hitting a wall

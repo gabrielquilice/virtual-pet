@@ -382,7 +382,7 @@ def test_pet_let_go_slowly_is_not_thrown():
 def test_thrown_pet_stays_carried_while_it_glides_and_stops_where_friction_leaves_it():
     pet = PetBehavior(SCREEN, (300, 300), rng=random.Random(11))
 
-    throw(pet, (1000, -200))
+    throw(pet, (1600, -300))
     pet.tick(0.05)
 
     assert pet.flying
@@ -463,9 +463,9 @@ def test_throw_strength_scales_how_fast_the_pet_takes_off():
     fast = PetBehavior(SCREEN, (300, 300), rng=random.Random(17))
 
     slow.pick_up()
-    slow.put_down((1000, 0), 50)
+    slow.put_down((1600, 0), 50)
     fast.pick_up()
-    fast.put_down((1000, 0), 200)
+    fast.put_down((1600, 0), 200)
     for pet in (slow, fast):
         while pet.flying:
             pet.tick(0.05)
@@ -477,7 +477,7 @@ def test_a_stronger_throw_bounces_off_a_wall_harder():
     def bounce_back(strength: int) -> float:
         pet = PetBehavior(SCREEN, (990, 300), rng=random.Random(18))
         pet.pick_up()
-        pet.put_down((1000, 0), strength)
+        pet.put_down((1600, 0), strength)
         while pet.flying:
             pet.tick(0.05)
         return SCREEN.right - pet.position[0]
