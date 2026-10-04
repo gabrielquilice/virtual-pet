@@ -126,9 +126,10 @@ class PetDialog(QDialog):
         self._starts_field.setChecked(starts_with_system)
         self._form.addRow("", self._starts_field)
         layout = QVBoxLayout(self)
-        # Never smaller than its contents, which Qt allows otherwise: it opens a window at most
-        # 2/3 as wide as the screen, and the pet cards would overlap (longer names, small screen).
-        layout.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
+        # Exactly as large as its contents, so it can't be resized or maximized (that breaks the
+        # look). Qt would otherwise open a window at most 2/3 as wide as the screen, and the pet
+        # cards would overlap (longer names, small screen).
+        layout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
         if message:
             layout.addWidget(QLabel(message))
         layout.addLayout(self._form)

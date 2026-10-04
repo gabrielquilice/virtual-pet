@@ -378,3 +378,11 @@ def test_clicking_the_throw_strength_groove_jumps_to_that_spot(qtbot):
     qtbot.mouseClick(slider, Qt.MouseButton.LeftButton, pos=QPoint(8, 8))
 
     assert slider.value() < 35
+
+
+def test_the_dialog_cannot_be_resized_or_maximized(dialog):
+    dialog.show()
+
+    assert dialog.minimumSize() == dialog.maximumSize() == dialog.sizeHint()
+    dialog.setWindowState(Qt.WindowState.WindowMaximized)
+    assert dialog.size() == dialog.sizeHint()
