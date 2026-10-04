@@ -28,6 +28,7 @@ you click it and goes wherever you drag it, but never off the screen.
 | <img src="docs/pets/frog.png" width="96" height="81" alt="The frog"> | Frog | Sapo | Hops | Sits, and croaks now and then |
 | <img src="docs/pets/chameleon.png" width="96" height="81" alt="The chameleon"> | Chameleon (a veiled chameleon) | Camaleão | Walks slowly, turning green again | Lies down. Whenever it keeps still, a new color runs over it from head to tail |
 | <img src="docs/pets/chicken.png" width="96" height="81" alt="The chicken"> | Chicken (a brown hen) | Galinha | Walks, and scratches the ground and pecks at it whenever it stops | Settles on the ground like a hen on her nest |
+| <img src="docs/pets/octopus.png" width="96" height="81" alt="The octopus"> | Octopus (a blue-ringed octopus) | Polvo | Crawls on its arms, its blue rings fading away until it is all yellow | Rests low on the ground, its arms curled around it. Whenever it keeps still or is carried, its blue rings come back |
 
 ## How to play
 
@@ -36,7 +37,7 @@ you click it and goes wherever you drag it, but never off the screen.
 | Leave it alone | It moves around the screen, resting now and then: it walks, flies, swims, slithers, crawls or hops, depending on the pet (see [The pets](#the-pets)). |
 | Left click | It sits and stays put, in its own way. Click again and it goes back to roaming. |
 | Drag | You carry it anywhere on the screen (including another monitor). |
-| Right click | Menu: its name, Sit (Coil up for the snake, Retreat into shell for the snail) or, if it sits, the way it roams (Walk, Fly, Swim, Slither, Crawl or Hop), Turn around, Hide, Settings… and Quit. |
+| Right click | Menu: its name, Sit (Coil up for the snake, Retreat into shell for the snail, Rest for the octopus) or, if it sits, the way it roams (Walk, Fly, Swim, Slither, Crawl or Hop), Turn around, Hide, Settings… and Quit. |
 | Turn around (in the menu) | It faces the other way. If it was on the move, it heads that way instead. |
 | Hide (in the menu) | It leaves the screen and waits in the system tray: click the paw print there to bring it back, where you left it. On desktops without a tray (GNOME without the AppIndicator extension, for example), open the app again instead. |
 | Hover | Shows its name. |
@@ -148,6 +149,7 @@ src/virtual_pet/
 ├── instance.py     # one pet at a time: the lock, and how opening the app again reaches it
 ├── paw.png         # the paw's silhouette, which the icon is drawn from
 ├── pet_window.py   # transparent, frameless, always-on-top window and mouse handling
+├── ring_fade.py    # how the octopus's blue rings fade in and out (no Qt)
 ├── species.py      # what makes a kind of pet: colors, animations, gait, how it roams
 ├── sprites.py      # pixel-art building blocks shared by all pets
 ├── tray.py         # the paw print in the system tray while the pet hides
@@ -168,7 +170,8 @@ src/virtual_pet/
     ├── snail.py    # a garden snail
     ├── frog.py     # a green frog that croaks
     ├── chameleon.py # a veiled chameleon that changes color
-    └── chicken.py  # a brown hen that scratches the ground
+    ├── chicken.py  # a brown hen that scratches the ground
+    └── octopus.py  # a blue-ringed octopus whose rings fade in when it stops
 appimage/
 ├── build.py            # builds the AppImage (see below)
 ├── virtual-pet.spec    # PyInstaller: what goes into the bundle

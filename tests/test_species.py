@@ -16,6 +16,7 @@ from virtual_pet.pets import (
     FOX,
     FROG,
     GUINEA_PIG,
+    OCTOPUS,
     PARAKEET,
     PENGUIN,
     RABBIT,
@@ -25,7 +26,7 @@ from virtual_pet.pets import (
     WOLF,
     species_by_key,
 )
-from virtual_pet.species import Locomotion, Species
+from virtual_pet.species import ColorShift, Locomotion, Species
 
 GROUND_LINE = 25  # row of the outline under the paws
 GROUNDED = {  # the poses drawn on the ground line
@@ -79,6 +80,7 @@ def test_the_pets_to_choose_from_and_their_names():
         ("frog", "Frog"),
         ("chameleon", "Chameleon"),
         ("chicken", "Chicken"),
+        ("octopus", "Octopus"),
     ]
 
 
@@ -100,6 +102,7 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         "frog",
         "chameleon",
         "chicken",
+        "octopus",
     ]
 
     assert [species_by_key(key) for key in keys] == [
@@ -119,6 +122,7 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         FROG,
         CHAMELEON,
         CHICKEN,
+        OCTOPUS,
     ]
 
 
@@ -144,16 +148,18 @@ def test_each_pet_roams_its_own_way():
         "Hop",
         "Walk",
         "Walk",
+        "Crawl",
     ]
 
 
-def test_the_snake_coils_up_and_the_snail_retreats_where_the_others_sit():
+def test_the_snake_coils_up_the_snail_retreats_and_the_octopus_rests_where_the_others_sit():
     assert [pet.sit_label for pet in ALL_SPECIES] == [
         *["Sit"] * 7,
         "Coil up",
         *["Sit"] * 4,
         "Retreat into shell",
         *["Sit"] * 3,
+        "Rest",
     ]
 
 
@@ -225,7 +231,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
     ]
 
     # tan, gray, green, sage, blue, ginger, white, emerald, warm white, yellow, red-orange,
-    # warm gray, grayish beige, leaf green, chameleon green, golden brown
+    # warm gray, grayish beige, leaf green, chameleon green, golden brown, golden yellow
     assert body_colors == [
         "#dc9a57",
         "#a3a8b0",
@@ -243,6 +249,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
         "#8fca3c",
         "#3fa34d",
         "#c98b4a",
+        "#c79b31",
     ]
 
 
@@ -251,8 +258,20 @@ def test_each_coloring_colors_everything_the_usual_palette_does(species):
         assert set(coloring) == set(species.palette)
 
 
-def test_only_the_chameleon_changes_color():
-    assert [pet.key for pet in ALL_SPECIES if pet.colorings] == ["chameleon"]
+def test_the_chameleon_changes_color_in_waves_and_the_octopus_fades_its_rings():
+    assert [(pet.key, pet.color_shift) for pet in ALL_SPECIES if pet.colorings] == [
+        ("chameleon", ColorShift.WAVES),
+        ("octopus", ColorShift.FADE),
+    ]
+
+
+def test_the_octopus_rings_darken_to_brown_then_light_up_blue():
+    brightest, *_, gone = OCTOPUS.palettes
+    halfway = OCTOPUS.palettes[len(OCTOPUS.palettes) // 2]
+
+    assert brightest["A"] == "#1f63ea"  # blue: how it looks in the dialogs and the README
+    assert halfway["A"] == brightest["C"] == "#6b4a08"  # the brown inside a ring
+    assert gone["A"] == gone["C"] == gone["B"]  # all yellow
 
 
 def test_each_column_is_drawn_in_the_coloring_it_is_given():

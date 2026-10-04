@@ -22,7 +22,8 @@ from PySide6.QtWidgets import QApplication, QMenu, QWidget
 from virtual_pet import sprites
 from virtual_pet.behavior import DEFAULT_THROW_STRENGTH, Activity, Area, Facing, PetBehavior
 from virtual_pet.color_change import ColorChange
-from virtual_pet.species import Species
+from virtual_pet.ring_fade import RingFade
+from virtual_pet.species import ColorShift, Species
 
 WALKING_TICK_MS = 33  # about 30 updates per second, for smooth movement
 RESTING_TICK_MS = 100  # enough for tail wags and blinks, and easier on the battery
@@ -31,6 +32,13 @@ BLINK_DURATION = 0.15  # seconds
 MIN_THROW_SAMPLES = 2  # cursor positions needed to tell how fast it moves
 THROW_WINDOW = 0.08  # seconds of cursor movement before the release that make up a throw
 MIN_THROW_SPAN = 0.02  # seconds those positions must span: closer ones are jitter, not speed
+
+
+def _color_changer(species: Species, rng: random.Random) -> ColorChange | RingFade:
+    """What picks the coloring of each column of the pet, as it keeps still or moves."""
+    if species.color_shift is ColorShift.FADE:
+        return RingFade(len(species.palettes), sprites.FRAME_WIDTH)
+    return ColorChange(len(species.palettes), sprites.FRAME_WIDTH, rng)
 
 
 class PetWindow(QWidget):
@@ -83,7 +91,7 @@ class PetWindow(QWidget):
             area, start, sitting=sitting, facing=facing, rng=self._rng, gait=species.gait
         )
         self._activity = self._behavior.activity
-        self._colors = ColorChange(len(species.palettes), sprites.FRAME_WIDTH, self._rng)
+        self._colors = _color_changer(species, self._rng)
         self._shown_colors: tuple[int, ...] | None = None  # each column's palette, if it changes
         self._animation_time = 0.0
         self._until_blink = self._rng.uniform(*BLINK_INTERVAL)
@@ -130,7 +138,7 @@ class PetWindow(QWidget):
         """Swap the pet for another kind of animal, in the same spot."""
         self._species = species
         self._behavior.set_gait(species.gait)
-        self._colors = ColorChange(len(species.palettes), sprites.FRAME_WIDTH, self._rng)
+        self._colors = _color_changer(species, self._rng)
         self._frame = ()  # force a redraw with the new look
         self._sync()
 

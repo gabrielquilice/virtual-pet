@@ -114,6 +114,10 @@ Escolha seu pet e dê um nome a ele.</translation>
         <source>Retreat into shell</source>
         <translation>Entrar na concha</translation>
     </message>
+    <message>
+        <source>Rest</source>
+        <translation>Descansar</translation>
+    </message>
 </context>
 <context>
     <name>SettingsDialog</name>
@@ -239,6 +243,10 @@ Escolha seu pet e dê um nome a ele.</translation>
     <message>
         <source>Chicken</source>
         <translation>Galinha</translation>
+    </message>
+    <message>
+        <source>Octopus</source>
+        <translation>Polvo</translation>
     </message>
 </context>
 </TS>

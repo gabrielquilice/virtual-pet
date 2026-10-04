@@ -3,7 +3,7 @@
 import functools
 from collections.abc import Mapping
 from dataclasses import dataclass
-from enum import Enum
+from enum import Enum, auto
 
 from PySide6.QtGui import QImage
 
@@ -26,6 +26,13 @@ class Locomotion(Enum):
     CRAWL = QT_TRANSLATE_NOOP("PetWindow", "Crawl")
 
 
+class ColorShift(Enum):
+    """How a species with colorings goes from one to another."""
+
+    WAVES = auto()  # the chameleon: a new coloring runs from head to tail (color_change.py)
+    FADE = auto()  # the octopus: its colorings are steps of its rings fading away (ring_fade.py)
+
+
 @dataclass(frozen=True, eq=False)  # each species is one of a kind: compared by identity
 class Species:
     """Everything that makes a dog a dog, a cat a cat..."""
@@ -38,8 +45,10 @@ class Species:
     locomotion: Locomotion = Locomotion.WALK
     # Menu text for making it sit (whatever sitting looks like for it), like the roam label.
     sit_label: str = QT_TRANSLATE_NOOP("PetWindow", "Sit")
-    # Other palettes it can turn, like the chameleon, defining the same characters as `palette`.
+    # Other palettes it can turn, like the chameleon, defining the same characters as `palette`,
+    # and how it goes from one to another.
     colorings: tuple[Mapping[str, str], ...] = ()
+    color_shift: ColorShift = ColorShift.WAVES
 
     @property
     def roam_label(self) -> str:
@@ -53,7 +62,7 @@ class Species:
 
     @property
     def palettes(self) -> tuple[Mapping[str, str], ...]:
-        """Its usual palette, then the colorings it can turn (see color_change.py)."""
+        """Its usual palette, then the colorings it can turn (see `color_shift`)."""
         return (self.palette, *self.colorings)
 
     def image(

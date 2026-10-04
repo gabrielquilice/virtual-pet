@@ -14,6 +14,7 @@ from virtual_pet.pets import (
     DOG,
     FISH,
     FROG,
+    OCTOPUS,
     PARAKEET,
     RABBIT,
     SNAIL,
@@ -21,6 +22,7 @@ from virtual_pet.pets import (
     TURTLE,
 )
 from virtual_pet.pets.chameleon import SIT_A
+from virtual_pet.ring_fade import FADE_TIME
 
 LEFT = Qt.MouseButton.LeftButton
 BODY = QPoint(46, 46)  # a point on the dog's body, in window coordinates
@@ -283,6 +285,18 @@ def test_menu_offers_a_crawl_to_a_snail_in_its_shell(make_window):
     assert "Crawl" in menu_texts(window)
 
 
+def test_menu_offers_a_roaming_octopus_to_rest(make_window):
+    window = make_window(species=OCTOPUS)
+
+    assert menu_texts(window) == ["Rex", "Rest", "Turn around", "Hide", "Settings…", "Quit"]
+
+
+def test_menu_offers_a_crawl_to_a_resting_octopus(make_window):
+    window = make_window(species=OCTOPUS, sitting=True)
+
+    assert "Crawl" in menu_texts(window)
+
+
 def test_the_menu_speaks_portuguese(make_window):
     i18n.use_language("pt_BR")
 
@@ -291,12 +305,16 @@ def test_the_menu_speaks_portuguese(make_window):
     sitting_rabbit = menu_texts(make_window(species=RABBIT, sitting=True))
     roaming_snail = menu_texts(make_window(species=SNAIL))
     snail_in_its_shell = menu_texts(make_window(species=SNAIL, sitting=True))
+    roaming_octopus = menu_texts(make_window(species=OCTOPUS))
+    resting_octopus = menu_texts(make_window(species=OCTOPUS, sitting=True))
 
     assert roaming == ["Rex", "Enrolar-se", "Virar", "Ocultar", "Configurações…", "Sair"]
     assert coiled[1] == "Rastejar"
     assert sitting_rabbit[1] == "Saltitar"
     assert roaming_snail[1] == "Entrar na concha"
     assert snail_in_its_shell[1] == "Rastejar"
+    assert roaming_octopus[1] == "Descansar"
+    assert resting_octopus[1] == "Rastejar"
 
 
 GREEN = CHAMELEON.palette["B"]
@@ -366,6 +384,38 @@ def test_the_color_wave_starts_at_the_head_whichever_way_the_chameleon_faces(mak
 
     assert color_of_body_at(range(6)) in OTHER_COLORS  # the head, on the left
     assert color_of_body_at(range(24, 30)) == GREEN  # the tail
+
+
+RING_BLUE = OCTOPUS.palette["A"]
+
+
+def shows_rings(window: PetWindow) -> bool:
+    """Whether any of the octopus's rings is blue on screen."""
+    image = window.grab().toImage()
+    size = sprites.PIXEL_SIZE
+    return any(
+        image.pixelColor(x * size + 1, y * size + 1).name() == RING_BLUE
+        for x in range(sprites.FRAME_WIDTH)
+        for y in range(sprites.FRAME_HEIGHT)
+    )
+
+
+def test_an_octopus_hides_its_rings_while_it_crawls_and_shows_them_when_it_stops(make_window):
+    window = make_window(species=OCTOPUS)
+    assert shows_rings(window)
+    start = window.pos()
+    for _ in range(30):  # it sets off within seconds
+        if window.pos() != start:
+            break
+        window.advance(0.1)
+    assert window.pos() != start
+
+    run(window, FADE_TIME)  # a stroll takes longer than that
+    assert not shows_rings(window)
+
+    trigger(window, "Rest")
+    run(window, FADE_TIME)
+    assert shows_rings(window)
 
 
 def test_a_flung_dog_glides_carried_and_stops_further_along(shown_window, qtbot):
