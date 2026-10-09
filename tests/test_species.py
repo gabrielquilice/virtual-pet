@@ -17,6 +17,7 @@ from virtual_pet.pets import (
     FROG,
     GUINEA_PIG,
     OCTOPUS,
+    OWL,
     PARAKEET,
     PENGUIN,
     RABBIT,
@@ -81,6 +82,7 @@ def test_the_pets_to_choose_from_and_their_names():
         ("chameleon", "Chameleon"),
         ("chicken", "Chicken"),
         ("octopus", "Octopus"),
+        ("owl", "Owl"),
     ]
 
 
@@ -103,6 +105,7 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         "chameleon",
         "chicken",
         "octopus",
+        "owl",
     ]
 
     assert [species_by_key(key) for key in keys] == [
@@ -123,6 +126,7 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         CHAMELEON,
         CHICKEN,
         OCTOPUS,
+        OWL,
     ]
 
 
@@ -149,16 +153,18 @@ def test_each_pet_roams_its_own_way():
         "Walk",
         "Walk",
         "Crawl",
+        "Fly",
     ]
 
 
-def test_the_snake_coils_up_the_snail_retreats_and_the_octopus_rests_where_the_others_sit():
+def test_the_snake_coils_up_the_snail_retreats_and_the_octopus_and_owl_rest_where_others_sit():
     assert [pet.sit_label for pet in ALL_SPECIES] == [
         *["Sit"] * 7,
         "Coil up",
         *["Sit"] * 4,
         "Retreat into shell",
         *["Sit"] * 3,
+        "Rest",
         "Rest",
     ]
 
@@ -189,7 +195,7 @@ def test_poses_on_the_ground_stand_on_the_ground_line(species):
     assert ground_lines == {GROUND_LINE}
 
 
-@pytest.mark.parametrize("flyer", [PARAKEET, COCKATIEL], ids=lambda species: species.key)
+@pytest.mark.parametrize("flyer", [PARAKEET, COCKATIEL, OWL], ids=lambda species: species.key)
 def test_flying_lifts_birds_off_the_ground(flyer):
     flying = flyer.animations[Activity.WALKING].frames
 
@@ -205,6 +211,20 @@ def test_a_chicken_stops_to_scratch_the_ground_and_peck_at_it():
     assert len(toes) > 1  # its feet move: it scratches
     assert max(eyes) >= GROUND_LINE - 5  # its head comes down to the ground: it pecks
     assert CHICKEN.gait.rest[0] > first_peck / standing.fps  # before it walks off
+
+
+def test_an_owl_turns_its_head_to_look_at_you_and_dozes_off_when_it_rests():
+    def eyes(frame: sprites.Frame) -> int:  # pupils, each between two yellow pixels
+        return sum(row.count(sprites.EYE_SHINE + "N" + sprites.EYE_SHINE) for row in frame)
+
+    def eye_pixels(frame: sprites.Frame) -> int:
+        return sum(row.count(sprites.EYE) + row.count(sprites.EYE_SHINE) for row in frame)
+
+    standing = OWL.animations[Activity.STANDING].frames
+    resting = OWL.animations[Activity.SITTING].frames
+
+    assert {eyes(frame) for frame in standing} == {1, 2}  # in profile, then facing you
+    assert all(eye_pixels(frame) < eye_pixels(OWL.portrait) for frame in resting)  # half closed
 
 
 @pytest.mark.parametrize("swimmer", [TURTLE, FISH], ids=lambda species: species.key)
@@ -231,7 +251,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
     ]
 
     # tan, gray, green, sage, blue, ginger, white, emerald, warm white, yellow, red-orange,
-    # warm gray, grayish beige, leaf green, chameleon green, golden brown, golden yellow
+    # warm gray, grayish beige, leaf green, chameleon green, golden brown, golden yellow, buff
     assert body_colors == [
         "#dc9a57",
         "#a3a8b0",
@@ -250,6 +270,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
         "#3fa34d",
         "#c98b4a",
         "#c79b31",
+        "#d8c09a",
     ]
 
 

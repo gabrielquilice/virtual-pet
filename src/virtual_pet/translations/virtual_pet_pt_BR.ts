@@ -228,6 +228,10 @@ Escolha seu pet e dê um nome a ele.</translation>
         <source>Octopus</source>
         <translation>Polvo</translation>
     </message>
+    <message>
+        <source>Owl</source>
+        <translation>Coruja</translation>
+    </message>
 </context>
 <context>
     <name>UpdateMessage</name>

@@ -15,6 +15,7 @@ from virtual_pet.pets import (
     FISH,
     FROG,
     OCTOPUS,
+    OWL,
     PARAKEET,
     RABBIT,
     SNAIL,
@@ -297,6 +298,18 @@ def test_menu_offers_a_crawl_to_a_resting_octopus(make_window):
     assert "Crawl" in menu_texts(window)
 
 
+def test_menu_offers_a_flying_owl_to_rest(make_window):
+    window = make_window(species=OWL)
+
+    assert menu_texts(window) == ["Rex", "Rest", "Turn around", "Hide", "Settings…", "Quit"]
+
+
+def test_menu_offers_a_resting_owl_to_fly(make_window):
+    window = make_window(species=OWL, sitting=True)
+
+    assert "Fly" in menu_texts(window)
+
+
 def test_the_menu_speaks_portuguese(make_window):
     i18n.use_language("pt_BR")
 
@@ -307,6 +320,8 @@ def test_the_menu_speaks_portuguese(make_window):
     snail_in_its_shell = menu_texts(make_window(species=SNAIL, sitting=True))
     roaming_octopus = menu_texts(make_window(species=OCTOPUS))
     resting_octopus = menu_texts(make_window(species=OCTOPUS, sitting=True))
+    roaming_owl = menu_texts(make_window(species=OWL))
+    resting_owl = menu_texts(make_window(species=OWL, sitting=True))
 
     assert roaming == ["Rex", "Enrolar-se", "Virar", "Ocultar", "Configurações…", "Sair"]
     assert coiled[1] == "Rastejar"
@@ -315,6 +330,8 @@ def test_the_menu_speaks_portuguese(make_window):
     assert snail_in_its_shell[1] == "Rastejar"
     assert roaming_octopus[1] == "Descansar"
     assert resting_octopus[1] == "Rastejar"
+    assert roaming_owl[1] == "Descansar"
+    assert resting_owl[1] == "Voar"
 
 
 GREEN = CHAMELEON.palette["B"]

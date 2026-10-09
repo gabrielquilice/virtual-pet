@@ -65,6 +65,7 @@ def test_every_pet_is_offered_with_the_dog_preselected(dialog):
         ("Chameleon", False),
         ("Chicken", False),
         ("Octopus", False),
+        ("Owl", False),
     ]
 
 
@@ -79,7 +80,7 @@ def test_pets_are_offered_in_rows_of_four(dialog):
         ["Fish", "Guinea Pig", "Penguin", "Snake"],
         ["Rabbit", "Cockatiel", "Fox", "Wolf"],
         ["Snail", "Frog", "Chameleon", "Chicken"],
-        ["Octopus"],
+        ["Octopus", "Owl"],
     ]
 
 
@@ -338,6 +339,7 @@ def test_the_settings_speak_portuguese(qtbot):
         "Camaleão",
         "Galinha",
         "Polvo",
+        "Coruja",
     ]
     assert {"&Nome:", "&Idioma:", "Versão:"} <= {
         label.text() for label in dialog.findChildren(QLabel)
