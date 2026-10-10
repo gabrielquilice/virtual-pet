@@ -29,7 +29,7 @@ you click it and goes wherever you drag it, but never off the screen.
 | <img src="docs/pets/chameleon.png" width="96" height="81" alt="The chameleon"> | Chameleon (a veiled chameleon) | Camaleão | Walks slowly, turning green again | Lies down. Whenever it keeps still, a new color runs over it from head to tail |
 | <img src="docs/pets/chicken.png" width="96" height="81" alt="The chicken"> | Chicken (a brown hen) | Galinha | Walks, and scratches the ground and pecks at it whenever it stops | Settles on the ground like a hen on her nest |
 | <img src="docs/pets/octopus.png" width="96" height="81" alt="The octopus"> | Octopus (a blue-ringed octopus) | Polvo | Crawls on its arms, its blue rings fading away until it is all yellow | Rests low on the ground, its arms curled around it. Whenever it keeps still or is carried, its blue rings come back |
-| <img src="docs/pets/owl.png" width="96" height="81" alt="The owl"> | Owl (a tropical screech owl) | Coruja | Flies, and turns its head to look at you now and then when it stops | Rests upright as owls roost, fluffed up over its feet, its eyes half closed |
+| <img src="docs/pets/owl.png" width="96" height="81" alt="The owl"> | Owl (a tropical screech owl) | Coruja | Flies, and turns its head to look at you whenever it stops | Rests upright as owls roost, fluffed up over its feet, its eyes half closed |
 
 ## How to play
 

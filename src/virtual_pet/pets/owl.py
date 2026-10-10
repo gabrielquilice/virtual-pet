@@ -298,13 +298,14 @@ OWL = Species(
         "G": "#8f826e",  # far toes
     },
     animations={
-        # In profile, turning its head to look at you now and then.
-        Activity.STANDING: Animation((STAND_A,) * 10 + (STAND_B,) * 4, fps=2),
+        # Soon after it stops, it turns its head to look at you for 2 s, then back in profile.
+        Activity.STANDING: Animation((STAND_A, *(STAND_B,) * 4, *(STAND_A,) * 9), fps=2),
         Activity.WALKING: Animation((FLY_0, FLY_1, FLY_2, FLY_1), fps=10),  # it flies around
         Activity.SITTING: Animation((REST_A, REST_B), fps=1),  # dozing, its head sinking
         Activity.CARRIED: Animation((CARRIED_A, CARRIED_B), fps=8),  # flapping, its legs dangling
     },
-    gait=Gait(speed=70, max_slope=1.0, distance=(120, 420)),
+    # It rests 3 to 7 s between flights, long enough to look at you (and only once).
+    gait=Gait(speed=70, max_slope=1.0, distance=(120, 420), rest=(3.0, 7.0)),
     locomotion=Locomotion.FLY,
     sit_label=QT_TRANSLATE_NOOP("PetWindow", "Rest"),
 )

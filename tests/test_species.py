@@ -213,18 +213,28 @@ def test_a_chicken_stops_to_scratch_the_ground_and_peck_at_it():
     assert CHICKEN.gait.rest[0] > first_peck / standing.fps  # before it walks off
 
 
-def test_an_owl_turns_its_head_to_look_at_you_and_dozes_off_when_it_rests():
-    def eyes(frame: sprites.Frame) -> int:  # pupils, each between two yellow pixels
-        return sum(row.count(sprites.EYE_SHINE + "N" + sprites.EYE_SHINE) for row in frame)
+def owl_pupils(frame: sprites.Frame) -> int:
+    """How many of the owl's eyes show: their pupils, each between two yellow pixels."""
+    return sum(row.count(sprites.EYE_SHINE + "N" + sprites.EYE_SHINE) for row in frame)
 
+
+def test_an_owl_turns_its_head_to_look_at_you_and_dozes_off_when_it_rests():
     def eye_pixels(frame: sprites.Frame) -> int:
         return sum(row.count(sprites.EYE) + row.count(sprites.EYE_SHINE) for row in frame)
 
     standing = OWL.animations[Activity.STANDING].frames
     resting = OWL.animations[Activity.SITTING].frames
 
-    assert {eyes(frame) for frame in standing} == {1, 2}  # in profile, then facing you
+    assert {owl_pupils(frame) for frame in standing} == {1, 2}  # in profile, then facing you
     assert all(eye_pixels(frame) < eye_pixels(OWL.portrait) for frame in resting)  # half closed
+
+
+def test_an_owl_that_stops_looks_at_you_before_it_flies_off():
+    standing = OWL.animations[Activity.STANDING]
+    facing_you = [i for i, frame in enumerate(standing.frames) if owl_pupils(frame) == 2]
+
+    assert facing_you[0] / standing.fps <= 1  # soon after it stops
+    assert OWL.gait.rest[0] >= (facing_you[-1] + 1) / standing.fps  # for as long as it looks
 
 
 @pytest.mark.parametrize("swimmer", [TURTLE, FISH], ids=lambda species: species.key)
