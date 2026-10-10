@@ -22,6 +22,8 @@ from PySide6.QtWidgets import QApplication, QMenu, QWidget
 from virtual_pet import sprites
 from virtual_pet.behavior import DEFAULT_THROW_STRENGTH, Activity, Area, Facing, PetBehavior
 from virtual_pet.color_change import ColorChange
+from virtual_pet.heart_window import HeartWindow
+from virtual_pet.hearts import HeartBurst
 from virtual_pet.ring_fade import RingFade
 from virtual_pet.species import ColorShift, Species
 
@@ -44,8 +46,8 @@ class PetWindow(QWidget):
     """Shows the pet above every other window and lets the user play with it.
 
     Left click: sit down / get up. Left drag: carry the pet somewhere else.
-    Right click: menu with the pet's name, sit/walk (or fly, swim, coil up/slither), turn
-    around, hide, settings and quit.
+    Right click: menu with the pet's name, sit/walk (or fly, swim, coil up/slither), pet it
+    (hearts float above it), turn around, hide, settings and quit.
     """
 
     state_changed = Signal()  # the user moved the pet, made it sit/get up or turned it
@@ -101,6 +103,8 @@ class PetWindow(QWidget):
         self._dragging = False
         self._throw_strength = throw_strength
         self._cursor_trail: deque[tuple[float, QPoint]] = deque()  # recent cursor positions
+        self._hearts = HeartBurst(self._rng)
+        self._heart_window = HeartWindow(self)
 
         self._last_tick = time.monotonic()
         self._timer = QTimer(self)
@@ -159,6 +163,7 @@ class PetWindow(QWidget):
         toggle_text = self._species.roam_label if self.sitting else self._species.sit_label
         toggle_text = QCoreApplication.translate("PetWindow", toggle_text)
         menu.addAction(toggle_text).triggered.connect(self._toggle_sitting)
+        menu.addAction(self.tr("Pet")).triggered.connect(self._stroke)
         menu.addAction(self.tr("Turn around")).triggered.connect(self._turn_around)
         menu.addAction(self.tr("Hide")).triggered.connect(self.hide_requested)
         menu.addAction(self.tr("Settings…")).triggered.connect(self.settings_requested)
@@ -173,6 +178,7 @@ class PetWindow(QWidget):
         if was_flying and not self._behavior.flying:
             self.state_changed.emit()  # the thrown pet stopped
         self._colors.tick(seconds, self._behavior.activity)
+        self._hearts.tick(seconds)
         self._animation_time += seconds
         self._until_blink -= seconds
         if self._until_blink < -self._species.blink_time:
@@ -188,6 +194,8 @@ class PetWindow(QWidget):
     @override
     def hideEvent(self, event: QHideEvent) -> None:
         self._timer.stop()
+        self._hearts.stop()
+        self._heart_window.hide()
         super().hideEvent(event)
 
     @override
@@ -280,6 +288,12 @@ class PetWindow(QWidget):
         self._sync()
         self.state_changed.emit()
 
+    def _stroke(self) -> None:
+        """What "Pet" in the menu does: the pet keeps still and hearts float above it."""
+        self._behavior.pet()
+        self._hearts.start()
+        self._sync()
+
     def _turn_around(self) -> None:
         self._behavior.turn_around()
         self._sync()
@@ -316,12 +330,24 @@ class PetWindow(QWidget):
             colors = self._colors.columns
             if self._behavior.facing is Facing.LEFT:
                 colors = colors[::-1]  # the head, where color waves start, is on the left
+        self._show_hearts()
         if frame != self._frame:
             # Clicks on the transparent parts of the window reach whatever is behind it.
             self.setMask(sprites.silhouette(frame, sprites.PIXEL_SIZE))
         if (frame, blink, colors) != (self._frame, self._blink, self._shown_colors):
             self._frame, self._blink, self._shown_colors = frame, blink, colors
             self.update()
+
+    def _show_hearts(self) -> None:
+        """Show the hearts of a stroke above the pet, or put the window away when they are gone."""
+        shown = self._hearts.hearts
+        if not shown or not self.isVisible():
+            self._heart_window.hide()
+            return
+        self._heart_window.set_hearts(shown)
+        self._heart_window.place_above(self.geometry(), self.screen().availableGeometry())
+        if not self._heart_window.isVisible():
+            self._heart_window.show()
 
     def _blinking_in_quick_steps(self, activity: Activity) -> bool:
         """Whether a blink is under way, or due within a resting tick, whose steps are too quick

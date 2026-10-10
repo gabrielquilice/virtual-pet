@@ -37,7 +37,8 @@ you click it and goes wherever you drag it, but never off the screen.
 | Leave it alone | It moves around the screen, resting now and then: it walks, flies, swims, slithers, crawls or hops, depending on the pet (see [The pets](#the-pets)). |
 | Left click | It sits and stays put, in its own way. Click again and it goes back to roaming. |
 | Drag | You carry it anywhere on the screen (including another monitor). |
-| Right click | Menu: its name, Sit (Coil up for the snake, Retreat into shell for the snail, Rest for the octopus and the owl) or, if it sits, the way it roams (Walk, Fly, Swim, Slither, Crawl or Hop), Turn around, Hide, Settings… and Quit. |
+| Right click | Menu: its name, Sit (Coil up for the snake, Retreat into shell for the snail, Rest for the octopus and the owl) or, if it sits, the way it roams (Walk, Fly, Swim, Slither, Crawl or Hop), Pet, Turn around, Hide, Settings… and Quit. |
+| Pet (in the menu) | A roaming pet stops for a moment (a sitting one stays as it is) and one or two pixel-art hearts float above it. |
 | Turn around (in the menu) | It faces the other way. If it was on the move, it heads that way instead. |
 | Hide (in the menu) | It leaves the screen and waits in the system tray: click the paw print there to bring it back, where you left it. On desktops without a tray (GNOME without the AppIndicator extension, for example), open the app again instead. |
 | Hover | Shows its name. |

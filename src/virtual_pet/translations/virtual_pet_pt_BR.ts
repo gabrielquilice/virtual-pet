@@ -86,6 +86,10 @@ Escolha seu pet e dê um nome a ele.</translation>
 <context>
     <name>PetWindow</name>
     <message>
+        <source>Pet</source>
+        <translation>Fazer carinho</translation>
+    </message>
+    <message>
         <source>Turn around</source>
         <translation>Virar</translation>
     </message>

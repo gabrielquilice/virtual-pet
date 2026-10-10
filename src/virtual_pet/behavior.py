@@ -21,6 +21,7 @@ DEFAULT_THROW_STRENGTH = (
 )
 THROW_STRENGTH_RANGE = (25, 225)  # the least and the most the settings allow
 STOP_SPEED = 40.0  # a thrown pet slower than this stops
+PETTING_TIME = 1.5  # seconds a pet being stroked keeps still
 
 
 class Activity(Enum):
@@ -150,6 +151,14 @@ class PetBehavior:
         self._sitting = not self._sitting
         self._target = None
         self._rest_left = 0.0  # when getting up, go for a stroll immediately
+
+    def pet(self) -> None:
+        """The user strokes the pet: a roaming pet stops and keeps still a moment, a sitting one
+        stays sitting. Nothing happens to one that is carried or flying."""
+        if self._carried or self._velocity is not None:
+            return
+        self._target = None
+        self._rest_left = max(self._rest_left, PETTING_TIME)
 
     def turn_around(self) -> None:
         """Face the other way; a walking pet takes the rest of its stroll that way.

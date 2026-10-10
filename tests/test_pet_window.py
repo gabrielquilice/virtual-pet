@@ -6,7 +6,7 @@ from PySide6.QtCore import QPoint, QRect, Qt, QTimer
 from PySide6.QtGui import QTextDocumentFragment
 
 from virtual_pet import i18n, sprites
-from virtual_pet.behavior import Facing
+from virtual_pet.behavior import Activity, Facing
 from virtual_pet.pet_window import RESTING_TICK_MS, WALKING_TICK_MS, PetWindow
 from virtual_pet.pets import (
     CAT,
@@ -176,7 +176,7 @@ def test_names_are_shown_exactly_as_typed(make_window, name):
 def test_menu_shows_the_name_and_what_the_dog_can_do(make_window):
     window = make_window()
 
-    assert menu_texts(window) == ["Rex", "Sit", "Turn around", "Hide", "Settings…", "Quit"]
+    assert menu_texts(window) == ["Rex", "Sit", "Pet", "Turn around", "Hide", "Settings…", "Quit"]
 
 
 def test_menu_offers_a_walk_to_a_sitting_dog(make_window):
@@ -252,7 +252,15 @@ def test_menu_offers_a_swim_to_a_sitting_swimmer(make_window, swimmer):
 def test_menu_offers_to_coil_up_a_roaming_snake(make_window):
     window = make_window(species=SNAKE)
 
-    assert menu_texts(window) == ["Rex", "Coil up", "Turn around", "Hide", "Settings…", "Quit"]
+    assert menu_texts(window) == [
+        "Rex",
+        "Coil up",
+        "Pet",
+        "Turn around",
+        "Hide",
+        "Settings…",
+        "Quit",
+    ]
 
 
 def test_menu_offers_a_slither_to_a_coiled_snake(make_window):
@@ -274,6 +282,7 @@ def test_menu_offers_a_roaming_snail_to_retreat_into_its_shell(make_window):
     assert menu_texts(window) == [
         "Rex",
         "Retreat into shell",
+        "Pet",
         "Turn around",
         "Hide",
         "Settings…",
@@ -290,7 +299,7 @@ def test_menu_offers_a_crawl_to_a_snail_in_its_shell(make_window):
 def test_menu_offers_a_roaming_octopus_to_rest(make_window):
     window = make_window(species=OCTOPUS)
 
-    assert menu_texts(window) == ["Rex", "Rest", "Turn around", "Hide", "Settings…", "Quit"]
+    assert menu_texts(window) == ["Rex", "Rest", "Pet", "Turn around", "Hide", "Settings…", "Quit"]
 
 
 def test_menu_offers_a_crawl_to_a_resting_octopus(make_window):
@@ -302,7 +311,7 @@ def test_menu_offers_a_crawl_to_a_resting_octopus(make_window):
 def test_menu_offers_a_flying_owl_to_rest(make_window):
     window = make_window(species=OWL)
 
-    assert menu_texts(window) == ["Rex", "Rest", "Turn around", "Hide", "Settings…", "Quit"]
+    assert menu_texts(window) == ["Rex", "Rest", "Pet", "Turn around", "Hide", "Settings…", "Quit"]
 
 
 def test_menu_offers_a_resting_owl_to_fly(make_window):
@@ -324,7 +333,15 @@ def test_the_menu_speaks_portuguese(make_window):
     roaming_owl = menu_texts(make_window(species=OWL))
     resting_owl = menu_texts(make_window(species=OWL, sitting=True))
 
-    assert roaming == ["Rex", "Enrolar-se", "Virar", "Ocultar", "Configurações…", "Sair"]
+    assert roaming == [
+        "Rex",
+        "Enrolar-se",
+        "Fazer carinho",
+        "Virar",
+        "Ocultar",
+        "Configurações…",
+        "Sair",
+    ]
     assert coiled[1] == "Rastejar"
     assert sitting_rabbit[1] == "Saltitar"
     assert roaming_snail[1] == "Entrar na concha"
@@ -538,3 +555,66 @@ def test_clicking_a_thrown_dog_catches_it_without_making_it_sit(shown_window, qt
 
     assert not shown_window.flying
     assert not shown_window.sitting
+
+
+def test_stroking_the_pet_floats_hearts_above_it_until_they_fade(make_window):
+    window = make_window(position=(120, 300))
+    window.show()
+
+    trigger(window, "Pet")
+
+    hearts_window = window._heart_window  # noqa: SLF001
+    assert hearts_window.isVisible()
+    assert hearts_window.geometry().bottomLeft().y() + 1 == window.y()
+    assert hearts_window.x() == window.x()
+    window.advance(2.0)
+    assert not hearts_window.isVisible()
+
+
+def test_hearts_do_not_catch_clicks_or_the_focus(make_window):
+    window = make_window()
+    flags = window._heart_window.windowFlags()  # noqa: SLF001
+
+    assert flags & Qt.WindowType.WindowTransparentForInput
+    assert flags & Qt.WindowType.WindowDoesNotAcceptFocus
+
+
+def test_hearts_follow_the_pet_and_stay_on_the_screen_at_its_top(make_window, screen):
+    window = make_window(position=(120, screen.top()))
+    window.show()
+
+    trigger(window, "Pet")
+
+    assert window._heart_window.y() == screen.top()  # noqa: SLF001
+
+
+def test_hiding_the_pet_puts_the_hearts_away(make_window):
+    window = make_window()
+    window.show()
+    trigger(window, "Pet")
+
+    window.hide()
+
+    assert not window._heart_window.isVisible()  # noqa: SLF001
+
+
+def test_a_stroked_pet_stops_walking(make_window):
+    window = make_window()
+    window.show()
+    while window._behavior.activity is not Activity.WALKING:  # noqa: SLF001
+        window.advance(0.1)
+
+    trigger(window, "Pet")
+
+    assert window._behavior.activity is Activity.STANDING  # noqa: SLF001
+
+
+def test_the_pet_can_be_stroked_again_at_once(make_window):
+    window = make_window()
+    window.show()
+    trigger(window, "Pet")
+    window.advance(2.0)  # the hearts are gone
+
+    trigger(window, "Pet")
+
+    assert window._heart_window.isVisible()  # noqa: SLF001

@@ -393,6 +393,7 @@ def test_choosing_a_language_in_settings_translates_the_menu_and_is_remembered(
     assert [text for text in menu if text] == [
         "Rex",
         "Sentar",
+        "Fazer carinho",
         "Virar",
         "Ocultar",
         "Configurações…",

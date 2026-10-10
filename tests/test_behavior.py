@@ -5,7 +5,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from virtual_pet.behavior import Activity, Area, Facing, Gait, PetBehavior
+from virtual_pet.behavior import PETTING_TIME, Activity, Area, Facing, Gait, PetBehavior
 
 SCREEN = Area(left=0, top=0, right=1000, bottom=600)
 
@@ -483,3 +483,48 @@ def test_a_stronger_throw_bounces_off_a_wall_harder():
         return SCREEN.right - pet.position[0]
 
     assert bounce_back(50) < bounce_back(100) < bounce_back(200)
+
+
+def test_a_walking_pet_stops_when_stroked_and_waits_before_walking_again():
+    pet = PetBehavior(SCREEN, (500, 300), rng=random.Random(2))
+    while pet.activity is not Activity.WALKING:
+        pet.tick(0.05)
+
+    pet.pet()
+
+    assert pet.activity is Activity.STANDING
+    stopped_at = pet.position
+    run(pet, PETTING_TIME - 0.1)
+    assert pet.position == stopped_at
+    run(pet, 20)
+    assert pet.position != stopped_at
+
+
+def test_a_sitting_pet_keeps_sitting_when_stroked():
+    pet = PetBehavior(SCREEN, (300, 200), sitting=True, rng=random.Random(1))
+
+    pet.pet()
+    run(pet, 5)
+
+    assert pet.activity is Activity.SITTING
+    assert pet.position == (300, 200)
+
+
+def test_a_carried_pet_is_not_stroked():
+    pet = PetBehavior(SCREEN, (300, 200), rng=random.Random(1))
+    pet.pick_up()
+
+    pet.pet()
+    pet.put_down()
+
+    assert pet.activity is Activity.STANDING
+
+
+def test_a_flying_pet_is_not_stopped_by_a_stroke():
+    pet = PetBehavior(SCREEN, (300, 200), rng=random.Random(1))
+    pet.pick_up()
+    pet.put_down((1800.0, 0.0))
+
+    pet.pet()
+
+    assert pet.flying
