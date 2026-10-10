@@ -34,7 +34,8 @@ UNUSED_PLUGINS = re.compile(
     # platforms: keeps xcb, wayland and offscreen (for the tests)
     r"|platforms/libq(eglfs|linuxfb|minimal|minimalegl|vkkhrdisplay|vnc)\.so"
     r"|wayland-graphics-integration-client/"  # OpenGL and Vulkan on Wayland
-    r"|imageformats/libq(?!svg)\w+\.so"  # PNG is built into Qt; SVG draws the icon theme
+    # PNG is built into Qt; SVG draws the icon theme; JPEG is what Wikipedia's pictures are
+    r"|imageformats/libq(?!svg|jpeg)\w+\.so"
     r")"
 )
 

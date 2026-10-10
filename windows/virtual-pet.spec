@@ -27,7 +27,10 @@ QT_TRANSLATIONS = {
 }
 
 PLUGINS = re.compile(r"PySide6/plugins/")
-WANTED_PLUGINS = re.compile(r"PySide6/plugins/(platforms/q(windows|offscreen)\.dll|styles/)")
+WANTED_PLUGINS = re.compile(
+    r"PySide6/plugins/(platforms/q(windows|offscreen)\.dll|styles/"
+    r"|imageformats/qjpeg\.dll)"  # PNG is built into Qt; JPEG is what Wikipedia's pictures are
+)
 
 
 def posix(dest):
