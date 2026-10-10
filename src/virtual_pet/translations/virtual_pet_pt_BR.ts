@@ -205,10 +205,6 @@ Escolha seu pet e dê um nome a ele.</translation>
         <translation>Raposa</translation>
     </message>
     <message>
-        <source>Wolf</source>
-        <translation>Lobo</translation>
-    </message>
-    <message>
         <source>Snail</source>
         <translation>Caracol</translation>
     </message>

@@ -19,7 +19,6 @@ from virtual_pet.pets.rabbit import RABBIT
 from virtual_pet.pets.snail import SNAIL
 from virtual_pet.pets.snake import SNAKE
 from virtual_pet.pets.turtle import TURTLE
-from virtual_pet.pets.wolf import WOLF
 from virtual_pet.species import Species
 
 ALL_SPECIES = (
@@ -34,7 +33,6 @@ ALL_SPECIES = (
     RABBIT,
     COCKATIEL,
     FOX,
-    WOLF,
     SNAIL,
     FROG,
     CHAMELEON,

@@ -23,7 +23,6 @@ you click it and goes wherever you drag it, but never off the screen.
 | <img src="docs/pets/rabbit.png" width="96" height="81" alt="The rabbit"> | Rabbit | Coelho | Hops | Sits up on its haunches, sniffing |
 | <img src="docs/pets/cockatiel.png" width="96" height="81" alt="The cockatiel"> | Cockatiel | Calopsita | Flies | Fluffs up on the ground, crest down |
 | <img src="docs/pets/fox.png" width="96" height="81" alt="The fox"> | Fox | Raposa | Walks | Sits with its tail around its paws |
-| <img src="docs/pets/wolf.png" width="96" height="81" alt="The wolf"> | Wolf | Lobo | Walks | Sits, and howls now and then |
 | <img src="docs/pets/snail.png" width="96" height="81" alt="The snail"> | Snail (a garden snail) | Caracol | Crawls | Retreats into its shell |
 | <img src="docs/pets/frog.png" width="96" height="81" alt="The frog"> | Frog | Sapo | Hops | Sits, and croaks now and then |
 | <img src="docs/pets/chameleon.png" width="96" height="81" alt="The chameleon"> | Chameleon (a veiled chameleon) | Camaleão | Walks slowly, turning green again | Lies down. Whenever it keeps still, a new color runs over it from head to tail |
@@ -167,7 +166,6 @@ src/virtual_pet/
     ├── rabbit.py   # a white bunny that hops
     ├── cockatiel.py # gray, with a yellow crest
     ├── fox.py      # a red fox
-    ├── wolf.py     # a gray wolf that howls
     ├── snail.py    # a garden snail
     ├── frog.py     # a green frog that croaks
     ├── chameleon.py # a veiled chameleon that changes color

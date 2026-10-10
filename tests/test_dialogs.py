@@ -59,7 +59,6 @@ def test_every_pet_is_offered_with_the_dog_preselected(dialog):
         ("Rabbit", False),
         ("Cockatiel", False),
         ("Fox", False),
-        ("Wolf", False),
         ("Snail", False),
         ("Frog", False),
         ("Chameleon", False),
@@ -78,9 +77,9 @@ def test_pets_are_offered_in_rows_of_four(dialog):
     assert list(rows.values()) == [
         ["Dog", "Cat", "Maritaca", "Sea Turtle"],
         ["Fish", "Guinea Pig", "Penguin", "Snake"],
-        ["Rabbit", "Cockatiel", "Fox", "Wolf"],
-        ["Snail", "Frog", "Chameleon", "Chicken"],
-        ["Octopus", "Owl"],
+        ["Rabbit", "Cockatiel", "Fox", "Snail"],
+        ["Frog", "Chameleon", "Chicken", "Octopus"],
+        ["Owl"],
     ]
 
 
@@ -333,7 +332,6 @@ def test_the_settings_speak_portuguese(qtbot):
         "Coelho",
         "Calopsita",
         "Raposa",
-        "Lobo",
         "Caracol",
         "Sapo",
         "Camaleão",

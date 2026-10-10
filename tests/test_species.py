@@ -24,7 +24,6 @@ from virtual_pet.pets import (
     SNAIL,
     SNAKE,
     TURTLE,
-    WOLF,
     species_by_key,
 )
 from virtual_pet.species import ColorShift, Locomotion, Species
@@ -76,7 +75,6 @@ def test_the_pets_to_choose_from_and_their_names():
         ("rabbit", "Rabbit"),
         ("cockatiel", "Cockatiel"),
         ("fox", "Fox"),
-        ("wolf", "Wolf"),
         ("snail", "Snail"),
         ("frog", "Frog"),
         ("chameleon", "Chameleon"),
@@ -99,7 +97,6 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         "rabbit",
         "cockatiel",
         "fox",
-        "wolf",
         "snail",
         "frog",
         "chameleon",
@@ -120,7 +117,6 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         RABBIT,
         COCKATIEL,
         FOX,
-        WOLF,
         SNAIL,
         FROG,
         CHAMELEON,
@@ -147,7 +143,6 @@ def test_each_pet_roams_its_own_way():
         "Hop",
         "Fly",
         "Walk",
-        "Walk",
         "Crawl",
         "Hop",
         "Walk",
@@ -161,7 +156,7 @@ def test_the_snake_coils_up_the_snail_retreats_and_the_octopus_and_owl_rest_wher
     assert [pet.sit_label for pet in ALL_SPECIES] == [
         *["Sit"] * 7,
         "Coil up",
-        *["Sit"] * 4,
+        *["Sit"] * 3,
         "Retreat into shell",
         *["Sit"] * 3,
         "Rest",
@@ -280,7 +275,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
     ]
 
     # tan, gray, green, sage, blue, ginger, white, emerald, warm white, yellow, red-orange,
-    # warm gray, grayish beige, leaf green, chameleon green, golden brown, golden yellow, buff
+    # grayish beige, leaf green, chameleon green, golden brown, golden yellow, buff
     assert body_colors == [
         "#dc9a57",
         "#a3a8b0",
@@ -293,7 +288,6 @@ def test_each_pet_is_drawn_in_its_own_colors():
         "#f2eee6",
         "#f7d64a",
         "#e2632f",
-        "#988f85",
         "#cdbfa6",
         "#8fca3c",
         "#3fa34d",
