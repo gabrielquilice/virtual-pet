@@ -307,7 +307,8 @@ OWL = Species(
         # Soon after it stops, it turns its head to look at you for 2 s, then back in profile.
         Activity.STANDING: Animation((STAND_A, *(STAND_B,) * 4, *(STAND_A,) * 9), fps=2),
         Activity.WALKING: Animation((FLY_0, FLY_1, FLY_2, FLY_1), fps=10),  # it flies around
-        Activity.SITTING: Animation((REST_A, REST_B), fps=1),  # dozing, its head sinking
+        # Dozing, its head sinking for a second every 5 s: every other second, it looked restless.
+        Activity.SITTING: Animation((REST_A,) * 4 + (REST_B,), fps=1),
         Activity.CARRIED: Animation((CARRIED_A, CARRIED_B), fps=8),  # flapping, its legs dangling
     },
     # It rests 3 to 7 s between flights, long enough to look at you (and only once).

@@ -1,3 +1,4 @@
+import itertools
 from pathlib import Path
 
 import pytest
@@ -241,6 +242,14 @@ def test_an_owl_blinks_with_its_upper_lid_coming_down_and_going_back_up():
     assert [color(step, top) for step in (0, 1, 2, 3)] == [yellow, lid, lid, lid]
     assert [color(step, pupil) for step in (0, 1, 2, 3)] == [black, black, lid, black]
     assert color(2, bottom) == OWL.palette["R"]  # the closed lid's dark edge
+
+
+def test_a_resting_owl_moves_its_neck_only_every_5_s():
+    resting = OWL.animations[Activity.SITTING]
+    still = max(len(list(run)) for _, run in itertools.groupby(resting.frames))
+
+    assert len(resting.frames) / resting.fps == 5  # one breath, its head sinking and back up
+    assert still / resting.fps == 4  # its head keeps still most of that time
 
 
 def test_an_owl_that_stops_looks_at_you_before_it_flies_off():
