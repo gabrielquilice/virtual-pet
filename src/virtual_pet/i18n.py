@@ -20,6 +20,7 @@ MARKER = re.compile(r"%([1-9])")  # where a value goes into a text: %1, %2…, a
 
 logger = logging.getLogger(__name__)
 _installed: list[QTranslator] = []  # removed again when the language changes
+_shown = [ENGLISH]  # the language the interface is in now
 
 
 def QT_TRANSLATE_NOOP(context: str, text: str) -> str:  # noqa: N802, ARG001 - lupdate's name
@@ -57,6 +58,11 @@ def resolve(chosen: str | None, system: Iterable[str]) -> str:
     return ENGLISH
 
 
+def current_language() -> str:
+    """The language the interface is shown in now: English until `use_language` says otherwise."""
+    return _shown[0]
+
+
 def use_language(chosen: str | None) -> str:
     """Show the interface in `chosen` (None: the system's language) from now on.
 
@@ -75,6 +81,7 @@ def use_language(chosen: str | None) -> str:
         translator.deleteLater()
     if language != ENGLISH:
         _install_translations(app, language)
+    _shown[0] = language
     QGuiApplication.setApplicationDisplayName(QCoreApplication.translate("App", APP_DISPLAY_NAME))
     return language
 

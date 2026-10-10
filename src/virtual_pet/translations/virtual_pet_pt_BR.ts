@@ -9,7 +9,30 @@
     </message>
 </context>
 <context>
+    <name>ArticleCard</name>
+    <message>
+        <source>Loading…</source>
+        <translation>Carregando…</translation>
+    </message>
+    <message>
+        <source>Couldn&apos;t load the article. Check your connection.</source>
+        <translation>Não foi possível carregar o artigo. Verifique sua conexão.</translation>
+    </message>
+    <message>
+        <source>Open on Wikipedia</source>
+        <translation>Abrir na Wikipédia</translation>
+    </message>
+    <message>
+        <source>Text from Wikipedia, under the CC BY-SA license.</source>
+        <translation>Texto da Wikipédia, sob a licença CC BY-SA.</translation>
+    </message>
+</context>
+<context>
     <name>PetDialog</name>
+    <message>
+        <source>Hold Ctrl and click an animal to learn more</source>
+        <translation>Segure Ctrl e clique sobre um animal para saber mais</translation>
+    </message>
     <message>
         <source>e.g. Buddy</source>
         <translation>ex.: Pipoca</translation>

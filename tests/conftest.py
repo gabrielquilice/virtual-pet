@@ -23,3 +23,9 @@ def english_interface():
 def private_config_folder(tmp_path, monkeypatch):
     """Nothing a test does reaches the user's own settings, such as their autostart folder."""
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "xdg-config"))
+
+
+@pytest.fixture(autouse=True)
+def no_wikipedia(monkeypatch):
+    """No test reaches Wikipedia: an article can't be had, unless the test brings its own."""
+    monkeypatch.setattr("virtual_pet.wikipedia.fetch_article", lambda *_: None)

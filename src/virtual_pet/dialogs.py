@@ -1,8 +1,9 @@
 """The small dialogs used to adopt a pet on first run and to change it, or the language, later."""
 
+from functools import partial
 from typing import NamedTuple, override
 
-from PySide6.QtCore import QCoreApplication, QSize, Qt, QUrl
+from PySide6.QtCore import QCoreApplication, QSize, Qt, QUrl, Signal
 from PySide6.QtGui import QDesktopServices, QIcon, QMouseEvent, QPixmap
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -25,9 +26,10 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from virtual_pet.article_card import ArticleCard
 from virtual_pet.behavior import DEFAULT_THROW_STRENGTH, THROW_STRENGTH_RANGE
 from virtual_pet.config import MAX_NAME_LENGTH, normalize_name
-from virtual_pet.i18n import LANGUAGES
+from virtual_pet.i18n import LANGUAGES, current_language
 from virtual_pet.pets import ALL_SPECIES, DOG
 from virtual_pet.species import Species
 from virtual_pet.sprites import FRAME_HEIGHT, FRAME_WIDTH
@@ -40,6 +42,7 @@ from virtual_pet.update_check import (
     check_for_update,
 )
 from virtual_pet.version import app_version
+from virtual_pet.wikipedia import ArticleLoader
 
 ICON_SIZE = QSize(FRAME_WIDTH * 2, FRAME_HEIGHT * 2)
 PETS_PER_ROW = 4  # rows of four keep the dialog compact
@@ -96,6 +99,8 @@ class PetDialog(QDialog):
         self.setStyleSheet(PET_BUTTON_STYLE)
         current = current or PetChoice(DOG, "")
 
+        language = current_language()
+        self._articles = ArticleLoader(language, self)
         self._pet_buttons = [(_pet_button(species, self), species) for species in ALL_SPECIES]
         hints = [button.sizeHint() for button, _ in self._pet_buttons]
         size = QSize(max(hint.width() for hint in hints), max(hint.height() for hint in hints))
@@ -105,6 +110,10 @@ class PetDialog(QDialog):
             button.setFixedSize(size)  # all the size of the largest, so the cards line up
             row, column = divmod(index, PETS_PER_ROW)
             picker.addWidget(button, row, column)
+            button.info_requested.connect(partial(self._show_article, species, button, language))
+        learn_more = QLabel(self.tr("Hold Ctrl and click an animal to learn more"))
+        learn_more.setEnabled(False)  # dimmed, as a hint and not a field
+        picker.addWidget(learn_more, row + 1, 0, 1, PETS_PER_ROW, Qt.AlignmentFlag.AlignCenter)
 
         self._name_field = QLineEdit(current.name)
         self._name_field.setMaxLength(MAX_NAME_LENGTH)
@@ -148,6 +157,15 @@ class PetDialog(QDialog):
     def starts_with_system(self) -> bool:
         """Whether the pet is to start when the user logs in."""
         return self._starts_field.isChecked()
+
+    def _show_article(self, species: Species, button: QToolButton, language: str) -> None:
+        """Pop up the Wikipedia article about a species by its button.
+
+        A popup closes on a click elsewhere, and swallows it, so there is never more than one.
+        """
+        card = ArticleCard(species.key, self._articles, language, self)
+        card.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+        card.show_next_to(button)
 
     def _update_confirm_button(self) -> None:
         self._confirm_button.setEnabled(bool(self.choice().name))
@@ -298,9 +316,36 @@ def _center_text(box: QMessageBox) -> None:
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
 
-def _pet_button(species: Species, dialog: QWidget) -> QToolButton:
+class PetButton(QToolButton):
+    """A pet's button: a click chooses it, but Ctrl+click asks for its article instead."""
+
+    info_requested = Signal()
+
+    @override
+    def mousePressEvent(self, event: QMouseEvent) -> None:
+        if self._asks_for_info(event):
+            event.accept()  # the button isn't pressed, so it isn't chosen either
+        else:
+            super().mousePressEvent(event)
+
+    @override
+    def mouseReleaseEvent(self, event: QMouseEvent) -> None:
+        if self._asks_for_info(event):
+            event.accept()
+            if self.rect().contains(event.position().toPoint()):
+                self.info_requested.emit()
+        else:
+            super().mouseReleaseEvent(event)
+
+    @staticmethod
+    def _asks_for_info(event: QMouseEvent) -> bool:
+        ctrl = event.modifiers() & Qt.KeyboardModifier.ControlModifier
+        return event.button() == Qt.MouseButton.LeftButton and bool(ctrl)
+
+
+def _pet_button(species: Species, dialog: QWidget) -> PetButton:
     """A picture of the pet with its name under it; only one of these can be checked."""
-    button = QToolButton(dialog)  # in the dialog from the start: its style sheet sizes it
+    button = PetButton(dialog)  # in the dialog from the start: its style sheet sizes it
     button.setText(QCoreApplication.translate("Species", species.label))
     image = species.image(species.portrait).scaled(ICON_SIZE)  # nearest neighbor: stays crisp
     button.setIcon(QIcon(QPixmap.fromImage(image)))

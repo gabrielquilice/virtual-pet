@@ -47,6 +47,8 @@ swap it for another kind of pet. There is only ever one pet on the screen: choos
 new one replaces the current one, in the same spot. The pet remembers which animal it
 is, its name, where you left it, whether it was sitting and which way it was facing.
 Opening the app while it runs starts no second pet: the running one shows itself instead.
+Ctrl+click on a pet in those dialogs, instead of choosing it, pops up its Wikipedia article
+(in the interface's language, with a picture), which needs an internet connection.
 
 Both the first run and Settings offer to start the pet with the system, off unless you
 tick it. On Linux that is an entry in `~/.config/autostart`, on Windows a value in your
@@ -139,6 +141,7 @@ uv run ty check src/       # type check
 ```
 src/virtual_pet/
 ├── app.py          # entry point: Qt setup, first run, single instance, saving
+├── article_card.py # the popup with a pet's Wikipedia article, from Ctrl+click in the dialogs
 ├── autostart.py    # starting with the system: an XDG autostart entry, or Windows' Run key
 ├── behavior.py     # the pet's brain: roaming, resting, sitting, turning, being carried (no Qt)
 ├── color_change.py # how the chameleon changes color, in waves from head to tail (no Qt)
@@ -153,6 +156,7 @@ src/virtual_pet/
 ├── species.py      # what makes a kind of pet: colors, animations, gait, how it roams
 ├── sprites.py      # pixel-art building blocks shared by all pets
 ├── tray.py         # the paw print in the system tray while the pet hides
+├── wikipedia.py    # fetching a pet's Wikipedia article, in the interface's language
 ├── translations/   # Qt Linguist files: virtual_pet_<language>.ts and its compiled .qm
 └── pets/
     ├── dog.py      # each pet's pixel art, palette and animations

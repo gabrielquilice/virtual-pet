@@ -13,10 +13,12 @@ from PySide6.QtWidgets import (
 )
 
 from virtual_pet import dialogs, i18n
+from virtual_pet.article_card import ArticleCard
 from virtual_pet.dialogs import PetChoice, PetDialog, Preferences, SettingsDialog
 from virtual_pet.pets import CAT, PARAKEET
 from virtual_pet.update_check import CheckFailed, DevBuild, UpdateAvailable, UpToDate
 from virtual_pet.version import app_version
+from virtual_pet.wikipedia import Article
 
 LEFT = Qt.MouseButton.LeftButton
 
@@ -400,3 +402,118 @@ def test_the_dialog_cannot_be_resized_or_maximized(dialog):
     assert dialog.minimumSize() == dialog.maximumSize() == dialog.sizeHint()
     dialog.setWindowState(Qt.WindowState.WindowMaximized)
     assert dialog.size() == dialog.sizeHint()
+
+
+CTRL = Qt.KeyboardModifier.ControlModifier
+COCKATIEL_ARTICLE = Article(
+    "Cockatiel", "Species of bird", "The cockatiel is a bird.", "https://example.org/c", None
+)
+
+
+def article_card(dialog: PetDialog) -> ArticleCard | None:
+    return dialog.findChild(ArticleCard)
+
+
+def card_text(card: ArticleCard) -> str:
+    return " | ".join(
+        label.text() for label in card.findChildren(QLabel) if label.isVisibleTo(card)
+    )
+
+
+def test_the_dialog_tells_how_to_learn_about_a_pet(dialog):
+    texts = [label.text() for label in dialog.findChildren(QLabel)]
+
+    assert "Hold Ctrl and click an animal to learn more" in texts
+
+
+def test_ctrl_click_opens_the_article_without_choosing_the_pet(dialog, qtbot, monkeypatch):
+    monkeypatch.setattr("virtual_pet.wikipedia.fetch_article", lambda *_: COCKATIEL_ARTICLE)
+    dialog.show()
+
+    qtbot.mouseClick(pet_button(dialog, "Cockatiel"), LEFT, CTRL)
+
+    qtbot.waitUntil(lambda: "The cockatiel is a bird." in card_text(article_card(dialog)))
+    assert dialog.choice().species.key == "dog"
+    assert not pet_button(dialog, "Cockatiel").isChecked()
+    assert "Species of bird" in card_text(article_card(dialog))
+
+
+def test_a_plain_click_chooses_the_pet_and_opens_no_article(dialog, qtbot):
+    dialog.show()
+
+    qtbot.mouseClick(pet_button(dialog, "Cockatiel"), LEFT)
+
+    assert dialog.choice().species.key == "cockatiel"
+    assert article_card(dialog) is None
+
+
+def test_the_article_says_it_is_loading_and_then_that_it_failed(dialog, qtbot):
+    dialog.show()
+
+    qtbot.mouseClick(pet_button(dialog, "Owl"), LEFT, CTRL)
+    assert "Loading…" in card_text(article_card(dialog))
+
+    qtbot.waitUntil(lambda: "Couldn't load the article" in card_text(article_card(dialog)))
+    assert "Open on Wikipedia" in card_text(article_card(dialog))
+
+
+def test_the_card_links_to_the_article_with_the_license(dialog, qtbot):
+    dialog.show()
+
+    qtbot.mouseClick(pet_button(dialog, "Owl"), LEFT, CTRL)
+
+    footer = next(
+        label.text()
+        for label in article_card(dialog).findChildren(QLabel)
+        if "href" in label.text()
+    )
+    assert "https://en.wikipedia.org/wiki/Tropical_screech_owl" in footer
+    assert "CC BY-SA" in footer
+
+
+def test_escape_closes_the_card(dialog, qtbot):
+    dialog.show()
+    qtbot.mouseClick(pet_button(dialog, "Owl"), LEFT, CTRL)
+    card = article_card(dialog)
+
+    qtbot.keyClick(card, Qt.Key.Key_Escape)
+
+    assert not card.isVisible()
+
+
+def test_the_card_stays_on_the_screen(dialog, qtbot):
+    dialog.show()
+    qtbot.mouseClick(pet_button(dialog, "Owl"), LEFT, CTRL)
+
+    area = dialog.screen().availableGeometry()
+    assert area.contains(article_card(dialog).geometry())
+
+
+def test_a_long_article_is_not_cut_off(dialog, qtbot, monkeypatch):
+    long = Article("Dog", "", "A sentence about dogs. " * 60, "https://example.org", None)
+    monkeypatch.setattr("virtual_pet.wikipedia.fetch_article", lambda *_: long)
+    dialog.show()
+
+    qtbot.mouseClick(pet_button(dialog, "Dog"), LEFT, CTRL)
+
+    card = article_card(dialog)
+    qtbot.waitUntil(lambda: "A sentence about dogs." in card_text(card))
+    text = next(label for label in card.findChildren(QLabel) if label.text() == long.extract)
+    assert text.height() >= text.heightForWidth(text.width())
+
+
+def test_following_the_link_opens_the_article_and_closes_the_card(dialog, qtbot, monkeypatch):
+    opened = []
+    monkeypatch.setattr(
+        "virtual_pet.article_card.QDesktopServices.openUrl",
+        lambda url: opened.append(url.toString()),
+    )
+    dialog.show()
+    qtbot.mouseClick(pet_button(dialog, "Owl"), LEFT, CTRL)
+    card = article_card(dialog)
+    footer = next(label for label in card.findChildren(QLabel) if "href" in label.text())
+
+    footer.linkActivated.emit("https://en.wikipedia.org/wiki/Tropical_screech_owl")
+
+    assert opened == ["https://en.wikipedia.org/wiki/Tropical_screech_owl"]
+    assert not card.isVisible()
