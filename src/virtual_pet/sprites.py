@@ -22,8 +22,8 @@ FRAME_HEIGHT = 27
 PIXEL_SIZE = 3  # screen pixels per art pixel
 
 TRANSPARENT = "."
-EYE = "E"  # upper half of an open eye; takes the body color while blinking
-EYE_SHINE = "H"  # eye highlight; turns dark while blinking, so the eye becomes a line
+EYE = "E"  # upper half of an open eye; usually takes the body color while blinking
+EYE_SHINE = "H"  # eye highlight; usually turns dark while blinking, so the eye becomes a line
 
 
 def art(text: str) -> Frame:

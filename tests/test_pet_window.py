@@ -1,12 +1,13 @@
+import itertools
 import random
 
 import pytest
-from PySide6.QtCore import QPoint, QRect, Qt
+from PySide6.QtCore import QPoint, QRect, Qt, QTimer
 from PySide6.QtGui import QTextDocumentFragment
 
 from virtual_pet import i18n, sprites
 from virtual_pet.behavior import Facing
-from virtual_pet.pet_window import PetWindow
+from virtual_pet.pet_window import RESTING_TICK_MS, WALKING_TICK_MS, PetWindow
 from virtual_pet.pets import (
     CAT,
     CHAMELEON,
@@ -433,6 +434,65 @@ def test_an_octopus_hides_its_rings_while_it_crawls_and_shows_them_when_it_stops
     trigger(window, "Rest")
     run(window, FADE_TIME)
     assert shows_rings(window)
+
+
+def owl_eye(window: PetWindow) -> str:
+    """How far the owl's upper lid is down on screen: "open", "a third" or "closed"."""
+    image = window.grab().toImage()
+    size = sprites.PIXEL_SIZE
+    colors = [
+        image.pixelColor(x * size + 1, y * size + 1).name()
+        for x in range(sprites.FRAME_WIDTH)
+        for y in range(sprites.FRAME_HEIGHT)
+    ]
+    yellow, lid = colors.count(OWL.palette["U"]), colors.count(OWL.palette["V"])
+    return "closed" if not yellow else "a third" if lid else "open"
+
+
+def eye_over_time(window: PetWindow, look=owl_eye) -> list[tuple[str, int]]:
+    """The pet's eye and the window's tick every hundredth of a second, for 6.5 s."""
+    timer = window.findChild(QTimer)
+    samples = []
+    for _ in range(650):  # the first blink comes within 6 s
+        window.advance(0.01)
+        samples.append((look(window), timer.interval()))
+    return samples
+
+
+def test_an_owl_blinks_by_bringing_its_upper_lid_down_and_back_up(make_window):
+    looks = [
+        (look, len(list(run)))
+        for look, run in itertools.groupby(
+            look for look, _ in eye_over_time(make_window(species=OWL))
+        )
+    ]
+    closed = [look for look, _ in looks].index("closed")
+
+    assert [look for look, _ in looks[closed - 2 : closed + 3]] == [
+        "open",
+        "a third",
+        "closed",
+        "a third",
+        "open",
+    ]
+    assert [hundredths for _, hundredths in looks[closed - 1 : closed + 2]] == [5, 10, 5]
+
+
+def test_a_resting_owl_ticks_fast_enough_to_show_each_step_of_its_blink(make_window):
+    samples = eye_over_time(make_window(species=OWL, sitting=True))
+    closing = [look for look, _ in samples].index("closed")  # the blink began 0.05 s before
+    ticks = [tick for _, tick in samples]
+
+    assert {tick for look, tick in samples if look == "closed"} == {WALKING_TICK_MS}
+    assert ticks[closing - 20] == RESTING_TICK_MS  # 0.15 s before the blink
+    assert ticks[closing - 10] == WALKING_TICK_MS  # 0.05 s before the blink
+    assert ticks[closing + 20] == RESTING_TICK_MS  # 0.05 s after it
+
+
+def test_a_dog_blinks_without_ticking_any_faster(make_window):
+    samples = eye_over_time(make_window(species=DOG, sitting=True), look=lambda _window: "")
+
+    assert {tick for _, tick in samples} == {RESTING_TICK_MS}
 
 
 def test_a_flung_dog_glides_carried_and_stops_further_along(shown_window, qtbot):

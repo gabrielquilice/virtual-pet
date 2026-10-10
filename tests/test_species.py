@@ -219,14 +219,33 @@ def owl_pupils(frame: sprites.Frame) -> int:
 
 
 def test_an_owl_turns_its_head_to_look_at_you_and_dozes_off_when_it_rests():
-    def eye_pixels(frame: sprites.Frame) -> int:
-        return sum(row.count(sprites.EYE) + row.count(sprites.EYE_SHINE) for row in frame)
+    def eye_pixels(frame: sprites.Frame) -> int:  # the yellow ones
+        return sum(
+            row.count(char) for row in frame for char in ("U", sprites.EYE_SHINE, sprites.EYE)
+        )
 
     standing = OWL.animations[Activity.STANDING].frames
     resting = OWL.animations[Activity.SITTING].frames
 
     assert {owl_pupils(frame) for frame in standing} == {1, 2}  # in profile, then facing you
     assert all(eye_pixels(frame) < eye_pixels(OWL.portrait) for frame in resting)  # half closed
+
+
+def test_most_pets_blink_in_one_go():
+    assert [DOG.blink_step(seconds) for seconds in (0.0, 0.1, 0.15)] == [1, 1, 0]
+
+
+def test_an_owl_blinks_with_its_upper_lid_coming_down_and_going_back_up():
+    top, pupil, bottom = (find(OWL.portrait, char) for char in ("U", "N", sprites.EYE))
+    yellow, lid, black = OWL.palette["U"], OWL.palette["V"], OWL.palette["N"]
+
+    def color(step: int, at: tuple[int, int]) -> str:
+        return OWL.image(OWL.portrait, blink=step).pixelColor(*at).name()
+
+    assert [OWL.blink_step(seconds) for seconds in (0.0, 0.06, 0.14, 0.16, 0.21)] == [1, 2, 2, 3, 0]
+    assert [color(step, top) for step in (0, 1, 2, 3)] == [yellow, lid, lid, lid]
+    assert [color(step, pupil) for step in (0, 1, 2, 3)] == [black, black, lid, black]
+    assert color(2, bottom) == OWL.palette["R"]  # the closed lid's dark edge
 
 
 def test_an_owl_that_stops_looks_at_you_before_it_flies_off():
@@ -324,7 +343,7 @@ def test_a_chameleon_blinks_in_the_color_it_has_turned():
     eye = find(CHAMELEON.portrait, sprites.EYE)
     turquoise = CHAMELEON.colorings[0]
 
-    image = CHAMELEON.image(CHAMELEON.portrait, blinking=True, colors=(1,) * sprites.FRAME_WIDTH)
+    image = CHAMELEON.image(CHAMELEON.portrait, blink=1, colors=(1,) * sprites.FRAME_WIDTH)
 
     assert image.pixelColor(*eye).name() == turquoise["B"]
 
@@ -340,7 +359,7 @@ def test_rendered_frame_keeps_transparent_background_and_eye_colors():
 
 
 def test_blinking_turns_the_eye_into_a_closed_line():
-    image = DOG.image(DOG.portrait, blinking=True)
+    image = DOG.image(DOG.portrait, blink=1)
     eye, shine = find(DOG.portrait, sprites.EYE), find(DOG.portrait, sprites.EYE_SHINE)
 
     assert image.pixelColor(*eye).name() == "#dc9a57"  # fur

@@ -28,7 +28,6 @@ from virtual_pet.species import ColorShift, Species
 WALKING_TICK_MS = 33  # about 30 updates per second, for smooth movement
 RESTING_TICK_MS = 100  # enough for tail wags and blinks, and easier on the battery
 BLINK_INTERVAL = (2.0, 6.0)  # seconds between blinks
-BLINK_DURATION = 0.15  # seconds
 MIN_THROW_SAMPLES = 2  # cursor positions needed to tell how fast it moves
 THROW_WINDOW = 0.08  # seconds of cursor movement before the release that make up a throw
 MIN_THROW_SPAN = 0.02  # seconds those positions must span: closer ones are jitter, not speed
@@ -96,7 +95,7 @@ class PetWindow(QWidget):
         self._animation_time = 0.0
         self._until_blink = self._rng.uniform(*BLINK_INTERVAL)
         self._frame: sprites.Frame = ()
-        self._blinking = False
+        self._blink = 0  # the step of a blink it shows, 0 with its eyes open
         self._press_position: QPoint | None = None  # where a left-button press started
         self._grab_offset = QPoint()  # cursor position relative to the window's corner
         self._dragging = False
@@ -176,7 +175,7 @@ class PetWindow(QWidget):
         self._colors.tick(seconds, self._behavior.activity)
         self._animation_time += seconds
         self._until_blink -= seconds
-        if self._until_blink < -BLINK_DURATION:
+        if self._until_blink < -self._species.blink_time:
             self._until_blink = self._rng.uniform(*BLINK_INTERVAL)
         self._sync()
 
@@ -194,9 +193,7 @@ class PetWindow(QWidget):
     @override
     def paintEvent(self, event: QPaintEvent) -> None:
         with QPainter(self) as painter:
-            image = self._species.image(
-                self._frame, blinking=self._blinking, colors=self._shown_colors
-            )
+            image = self._species.image(self._frame, blink=self._blink, colors=self._shown_colors)
             painter.drawImage(self.rect(), image)
 
     @override
@@ -304,13 +301,16 @@ class PetWindow(QWidget):
         if activity is not self._activity:
             self._activity, self._animation_time = activity, 0.0
         moving = activity is Activity.WALKING or self._behavior.flying
-        interval = WALKING_TICK_MS if moving else RESTING_TICK_MS
+        quick = moving or self._blinking_in_quick_steps(activity)
+        interval = WALKING_TICK_MS if quick else RESTING_TICK_MS
         if self._timer.interval() != interval:
             self._timer.setInterval(interval)
         frame = self._species.animations[activity].frame_at(self._animation_time)
         if self._behavior.facing is Facing.LEFT:
             frame = sprites.mirrored(frame)
-        blinking = self._until_blink <= 0 and activity is not Activity.CARRIED
+        blink = 0
+        if self._until_blink <= 0 and activity is not Activity.CARRIED:
+            blink = self._species.blink_step(-self._until_blink)
         colors = None
         if self._species.colorings:
             colors = self._colors.columns
@@ -319,9 +319,17 @@ class PetWindow(QWidget):
         if frame != self._frame:
             # Clicks on the transparent parts of the window reach whatever is behind it.
             self.setMask(sprites.silhouette(frame, sprites.PIXEL_SIZE))
-        if (frame, blinking, colors) != (self._frame, self._blinking, self._shown_colors):
-            self._frame, self._blinking, self._shown_colors = frame, blinking, colors
+        if (frame, blink, colors) != (self._frame, self._blink, self._shown_colors):
+            self._frame, self._blink, self._shown_colors = frame, blink, colors
             self.update()
+
+    def _blinking_in_quick_steps(self, activity: Activity) -> bool:
+        """Whether a blink is under way, or due within a resting tick, whose steps are too quick
+        for that tick to show them all (like the owl's lid coming down)."""
+        tick = RESTING_TICK_MS / 1000
+        quickest = min(step.seconds for step in self._species.blink)
+        due = -self._species.blink_time <= self._until_blink <= tick
+        return quickest < tick and due and activity is not Activity.CARRIED
 
     def _watch_screens(self) -> None:
         """Keep the pet on screen when monitors are plugged, unplugged or resized."""
