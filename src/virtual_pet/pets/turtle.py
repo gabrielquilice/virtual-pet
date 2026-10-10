@@ -271,4 +271,5 @@ TURTLE = Species(
     },
     gait=Gait(speed=35, max_slope=0.7, distance=(100, 380)),
     locomotion=Locomotion.SWIM,
+    sit_label=QT_TRANSLATE_NOOP("PetWindow", "Rest"),
 )

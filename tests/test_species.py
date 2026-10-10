@@ -153,16 +153,19 @@ def test_each_pet_roams_its_own_way():
     ]
 
 
-def test_the_snake_coils_up_the_snail_retreats_and_the_octopus_and_owl_rest_where_others_sit():
-    assert [pet.sit_label for pet in ALL_SPECIES] == [
-        *["Sit"] * 7,
-        "Coil up",
-        *["Sit"] * 3,
-        "Retreat into shell",
-        *["Sit"] * 3,
-        "Rest",
-        "Rest",
-    ]
+def test_some_pets_do_not_sit_where_others_do():
+    special = {
+        "turtle": "Rest",
+        "fish": "Rest",
+        "snake": "Coil up",
+        "snail": "Retreat into shell",
+        "octopus": "Rest",
+        "owl": "Rest",
+    }
+
+    assert {pet.key: pet.sit_label for pet in ALL_SPECIES} == {
+        pet.key: special.get(pet.key, "Sit") for pet in ALL_SPECIES
+    }
 
 
 def test_every_activity_has_an_animation(species):

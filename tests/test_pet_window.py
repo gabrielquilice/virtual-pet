@@ -618,3 +618,10 @@ def test_the_pet_can_be_stroked_again_at_once(make_window):
     trigger(window, "Pet")
 
     assert window._heart_window.isVisible()  # noqa: SLF001
+
+
+@pytest.mark.parametrize("swimmer", [TURTLE, FISH], ids=lambda species: species.key)
+def test_menu_offers_a_roaming_swimmer_to_rest_not_to_sit(make_window, swimmer):
+    window = make_window(species=swimmer)
+
+    assert menu_texts(window) == ["Rex", "Rest", "Pet", "Turn around", "Hide", "Settings…", "Quit"]

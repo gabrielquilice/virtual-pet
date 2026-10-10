@@ -300,4 +300,5 @@ FISH = Species(
     },
     gait=Gait(speed=40, max_slope=0.8, distance=(80, 300)),
     locomotion=Locomotion.SWIM,
+    sit_label=QT_TRANSLATE_NOOP("PetWindow", "Rest"),
 )
