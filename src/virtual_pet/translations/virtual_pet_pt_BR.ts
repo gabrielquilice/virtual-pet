@@ -255,6 +255,10 @@ Escolha seu pet e dê um nome a ele.</translation>
         <source>Owl</source>
         <translation>Coruja</translation>
     </message>
+    <message>
+        <source>Nautilus</source>
+        <translation>Náutilo</translation>
+    </message>
 </context>
 <context>
     <name>UpdateMessage</name>

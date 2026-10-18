@@ -22,6 +22,7 @@ DEFAULT_THROW_STRENGTH = (
 THROW_STRENGTH_RANGE = (25, 225)  # the least and the most the settings allow
 STOP_SPEED = 40.0  # a thrown pet slower than this stops
 PETTING_TIME = 1.5  # seconds a pet being stroked keeps still
+PULSE_SURGE = 0.85  # how far a pulsing pet's speed swings from its mean, as a share of it
 
 
 class Activity(Enum):
@@ -40,6 +41,18 @@ class Facing(Enum):
     RIGHT = auto()
 
 
+def _opposite(facing: Facing) -> Facing:
+    return Facing.LEFT if facing is Facing.RIGHT else Facing.RIGHT
+
+
+def pulsed_distance(pulse: float, seconds: float) -> float:
+    """How far a pulsing pet at a mean speed of 1 is `seconds` into its stroll: the integral of
+    1 - PULSE_SURGE * cos(2 pi t / pulse), so it doesn't depend on the tick's length. A whole
+    number of pulses covers that many pulses' worth of distance."""
+    angle = 2 * math.pi * seconds / pulse
+    return seconds - PULSE_SURGE * pulse / (2 * math.pi) * math.sin(angle)
+
+
 @dataclass(frozen=True)
 class Gait:
     """How a kind of pet gets around."""
@@ -48,6 +61,12 @@ class Gait:
     max_slope: float = 0.4  # steepest stroll (vertical / horizontal); low values suit side views
     distance: tuple[float, float] = (80.0, 320.0)  # length range of a single stroll
     rest: tuple[float, float] = REST_TIME  # seconds standing still between strolls
+    # Share of the strolls it takes backward, facing away from where it goes (a swimming nautilus).
+    backward: float = 0.0
+    # Seconds per stroke of a pet that moves in surges (a jetting nautilus): its speed swings
+    # around `speed`, slowest as each stroke begins and fastest halfway through, and each stroll
+    # lasts whole strokes, so it ends at its slowest. None: steady.
+    pulse: float | None = None
 
 
 DEFAULT_GAIT = Gait()
@@ -90,6 +109,8 @@ class PetBehavior:
         self._facing = facing
         self._rng = rng if rng is not None else random.Random()  # noqa: S311 - not security related
         self._target: tuple[float, float] | None = None
+        self._stroll_time = 0.0  # seconds since the stroll under way began
+        self._stroll_speed = gait.speed  # a pulsing stroll's mean speed, fitted to its length
         self._rest_left = self._rng.uniform(*LANDING_REST_TIME)
 
     @property
@@ -138,7 +159,7 @@ class PetBehavior:
             return
         dx, dy = target[0] - self._x, target[1] - self._y
         distance = math.hypot(dx, dy)
-        step = self._gait.speed * seconds
+        step = self._step(seconds)
         if distance <= step:
             self._x, self._y = target
             self._end_stroll()
@@ -166,7 +187,7 @@ class PetBehavior:
         The stroll is mirrored, so it keeps its slope. A wall in the way ends it early, and at
         once if the pet is against that wall: then it only turns to face it.
         """
-        self._facing = Facing.LEFT if self._facing is Facing.RIGHT else Facing.RIGHT
+        self._facing = _opposite(self._facing)
         if self._target is None:
             return
         target_x, target_y = self._target
@@ -180,6 +201,7 @@ class PetBehavior:
         elif room < abs(dx):
             rise = (target_y - self._y) * room / abs(dx)
             self._target = self._area.clamp(wall, self._y + rise)
+            self._fit_pulses()
         else:
             self._target = self._area.clamp(self._x - dx, target_y)
 
@@ -217,11 +239,15 @@ class PetBehavior:
         self._area = area
         self._x, self._y = area.clamp(self._x, self._y)
         if self._target is not None:
-            self._target = area.clamp(*self._target)
+            clamped = area.clamp(*self._target)
+            if clamped != self._target:
+                self._target = clamped
+                self._fit_pulses()
 
     def set_gait(self, gait: Gait) -> None:
         """Move the way another kind of pet does, from now on."""
         self._gait = gait
+        self._fit_pulses()
 
     def _fly(self, seconds: float, velocity: tuple[float, float]) -> None:
         """Move a thrown pet: it slows down by friction and a wall sends it back, weakly."""
@@ -241,6 +267,31 @@ class PetBehavior:
         else:
             self._velocity = (vx, vy)
 
+    def _step(self, seconds: float) -> float:
+        """How far the pet gets along its stroll in `seconds`, which then count as walked."""
+        gait = self._gait
+        before = self._stroll_time
+        self._stroll_time += seconds
+        if gait.pulse is None:
+            return gait.speed * seconds
+        surge = pulsed_distance(gait.pulse, self._stroll_time) - pulsed_distance(gait.pulse, before)
+        return self._stroll_speed * surge
+
+    def _fit_pulses(self) -> None:
+        """Make a pulsing stroll end as a pulse does: the speed is fitted so that what is left of
+        the stroll takes the whole pulses that bring its mean speed closest to the gait's. Its last
+        one ends at its slowest, with the head out, and the pet glides to a stop. At the start of
+        a stroll that is the stroll's length in whole pulses; later it is the same for what is
+        left (after a wall shortened the stroll, say)."""
+        gait, target = self._gait, self._target
+        if gait.pulse is None or target is None:
+            return
+        left = math.hypot(target[0] - self._x, target[1] - self._y)
+        now = self._stroll_time / gait.pulse
+        done = pulsed_distance(gait.pulse, self._stroll_time)
+        pulses = max(math.floor(now) + 1, round((done + left / gait.speed) / gait.pulse))
+        self._stroll_speed = left / (pulses * gait.pulse - done)
+
     def _end_stroll(self) -> None:
         """Stop walking and rest a while before the next stroll."""
         self._target = None
@@ -256,5 +307,10 @@ class PetBehavior:
             # A wall is close on that side: head the other way instead.
             target = self._area.clamp(self._x - direction * distance, self._y + rise)
         self._target = target
+        self._stroll_time = 0.0
+        self._fit_pulses()
+        # Drawn only for a gait that goes backward, so no other pet's random sequence changes.
+        backward = gait.backward > 0 and self._rng.random() < gait.backward
         if target[0] != self._x:
-            self._facing = Facing.RIGHT if target[0] > self._x else Facing.LEFT
+            toward = Facing.RIGHT if target[0] > self._x else Facing.LEFT
+            self._facing = _opposite(toward) if backward else toward

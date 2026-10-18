@@ -15,6 +15,7 @@ from virtual_pet.pets import (
     DOG,
     FISH,
     FROG,
+    NAUTILUS,
     OCTOPUS,
     OWL,
     PARAKEET,
@@ -504,6 +505,66 @@ def test_a_resting_owl_ticks_fast_enough_to_show_each_step_of_its_blink(make_win
     assert ticks[closing - 20] == RESTING_TICK_MS  # 0.15 s before the blink
     assert ticks[closing - 10] == WALKING_TICK_MS  # 0.05 s before the blink
     assert ticks[closing + 20] == RESTING_TICK_MS  # 0.05 s after it
+
+
+def test_a_nautilus_never_blinks_whether_it_swims_hovers_or_rests(make_window):
+    window = make_window(species=NAUTILUS)
+    timer = window.findChild(QTimer)
+    activities = set()
+
+    for resting in (False, True):
+        if window.sitting != resting:
+            trigger(window, "Rest" if resting else "Swim")
+        for _ in range(1000):  # 100 s, with many strolls and blinks due
+            window.advance(0.1)
+            activities.add(window._behavior.activity)  # noqa: SLF001
+            assert window._blink == 0  # noqa: SLF001
+            assert timer.interval() in (RESTING_TICK_MS, WALKING_TICK_MS)
+
+    assert {Activity.STANDING, Activity.WALKING, Activity.SITTING} <= activities
+
+
+def test_a_nautilus_pulls_its_head_in_as_each_jet_begins_to_drive_it(make_window):
+    window = make_window(species=NAUTILUS)
+    jet = NAUTILUS.animations[Activity.WALKING]
+
+    def shown(seconds: float) -> sprites.Frame:  # what the jet shows that long in
+        frame = jet.frame_at(seconds)
+        return sprites.mirrored(frame) if window.facing is Facing.LEFT else frame
+
+    for _ in range(300):  # it sets off within seconds
+        window.advance(0.05)
+        if window._behavior.activity is Activity.WALKING:  # noqa: SLF001
+            break
+    assert window._behavior.activity is Activity.WALKING  # noqa: SLF001
+    assert window._frame == shown(0)  # noqa: SLF001
+    start = window.pos().x()
+
+    for _ in range(20):  # a second: the head is all the way in as the jet reaches its peak
+        window.advance(0.05)
+
+    assert window._frame == shown(1.0) != shown(0)  # noqa: SLF001
+    assert window.pos().x() != start
+
+
+def test_a_nautilus_always_stops_swimming_with_its_head_out(make_window):
+    window = make_window(species=NAUTILUS)
+    jet = NAUTILUS.animations[Activity.WALKING]
+    head_out = jet.frame_at(0)
+    last = None  # the frame shown on the previous tick, while it swam
+    stops = 0
+
+    for _ in range(2400):  # two minutes
+        window.advance(0.05)
+        swimming = window._behavior.activity is Activity.WALKING  # noqa: SLF001
+        if not swimming and last is not None:
+            stops += 1
+            assert last == (
+                sprites.mirrored(head_out) if window.facing is Facing.LEFT else head_out
+            )
+        last = window._frame if swimming else None  # noqa: SLF001
+
+    assert stops > 10
 
 
 def test_a_dog_blinks_without_ticking_any_faster(make_window):

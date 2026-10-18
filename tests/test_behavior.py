@@ -528,3 +528,298 @@ def test_a_flying_pet_is_not_stopped_by_a_stroke():
     pet.pet()
 
     assert pet.flying
+
+
+OPEN_WATER = Area(left=0, top=0, right=100_000, bottom=100_000)  # no wall within any stroll
+
+
+def horizontal_moves(pet: PetBehavior, seconds: float) -> list[tuple[float, Facing]]:
+    """Each tick's horizontal move of a walking pet and the way it faces then."""
+    moves = []
+    for _ in range(round(seconds / 0.05)):
+        before = pet.position[0]
+        pet.tick(0.05)
+        if pet.activity is Activity.WALKING and pet.position[0] != before:
+            moves.append((pet.position[0] - before, pet.facing))
+    return moves
+
+
+@pytest.mark.parametrize(
+    ("backward", "toward"), [(1.0, False), (0.0, True)], ids=["away", "toward"]
+)
+def test_strolls_face_away_from_their_target_only_when_taken_backward(backward, toward):
+    gait = Gait(speed=100, distance=(80, 120), rest=(0.1, 0.2), backward=backward)
+    pet = PetBehavior(SCREEN, (500, 300), rng=random.Random(30), gait=gait)
+
+    moves = horizontal_moves(pet, 60)
+
+    assert len(moves) > 100
+    for dx, facing in moves:
+        assert facing is (Facing.RIGHT if (dx > 0) == toward else Facing.LEFT)
+
+
+def test_a_gait_that_goes_backward_part_of_the_time_does_it_that_often():
+    gait = Gait(speed=100, distance=(80, 120), rest=(0.1, 0.2), backward=0.77)
+    pet = PetBehavior(OPEN_WATER, (50_000, 50_000), rng=random.Random(31), gait=gait)
+    strolls = backward = 0
+    was_walking = False
+
+    for _ in range(40_000):
+        before = pet.position[0]
+        pet.tick(0.05)
+        walking = pet.activity is Activity.WALKING
+        if walking and not was_walking:
+            strolls += 1
+            pet.tick(0.05)  # the first step shows which way it faces
+            moved = pet.position[0] - before
+            backward += (moved > 0) == (pet.facing is Facing.LEFT)
+        was_walking = walking
+
+    assert strolls > 1000
+    assert backward / strolls == pytest.approx(0.77, abs=0.04)
+
+
+def test_a_turned_pet_keeps_going_backward():
+    gait = Gait(speed=100, distance=(200, 240), backward=1.0)
+    pet = PetBehavior(SCREEN, (500, 300), rng=random.Random(32), gait=gait)
+    start_walking(pet)
+    run(pet, 0.5)
+    (dx, facing), *_ = horizontal_moves(pet, 0.05)
+
+    pet.turn_around()
+    (turned_dx, turned_facing), *_ = horizontal_moves(pet, 0.05)
+
+    assert turned_dx * dx < 0  # it heads the other way...
+    assert turned_facing is not facing  # ...still facing away from where it goes
+    assert turned_facing is (Facing.LEFT if turned_dx > 0 else Facing.RIGHT)
+
+
+def test_a_gait_without_backward_strolls_leaves_the_random_sequence_alone():
+    rng = random.Random(33)
+    pet = PetBehavior(SCREEN, (500, 300), rng=rng)
+    start_walking(pet)
+
+    replica = random.Random(33)
+    replica.uniform(0.5, 1.2)  # the rest it starts with
+    replica.uniform(80.0, 320.0)  # the stroll's length,
+    replica.choice((-1.0, 1.0))  # its direction
+    replica.uniform(-0.4, 0.4)  # and its slope: nothing is drawn for the backward share
+    assert rng.getstate() == replica.getstate()
+
+
+def distances_per_slice(pet: PetBehavior, seconds: float, slices: int, step: float) -> list[float]:
+    """How far a pet that has just set off gets in each of `slices` equal parts of `seconds`."""
+    start_walking(pet)
+    ticks_per_slice = round(seconds / slices / step)
+    result = []
+    for _ in range(slices):
+        before = pet.position
+        for _ in range(ticks_per_slice):
+            pet.tick(step)
+        result.append(math.dist(before, pet.position))
+    return result
+
+
+@pytest.mark.parametrize("step", [0.01, 0.05, 0.1])
+def test_a_pulsing_pet_covers_its_speed_times_the_pulse_in_each_pulse(step):
+    gait = Gait(speed=30, max_slope=0.0, distance=(300, 300), pulse=2.0)  # 5 pulses of 60 px
+
+    covered = distances_per_slice(pulsed_pet_with(gait), 6.0, 3, step)
+
+    assert covered == pytest.approx([30 * 2.0] * 3)
+
+
+def pulsed_pet_with(gait: Gait) -> PetBehavior:
+    return PetBehavior(OPEN_WATER, (50_000, 50_000), rng=random.Random(34), gait=gait)
+
+
+def test_a_pulsing_pet_is_slowest_as_a_pulse_begins_and_fastest_halfway_through():
+    gait = Gait(speed=30, max_slope=0.4, distance=(5000, 6000), pulse=2.0)
+
+    eighths = distances_per_slice(pulsed_pet_with(gait), 2.0, 8, 0.05)  # eighths of a pulse
+
+    assert eighths.index(min(eighths)) in (0, 7)
+    assert eighths.index(max(eighths)) in (3, 4)
+    assert eighths[0] == pytest.approx(eighths[7])  # it slows down as it sped up
+    assert eighths[3] == pytest.approx(eighths[4])
+    assert max(eighths) > 5 * min(eighths)
+
+
+def test_a_pulsing_pet_does_not_go_by_the_length_of_its_ticks():
+    gait = Gait(speed=30, max_slope=0.4, distance=(5000, 6000), pulse=2.0)
+
+    fine, coarse = (
+        distances_per_slice(pulsed_pet_with(gait), 1.0, 1, step)[0] for step in (0.01, 0.1)
+    )
+
+    assert fine == pytest.approx(coarse)
+
+
+def test_a_new_stroll_starts_a_new_pulse():
+    gait = Gait(speed=30, max_slope=0.0, distance=(60, 60), rest=(0.1, 0.2), pulse=2.0)
+    pet = PetBehavior(OPEN_WATER, (50_000, 50_000), rng=random.Random(35), gait=gait)
+    firsts = []
+
+    for _ in range(3):
+        start_walking(pet)
+        before = pet.position
+        pet.tick(0.1)
+        firsts.append(math.dist(before, pet.position))
+        walk_to_the_end_of_the_stroll(pet)
+
+    assert firsts == pytest.approx([firsts[0]] * 3)
+    assert firsts[0] < 30 * 0.1 / 2  # each one sets off slowly
+
+
+def test_turning_around_does_not_restart_the_pulse():
+    gait = Gait(speed=30, max_slope=0.4, distance=(5000, 6000), pulse=2.0)
+    turned, twin = (pulsed_pet_with(gait) for _ in range(2))
+    for pet in (turned, twin):
+        start_walking(pet)
+        run(pet, 1.0)  # halfway through the pulse, at its fastest
+
+    turned.turn_around()
+    before = [turned.position, twin.position]
+    run(turned, 0.2)
+    run(twin, 0.2)
+
+    assert math.dist(before[0], turned.position) == pytest.approx(
+        math.dist(before[1], twin.position)
+    )
+    assert math.dist(before[0], turned.position) > 30 * 0.2  # still surging
+
+
+def test_without_a_pulse_a_pet_moves_the_same_distance_whenever_it_is():
+    gait = Gait(speed=30, max_slope=0.4, distance=(5000, 6000))
+
+    covered = distances_per_slice(pulsed_pet_with(gait), 2.0, 8, 0.05)
+
+    assert covered == pytest.approx([30 * 0.25] * 8)
+
+
+PULSING = Gait(speed=30, max_slope=0.5, distance=(60, 240), rest=(0.1, 0.5), pulse=2.0)
+TICK = 0.01
+
+
+class Stroll:
+    """How a stroll went: how long it took, how far it got and how fast it moved at its end."""
+
+    def __init__(self, seconds: float = 0.0) -> None:
+        self.seconds = seconds
+        self.path = 0.0
+        self.last_speed = 0.0  # in the tick it ended in
+
+
+def strolls_of(pet: PetBehavior, seconds: float, *, under_way: float | None = None) -> list[Stroll]:
+    """The strolls the pet takes in `seconds`, measured from the tick each one starts on.
+
+    If one is under way, `under_way` is how long ago it started, and it is the first to count.
+    """
+    result: list[Stroll] = []
+    stroll = None if under_way is None else Stroll(under_way)
+    for _ in range(round(seconds / TICK)):
+        before = pet.position
+        pet.tick(TICK)
+        if stroll is not None:
+            moved = math.dist(before, pet.position)
+            stroll.seconds += TICK
+            stroll.path += moved
+            stroll.last_speed = moved / TICK
+            if pet.activity is not Activity.WALKING:
+                result.append(stroll)
+                stroll = None
+        elif pet.activity is Activity.WALKING:
+            stroll = Stroll()
+    return result
+
+
+def assert_ends_as_a_pulse_does(stroll: Stroll, gait: Gait = PULSING) -> None:
+    """The stroll lasted whole pulses, to within a tick, and was at its slowest when it ended."""
+    assert gait.pulse is not None
+    pulses = round(stroll.seconds / gait.pulse)
+    assert pulses >= 1
+    assert stroll.seconds == pytest.approx(pulses * gait.pulse, abs=TICK + 1e-9)
+    assert stroll.last_speed < 0.25 * gait.speed * 1.5  # the peak is 1.85 times its mean speed
+
+
+def test_a_pulsing_pets_strolls_each_last_whole_pulses_and_end_at_their_slowest():
+    pet = PetBehavior(SCREEN, (500, 300), rng=random.Random(40), gait=PULSING)
+
+    strolls = strolls_of(pet, 1200)  # walls included: some targets are clamped
+
+    assert len(strolls) > 150
+    for stroll in strolls:
+        assert_ends_as_a_pulse_does(stroll)
+
+
+def test_the_mean_speed_of_a_pulsing_strolls_stays_near_the_gaits():
+    pet = PetBehavior(SCREEN, (500, 300), rng=random.Random(41), gait=PULSING)
+
+    strolls = strolls_of(pet, 1200)
+
+    means = [stroll.path / stroll.seconds for stroll in strolls]
+    assert len(strolls) > 150
+    assert all(0.5 * PULSING.speed <= mean <= 1.5 * PULSING.speed for mean in means)
+    assert sum(means) / len(means) == pytest.approx(PULSING.speed, rel=0.1)
+
+
+def pet_strolling_right_toward_a_wall_behind_it(seed: int) -> PetBehavior:
+    """A pulsing pet a little way into a long stroll to the right, in an area whose left wall is
+    near, so that turning it around sends it toward that wall with less room than it has left."""
+    area = Area(left=380, top=0, right=1000, bottom=600)
+    gait = Gait(speed=30, max_slope=0.0, distance=(200, 240), rest=(0.1, 0.5), pulse=2.0)
+    for offset in range(100):
+        pet = PetBehavior(area, (500, 300), rng=random.Random(seed + offset), gait=gait)
+        start_walking(pet)
+        pet.tick(0.05)
+        if pet.position[0] > 500:
+            return pet
+    pytest.fail("no pet strolled to the right")
+
+
+def test_a_stroll_a_wall_shortens_still_ends_as_a_pulse_does():
+    pet = pet_strolling_right_toward_a_wall_behind_it(42)
+    run(pet, 0.5)  # 0.55 s into the stroll
+    pet.turn_around()
+
+    stroll, *_ = strolls_of(pet, 20, under_way=0.55)
+
+    assert stroll.path < 200  # it got to the wall, so the stroll was shortened
+    assert_ends_as_a_pulse_does(stroll, Gait(speed=30, pulse=2.0))
+
+
+def test_a_stroll_that_a_smaller_area_shortens_still_ends_as_a_pulse_does():
+    pet = pet_strolling_right_toward_a_wall_behind_it(43)
+    run(pet, 0.5)
+    x = pet.position[0]
+
+    pet.set_area(Area(left=380, top=0, right=x + 60, bottom=600))
+    stroll, *_ = strolls_of(pet, 20, under_way=0.55)
+
+    assert stroll.path == pytest.approx(60, abs=0.5)  # up to the new wall
+    assert_ends_as_a_pulse_does(stroll, Gait(speed=30, pulse=2.0))
+
+
+def test_a_stroll_under_way_when_the_pet_starts_to_pulse_ends_as_a_pulse_does():
+    steady = Gait(speed=30, max_slope=0.0, distance=(200, 240), rest=(0.1, 0.5))
+    pet = PetBehavior(OPEN_WATER, (50_000, 50_000), rng=random.Random(44), gait=steady)
+    start_walking(pet)
+    run(pet, 0.55)
+
+    pet.set_gait(Gait(speed=30, max_slope=0.0, distance=(200, 240), pulse=2.0))
+    stroll, *_ = strolls_of(pet, 20, under_way=0.55)
+
+    assert_ends_as_a_pulse_does(stroll, Gait(speed=30, pulse=2.0))
+
+
+def test_a_pulsing_pet_stopped_by_the_user_stops_at_once():
+    pet = PetBehavior(SCREEN, (500, 300), rng=random.Random(45), gait=PULSING)
+    start_walking(pet)
+    run(pet, 1.0)  # in the middle of a surge
+
+    pet.toggle_sitting()
+
+    assert pet.activity is Activity.SITTING
+    here = pet.position
+    run(pet, 5)
+    assert pet.position == here

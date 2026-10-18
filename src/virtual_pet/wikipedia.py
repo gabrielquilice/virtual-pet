@@ -41,6 +41,7 @@ TITLES = {
         "chicken": "Chicken",
         "octopus": "Blue-ringed octopus",
         "owl": "Tropical screech owl",
+        "nautilus": "Nautilus pompilius",
     },
     "pt": {
         "dog": "Cão",
@@ -60,6 +61,7 @@ TITLES = {
         "chicken": "Galinha",
         "octopus": "Polvo-de-anéis-azuis",
         "owl": "Megascops choliba",
+        "nautilus": "Nautilus pompilius",
     },
 }
 

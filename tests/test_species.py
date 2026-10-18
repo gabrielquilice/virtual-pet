@@ -17,6 +17,7 @@ from virtual_pet.pets import (
     FOX,
     FROG,
     GUINEA_PIG,
+    NAUTILUS,
     OCTOPUS,
     OWL,
     PARAKEET,
@@ -82,6 +83,7 @@ def test_the_pets_to_choose_from_and_their_names():
         ("chicken", "Chicken"),
         ("octopus", "Octopus"),
         ("owl", "Owl"),
+        ("nautilus", "Nautilus"),
     ]
 
 
@@ -104,6 +106,7 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         "chicken",
         "octopus",
         "owl",
+        "nautilus",
     ]
 
     assert [species_by_key(key) for key in keys] == [
@@ -124,6 +127,7 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         CHICKEN,
         OCTOPUS,
         OWL,
+        NAUTILUS,
     ]
 
 
@@ -150,6 +154,7 @@ def test_each_pet_roams_its_own_way():
         "Walk",
         "Crawl",
         "Fly",
+        "Swim",
     ]
 
 
@@ -161,6 +166,7 @@ def test_some_pets_do_not_sit_where_others_do():
         "snail": "Retreat into shell",
         "octopus": "Rest",
         "owl": "Rest",
+        "nautilus": "Rest",
     }
 
     assert {pet.key: pet.sit_label for pet in ALL_SPECIES} == {
@@ -230,6 +236,33 @@ def test_an_owl_turns_its_head_to_look_at_you_and_dozes_off_when_it_rests():
     assert all(eye_pixels(frame) < eye_pixels(OWL.portrait) for frame in resting)  # half closed
 
 
+def test_a_nautilus_jets_once_every_pulse_of_its_gait():
+    jet = NAUTILUS.animations[Activity.WALKING]
+
+    assert len(jet.frames) / jet.fps == NAUTILUS.gait.pulse == 2.0  # one jet, over and over
+
+
+def test_a_nautilus_has_its_head_pulled_into_its_shell_in_the_middle_of_a_jet():
+    jet = NAUTILUS.animations[Activity.WALKING]
+    start, middle = jet.frame_at(0), jet.frame_at(NAUTILUS.gait.pulse / 2)
+
+    assert middle != start
+    assert find(middle, sprites.EYE)[0] < find(start, sprites.EYE)[0]  # the eye is further in
+    assert jet.frame_at(NAUTILUS.gait.pulse) == start  # and out again for the next jet
+
+
+def test_a_nautilus_goes_backward_most_of_the_time():
+    assert NAUTILUS.gait.backward == 0.77
+    assert [pet.key for pet in ALL_SPECIES if pet.gait.backward] == ["nautilus"]
+    assert [pet.key for pet in ALL_SPECIES if pet.gait.pulse] == ["nautilus"]
+
+
+def test_a_nautilus_never_blinks():
+    assert NAUTILUS.blink == ()
+    assert NAUTILUS.blink_time == 0
+    assert {NAUTILUS.blink_step(seconds) for seconds in (0.0, 0.1, 0.15, 1.0)} == {0}
+
+
 def test_most_pets_blink_in_one_go():
     assert [DOG.blink_step(seconds) for seconds in (0.0, 0.1, 0.15)] == [1, 1, 0]
 
@@ -263,7 +296,7 @@ def test_an_owl_that_stops_looks_at_you_before_it_flies_off():
     assert OWL.gait.rest[0] >= (facing_you[-1] + 1) / standing.fps  # for as long as it looks
 
 
-@pytest.mark.parametrize("swimmer", [TURTLE, FISH], ids=lambda species: species.key)
+@pytest.mark.parametrize("swimmer", [TURTLE, FISH, NAUTILUS], ids=lambda species: species.key)
 def test_swimmers_float_until_they_rest_on_the_bottom(swimmer):
     floating = [
         frame
@@ -287,7 +320,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
     ]
 
     # tan, gray, green, sage, blue, ginger, white, emerald, warm white, yellow, red-orange,
-    # grayish beige, leaf green, chameleon green, golden brown, golden yellow, buff
+    # grayish beige, leaf green, chameleon green, golden brown, golden yellow, buff, shell white
     assert body_colors == [
         "#dc9a57",
         "#a3a8b0",
@@ -306,6 +339,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
         "#c98b4a",
         "#c79b31",
         "#d8c09a",
+        "#f2e9d6",
     ]
 
 

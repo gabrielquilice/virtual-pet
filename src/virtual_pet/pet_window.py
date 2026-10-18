@@ -351,7 +351,10 @@ class PetWindow(QWidget):
 
     def _blinking_in_quick_steps(self, activity: Activity) -> bool:
         """Whether a blink is under way, or due within a resting tick, whose steps are too quick
-        for that tick to show them all (like the owl's lid coming down)."""
+        for that tick to show them all (like the owl's lid coming down). Never, for a species that
+        doesn't blink."""
+        if not self._species.blink:
+            return False
         tick = RESTING_TICK_MS / 1000
         quickest = min(step.seconds for step in self._species.blink)
         due = -self._species.blink_time <= self._until_blink <= tick

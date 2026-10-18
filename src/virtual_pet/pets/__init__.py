@@ -11,6 +11,7 @@ from virtual_pet.pets.fish import FISH
 from virtual_pet.pets.fox import FOX
 from virtual_pet.pets.frog import FROG
 from virtual_pet.pets.guinea_pig import GUINEA_PIG
+from virtual_pet.pets.nautilus import NAUTILUS
 from virtual_pet.pets.octopus import OCTOPUS
 from virtual_pet.pets.owl import OWL
 from virtual_pet.pets.parakeet import PARAKEET
@@ -39,6 +40,7 @@ ALL_SPECIES = (
     CHICKEN,
     OCTOPUS,
     OWL,
+    NAUTILUS,
 )
 
 logger = logging.getLogger(__name__)

@@ -61,7 +61,8 @@ class Species:
     # and how it goes from one to another.
     colorings: tuple[Mapping[str, str], ...] = ()
     color_shift: ColorShift = ColorShift.WAVES
-    # How its eye closes and opens again, step by step, like the owl's lid coming down.
+    # How its eye closes and opens again, step by step, like the owl's lid coming down. An empty
+    # blink means it never blinks (the nautilus has no eyelids).
     blink: tuple[BlinkStep, ...] = BLINK
 
     @property
