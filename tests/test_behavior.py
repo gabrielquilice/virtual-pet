@@ -594,6 +594,19 @@ def test_a_turned_pet_keeps_going_backward():
     assert turned_facing is (Facing.LEFT if turned_dx > 0 else Facing.RIGHT)
 
 
+@pytest.mark.parametrize("seed", range(6))
+def test_a_pet_swapped_in_mid_backward_stroll_faces_where_it_goes(seed):
+    backward = Gait(speed=100, distance=(200, 240), backward=1.0)
+    pet = PetBehavior(SCREEN, (500, 300), rng=random.Random(seed), gait=backward)
+    start_walking(pet)
+    run(pet, 0.5)
+
+    pet.set_gait(Gait(speed=100, distance=(200, 240)))
+
+    (dx, facing), *_ = horizontal_moves(pet, 0.05)
+    assert facing is (Facing.RIGHT if dx > 0 else Facing.LEFT)
+
+
 def test_a_gait_without_backward_strolls_leaves_the_random_sequence_alone():
     rng = random.Random(33)
     pet = PetBehavior(SCREEN, (500, 300), rng=rng)

@@ -245,8 +245,12 @@ class PetBehavior:
                 self._fit_pulses()
 
     def set_gait(self, gait: Gait) -> None:
-        """Move the way another kind of pet does, from now on."""
+        """Move the way another kind of pet does, from now on. A stroll under way goes on, but a
+        pet that never goes backward faces where it goes, even if the last one was going so."""
         self._gait = gait
+        target = self._target
+        if gait.backward == 0 and target is not None and target[0] != self._x:
+            self._facing = Facing.RIGHT if target[0] > self._x else Facing.LEFT
         self._fit_pulses()
 
     def _fly(self, seconds: float, velocity: tuple[float, float]) -> None:
