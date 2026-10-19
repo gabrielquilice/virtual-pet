@@ -1,10 +1,38 @@
 """The octopus: a blue-ringed octopus that crawls on its arms and shows its rings when it stops.
 
-It is golden yellow, with four near arms in front and four far ones, darker, behind. Its blue rings
-(A, with C at their centers, on the mantle, the head and the arms) fade away while it crawls and
-come back whenever it keeps still or is carried: its colorings are the steps of that fade (see
-ring_fade.py). On their way the rings darken to brown before they light up blue, as a real
-blue-ringed octopus's do.
+Golden yellow (from a photo the user sent), with its mantle tilted back over the head in one shape
+with it, a dark round eye with a glint on a turret on the head, and eight arms: four near ones in
+the body's yellow, each one a flat ribbon with no shade, and four far ones behind them in a darker
+brown (F), set apart by the outline. The arms taper to tips that turn up, free of each other, with
+pale suckers (P) on the tips and under the raised arm. Pale tubercles (L) dot the mantle.
+
+Its rings are A (blue, also the bands and dots on the arms) around C (dark brown): four on the
+mantle and one on the head, in the same places in every pose. Its colorings are the steps of their
+fade (`STEPS`, 10, after the usual palette, which shows them at their brightest and is what the
+dialogs and the README show): from the body's yellow they darken to brown, then light up blue, as
+a real one's do, blended in linear light. In the last step they are the body's yellow, so it
+crawls all yellow. The rings fade away while it crawls and come back whenever it keeps still or is
+carried (see ring_fade.py).
+
+It crawls on its arms (`Locomotion.CRAWL`, "Crawl") at 25 px/s and rests 3 to 7 s between strolls,
+long enough to show its rings. Each arm is planted for two of the four crawling frames, its end
+sliding back, then lifted and swung ahead, the near and far ones taking turns, while the body bobs
+a row. The far arm behind the back one only slides: lifted, it rose up under the mantle. Standing
+(STAND_A, STAND_B), its raised arm and the other tips curl and uncurl, and the mantle keeps its
+size: a mantle that swelled to breathe made the other frame look smaller.
+
+Told to rest ("Rest"), it settles low on the ground with its arms curled around it (REST_A,
+REST_B, the tips stirring). CARRIED, its arms droop in a loose bunch, curling at the tips, and
+sway.
+
+The frames were drawn from smooth shapes (ellipses for the mantle and the head, tapered tubes for
+the arms) turned into pixels, then the rings, bands, suckers and eye placed on them; the art in
+this module is that output, and edits go straight into it.
+
+Turned down: a first draft that looked like a monster, with the mantle as a second head and the
+arms as thick legs; a gold eye cut by a black slit, which looked like a visor; a cream eye with a
+slit; a mantle that swelled to breathe; a far arm under the mantle; and a fade through lavender
+gray.
 """
 
 from virtual_pet.behavior import Activity, Gait

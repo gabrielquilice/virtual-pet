@@ -1,4 +1,11 @@
-"""The fish: a betta with a blue body and long red fins."""
+"""The fish: a betta with a blue body and long red fins.
+
+A betta: `fish` in code, settings and file name, and Fish in the UI. It swims (its WALKING
+animation is swimming), floats in place while STANDING, and only touches the ground when SITTING,
+which is resting on the bottom: its menu text is "Rest".
+
+It blinks although a real fish has no eyelids; raise that if it is redrawn.
+"""
 
 from virtual_pet.behavior import Activity, Gait
 from virtual_pet.i18n import QT_TRANSLATE_NOOP

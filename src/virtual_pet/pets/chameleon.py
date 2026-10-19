@@ -1,7 +1,25 @@
 """The chameleon: a veiled chameleon that walks slowly and changes color while it keeps still.
 
-Its colorings are whole palettes: PetWindow paints each column in one of them, and color_change.py
-runs a wave of a new one from the head to the tail when it stops, and back to green when it walks.
+Green with yellow bands and turquoise spots, a tall casque, an eye in a round turret (E is the
+turret above the pupil, so a blink closes it in the body color) and a yellow-orange stripe along
+the jaw. Its rump slopes straight down into a tail that curls up in a spiral on the ground, two
+columns from the left edge. Its far legs are the near ones' shape in F, three pixels ahead, and
+its chest runs forward under the jaw so the front legs stand under the body. It was drawn from
+sprites the user sent: a long body with a smooth arched back and no crest bumps, all four legs
+seen.
+
+It walks slowly (20 px/s), diagonal pairs of legs stepping together, and rests 4 to 8 s between
+strolls (`Gait.rest`) so it has time to change color.
+
+Its SITTING animation is lying down with its belly on the ground, the legs folded at its sides
+like a real chameleon's (the elbow and the knee back, the hand and the foot flat ahead), the tail
+coiled by the rump: lying down was chosen over sitting up like a lizard. Standing and sitting, it
+rolls its eye back now and then (STAND_B, SIT_B). CARRIED, its legs dangle.
+
+Its colorings are whole palettes: green (its usual one), turquoise, yellow with orange bands, and
+purple with lime bands and blue spots (the purple from the sprites the user sent, instead of a
+stressed dark brown). PetWindow paints each column in one of them, and color_change.py runs a wave
+of a new one from the head to the tail when it stops, and back to green when it walks.
 """
 
 from virtual_pet.behavior import Activity, Gait

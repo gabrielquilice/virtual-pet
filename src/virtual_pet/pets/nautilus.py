@@ -1,11 +1,42 @@
 """The nautilus: a chambered nautilus (Nautilus pompilius) that hovers and swims in jets.
 
-Its shell is a spiral with red-brown stripes over the top and the back and a white body chamber
-below. A brown hood with white dots hangs over its tentacles, stacked white sheaths with brown
-bands between them, and its eye is a white pinhole in a dark socket. It has no eyelids, so it
-never blinks. The three thin cirri ("Q", drawn without an outline on purpose) are the same in
-every pose and only bend differently. Frames face right, but it mostly swims shell first: see
-the gait.
+Its shell is a logarithmic spiral expanding 3.2 times a whorl, as measured on profile photos, with
+red-brown stripes curving back from the umbilicus over the top and the back and the white body
+chamber below (B). A wedge-shaped hood, brown with white dots, hangs over the tentacles, which are
+stacked white sheaths with brown bands between them. Its eye is a white pinhole in a dark socket.
+Three thin cirri (Q) hang from the sheaths, drawn without an outline on purpose: they are the same
+three in every pose, only bent differently. A round shell with an offset umbilicus, a flat-topped
+shell, a small hood, a gray eye, tentacles drawn as one block, tentacles that differed from pose
+to pose and dark streaks on the flank that looked like teeth were all turned down.
+
+It swims (`Locomotion.SWIM`, "Swim") at 30 px/s and rests ("Rest") like the sea turtle and the
+fish, and floats in place while STANDING. Its gait is `Gait(speed=30, max_slope=0.5, distance=(60,
+240), rest=(2.0, 6.0), backward=0.77, pulse=2.0)`: real nautiluses swim shell first in 77% of
+swims, and jet about half of each cycle (Neil & Askew 2018, Royal Society Open Science), so most
+strolls face away from where it goes and its speed surges once every 2 s. Frames face right, and
+the app mirrors them. Each stroll lasts whole jets, its mean speed fitted to its length (see
+`Gait.pulse`), so it always ends at its slowest with the head out (the last frame is JET_OUT) and
+glides to a stop; only a command of the user's stops it mid-jet.
+
+STANDING (HOVER_A to HOVER_D, 1.5 fps) is hovering, its cirri hanging and swaying a pixel a frame,
+as nautiluses spend most of their time hovering and dangling their tentacles. WALKING is exactly
+one jet, 2 s (12 frames at 6 fps, `len(frames) / fps == gait.pulse`): the head pulls into the
+shell over the first second (JET_OUT, JET_HALF, JET_IN), which drives the jet, and comes back out
+over the next as the mantle cavity refills.
+
+SITTING (REST_A, REST_B, 0.5 fps) rests on the bottom with the hood let down over the eye, holding
+on with one cirrus laid on the ground, as resting nautiluses in aquaria keep the hood almost
+closed and attach lightly with a single tentacle. CARRIED (CARRIED_A, CARRIED_B, 1.5 fps) draws
+the head back under the lowered hood, still breathing through its funnel (a fully shut hood stops
+it breathing, so that is only for emergencies), the cirri hanging limp and swinging. A hood shut
+tight and a pupil that looked around were turned down.
+
+It never blinks (`blink=()`): it has no eyelids. Every frame still has E and H pixels (the eye's
+white bulb, both "#efe9df").
+
+The shell was generated as a spiral and sampled to pixels, its dome and bottom then redrawn by
+hand in shrinking runs (a sampled curve this small came out as an octagon), and the head drawn by
+hand on it. The art in this module is that output, and edits go straight into it.
 """
 
 from virtual_pet.behavior import Activity, Gait

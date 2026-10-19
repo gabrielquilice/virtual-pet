@@ -1,4 +1,12 @@
-"""The penguin: a gentoo, black and white with an orange bill and feet, that waddles around."""
+"""The penguin: a gentoo, black and white with an orange bill and feet, that waddles around.
+
+It has a white band over the eye. It walks (waddles), and its SITTING animation is sitting back on
+its tail with its toes up, only two rows lower than standing: sitting back on the tail was chosen
+over a squashed pose.
+
+Its "B" is white, not the black of its head: its eye sits in the white band over it, so blinking
+closes the eye into a line instead of hiding it.
+"""
 
 from virtual_pet.behavior import Activity, Gait
 from virtual_pet.i18n import QT_TRANSLATE_NOOP

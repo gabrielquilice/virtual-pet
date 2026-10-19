@@ -1,4 +1,10 @@
-"""The rabbit: a white bunny with pink ears that hops around and sits up to sniff the air."""
+"""The rabbit: a white bunny with pink ears that hops around and sits up to sniff the air.
+
+White, with pink inside its ears and a snow-white cottontail. It hops (`Locomotion.HOP`, "Hop"):
+its WALKING animation is crouched, pushing off with its front paws up, then landing with its rump
+up, and every frame keeps a foot on the ground. Its SITTING animation is sitting up on its
+haunches, sniffing, rather than lying down.
+"""
 
 from virtual_pet.behavior import Activity, Gait
 from virtual_pet.i18n import QT_TRANSLATE_NOOP

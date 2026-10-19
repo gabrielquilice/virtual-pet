@@ -1,4 +1,23 @@
-"""The chicken: a golden brown hen that scratches the ground and pecks at it when it stops."""
+"""The chicken: a golden brown hen that scratches the ground and pecks at it when it stops.
+
+A golden brown hen (chosen over reddish-brown and chocolate palettes) with an oval body, a red
+comb and wattle, a darker wing and tail, and yellow legs. Its breast rounds back in line with its
+face instead of jutting out ahead of it; a potbellied body with a flat underside was turned down.
+It walks in short steps (35 px/s), thrusting its head a pixel forward at each one (a wide stride
+was turned down), and rests 3 to 7 s between strolls (`Gait.rest`), long enough to scratch and
+peck.
+
+Its STANDING animation is scratching the ground ("ciscar"): the near foot lifted and raked back,
+then the far one; then it tips forward, looks down (LOOK_DOWN), pecks twice (PECK, the beak on the
+ground line) and stands a moment. No dirt flies: specks thrown behind it looked like droppings.
+SITTING is settled on the ground like a hen on her nest, breathing.
+
+CARRIED, it squawks with its beak open and flaps: the wing raised from the shoulder in a short
+round fan (CARRIED_A), then lowered, the same fan mirrored and tilted back behind the legs, its
+tip closed in a round edge (CARRIED_B). No black line crosses the body where the wing joins it.
+Long parrot-like wings, a wing folded flat as the downstroke, and a lowered wing cut out by black
+lines or ending in feather tips that looked like a claw were turned down.
+"""
 
 from virtual_pet.behavior import Activity, Gait
 from virtual_pet.i18n import QT_TRANSLATE_NOOP

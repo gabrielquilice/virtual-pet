@@ -1,4 +1,11 @@
-"""The fox: a red fox with black stockings and a big bushy tail tipped in white."""
+"""The fox: a red fox with black stockings and a big bushy tail tipped in white.
+
+Red-orange with a white bib, muzzle and tail tip, black stockings and black backs to its ears. It
+walks (trots) with its bushy tail raised, and its SITTING animation is sitting up with the tail
+curled around its front paws.
+
+Its front legs are under its chest, and its stockings keep their width when it trots.
+"""
 
 from virtual_pet.behavior import Activity, Gait
 from virtual_pet.i18n import QT_TRANSLATE_NOOP

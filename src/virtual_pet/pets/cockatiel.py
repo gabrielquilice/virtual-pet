@@ -1,4 +1,12 @@
-"""The cockatiel: gray, with a yellow face and crest and orange cheeks, that flies around."""
+"""The cockatiel: gray, with a yellow face and crest and orange cheeks, that flies around.
+
+The classic gray one, with a curved crest and a white wing patch (chosen over a lutino). It flies
+like the maritaca, and its SITTING animation is fluffed up on the ground with the crest down: it
+never raises its crest at rest.
+
+Its "B" is the yellow of the face, not the gray of the body: the eye sits in the face, so blinking
+closes it into a line.
+"""
 
 from virtual_pet.behavior import Activity, Gait
 from virtual_pet.i18n import QT_TRANSLATE_NOOP

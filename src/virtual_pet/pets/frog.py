@@ -1,4 +1,20 @@
-"""The frog: a green frog that hops around, and croaks now and then while it sits."""
+"""The frog: a green frog that hops around, and croaks now and then while it sits.
+
+Leaf green, with a pale yellow throat, two darker spots on its back and a big eye on top of its
+head, crouched on its folded hind legs. Its short front leg grows from the chest behind the
+throat, under the eye, over the front of the knee, and its small hand rests under the throat. It
+hops like the rabbit (`Locomotion.HOP`, a foot always on row 25): crouched, pushing off tipped up,
+then landing on its front hand with the rump still up.
+
+Told to sit, it keeps the same crouch as STANDING: only its drowsy eyes (the eyelids half down)
+and its croak differ, twice every 6 s, the vocal sac under its chin blowing up into a bubble as
+big as its head. CARRIED holds it up level, its long hind legs dangling and kicking (one drawn up,
+knee toward the belly, while the other hangs stretched), the webbed feet toes-down and nothing
+below row 22.
+
+Turned down: a cururu toad palette, a taller sitting pose, legs that stood on the ground when
+carried, a pale chest column, and an arm hanging from the throat's front.
+"""
 
 from virtual_pet.behavior import Activity, Gait
 from virtual_pet.i18n import QT_TRANSLATE_NOOP

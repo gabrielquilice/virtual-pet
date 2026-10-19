@@ -1,4 +1,9 @@
-"""The sea turtle: it swims around and rests on the bottom when told to sit."""
+"""The sea turtle: it swims around and rests on the bottom when told to sit.
+
+A sea turtle in the UI and `turtle` in code and settings. It has a brown shell and green skin. It
+swims (its WALKING animation is swimming), floats in place while STANDING, and only touches the
+ground when SITTING, which is resting on the bottom: its menu text is "Rest".
+"""
 
 from virtual_pet.behavior import Activity, Gait
 from virtual_pet.i18n import QT_TRANSLATE_NOOP

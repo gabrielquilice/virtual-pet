@@ -1,4 +1,18 @@
-"""The snail: a garden snail that crawls around and retreats into its shell to rest."""
+"""The snail: a garden snail that crawls around and retreats into its shell to rest.
+
+A slim, grayish beige body comes out from under a caramel spiral shell that sits snug against it
+(chosen over a fatter body and a shell set apart from the head), with the eyes at the tips of two
+long stalks, the far one darker. It crawls (`Locomotion.CRAWL`, "Crawl") at 15 px/s, the slowest
+pet. Its WALKING animation keeps the shell and the tail still while the head stretches one pixel
+ahead and draws back: a shell moving back and forth in a window that glides along would jolt
+backwards.
+
+Told to sit, it retreats into its shell ("Retreat into shell"): its SITTING animation is the shell
+resting on the ground, 3 rows lower than when it crawls, with two eye glints (E over H, in the
+dark N of the opening) peeking out, as every frame needs eye pixels to blink. When carried it
+hides in its shell the same way, its eyes darting back and forth (SIT_B, SIT_C). Eyes hanging out
+of the shell, or only the foot drawn in, were turned down.
+"""
 
 from virtual_pet.behavior import Activity, Gait
 from virtual_pet.i18n import QT_TRANSLATE_NOOP

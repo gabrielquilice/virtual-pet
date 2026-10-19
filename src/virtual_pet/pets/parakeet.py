@@ -1,4 +1,7 @@
-"""The maritaca: a green Brazilian parakeet that flies from place to place."""
+"""The maritaca: a green Brazilian parakeet that flies from place to place.
+
+`parakeet` in code and settings, Maritaca in the UI. Its WALKING animation is flying.
+"""
 
 from virtual_pet.behavior import Activity, Gait
 from virtual_pet.i18n import QT_TRANSLATE_NOOP

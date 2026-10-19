@@ -30,8 +30,9 @@ This skill exists to avoid these common failures:
    - Name the species, and the breed, morph or color form where it matters.
    - If the request leaves this open and the choice changes the look a lot, ask. Otherwise pick
      the most typical form and say which.
-   - For a redraw, first read the pet's module and its paragraphs in CLAUDE.md. They record what
-     the user approved and what was turned down, and a turned-down idea must not come back.
+   - For a redraw, first read the docstring of the pet's module in `src/virtual_pet/pets/`. It
+     records the look, the poses, the gait and what the user approved or turned down, and a
+     turned-down idea must not come back.
    - Render the current art with the preview script (below) as the "before".
 
 2. **Research before drawing.** Collect facts with their sources: they go to the user with the
@@ -150,7 +151,7 @@ This skill exists to avoid these common failures:
   outline: heads, backs, shells, bellies.
 - **Generate, then fix by hand.** A shape can start as smooth geometry sampled to pixels:
   ellipses, spirals, tapered tubes. Then correct runs, details and the eye by hand. The pet's
-  module stores that output, and later edits go straight into it. Say so in CLAUDE.md.
+  module stores that output, and later edits go straight into it. Say so in the module's docstring.
 - **Every part is the same in every pose.** Legs, tentacles, ears and tails keep the same
   count, attachment points and size, and only bend, swing or retract. A part that disappears
   needs a reason that shows: retracted, or hidden behind another part.
@@ -255,10 +256,12 @@ machine, or ffmpeg, to crop and flip.
 
 ## After approval
 
-Implement the approved art exactly. CLAUDE.md describes each piece below in detail.
+Implement the approved art exactly. CLAUDE.md describes the pieces below (the art pipeline,
+i18n, the README table and the tests).
 
 1. `src/virtual_pet/pets/<key>.py`:
-   - a docstring describing the animal;
+   - a module docstring describing the animal: its look, each pose and why, its gait, how the
+     art was made, and what was turned down along the way (update it on every later redraw);
    - the frames as `art("""…""")` blocks, with a comment over each group;
    - the palette with a comment per color;
    - the `Species`: key, label as `QT_TRANSLATE_NOOP("Species", …)`, animations, gait,
@@ -277,10 +280,8 @@ Implement the approved art exactly. CLAUDE.md describes each piece below in deta
      swimmers or flyers, body colors) and in `tests/test_dialogs.py` (grid rows, translated
      names);
    - add tests for any new behavior.
-5. CLAUDE.md:
-   - the species list and menu texts in "Project";
-   - a paragraph for the pet: its look, each pose and why, its gait, and how the art was made;
-   - the approved-designs sentence, with what was turned down this time.
+5. CLAUDE.md only if the pet needs something that applies beyond it (a new engine feature, a
+   new test invariant). Its look and history stay in its docstring.
 6. Verify:
    - `uv run pytest`, `uv run ruff check . && uv run ruff format --check .`, and
      `uv run ty check src/`;

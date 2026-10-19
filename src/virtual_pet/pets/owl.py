@@ -1,4 +1,31 @@
-"""The owl: a brown tropical screech owl with ear tufts and yellow eyes, that flies around."""
+"""The owl: a brown tropical screech owl with ear tufts and yellow eyes, that flies around.
+
+A tropical screech owl (corujinha-do-mato) in its brown morph, in profile like the other pets,
+with two ear tufts, a pale facial disc (B) with a dark rim (R), a big yellow eye with the pupil in
+its middle, a gray-green hooked beak, a row of pale spots along the shoulder, a pale belly with
+brown streaks and dark flight feathers and tail barred with pale spots. It flies like the maritaca
+and the cockatiel, at 70 px/s. Front-facing burrowing owl and barn owl drafts were turned down,
+and so were wings drawn as tapered blades with slotted fingers, buff bands and a pale underside.
+
+Its eye is three rows of yellow: U on top, H on either side of the pupil (N) in the middle row, E
+along the bottom. It blinks as owls do, with its upper lid (V, a darker beige than the disc): down
+over U for 0.05 s, over the whole eye for 0.1 s, its edge a dark line (R) along the bottom row,
+and back over U for 0.05 s. The usual blink, the whole eye turned into a line at once, looked
+abrupt on an eye this big; a lid in the disc's color and slower steps were turned down too.
+
+Half a second after it stops (STAND_A), it turns its head to look at you for 2 s (STAND_B, its
+face from the front, with both eyes), then back in profile. It rests 3 to 7 s between flights
+(`Gait.rest`), long enough to look and only once: with the usual rest, 1.5 to 5 s, a look 5 s into
+its standing animation never came. Flying, its raised wing (FLY_0, CARRIED_A) is 10 rows tall, its
+tip level with the tufts: a taller one (13 rows) looked bigger than the owl, and slanting it back
+to shrink it didn't help.
+
+Told to rest ("Rest"), it roosts as real owls do rather than sitting or lying down: upright,
+rounder and fluffed up, sunk over its feet so only its toes show, its eyes half closed (the lid,
+V, over their top row) and its near tuft a pixel lower, its head sinking a pixel for 1 s every 5 s
+(REST_A, REST_B): sinking every other second, it looked restless. CARRIED, it flaps, its legs
+dangling.
+"""
 
 from virtual_pet.behavior import Activity, Gait
 from virtual_pet.i18n import QT_TRANSLATE_NOOP

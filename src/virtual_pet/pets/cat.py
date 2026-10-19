@@ -1,4 +1,9 @@
-"""The cat: a gray tabby with a blue collar and a little bell."""
+"""The cat: a gray tabby with a blue collar and a little bell.
+
+Approved: a round head in profile, dark eyes and a short muzzle; it kicks when carried.
+
+The user kept the original gray cat when other looks were tried.
+"""
 
 from virtual_pet.behavior import Activity, Gait
 from virtual_pet.i18n import QT_TRANSLATE_NOOP

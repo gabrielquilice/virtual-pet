@@ -1,4 +1,13 @@
-"""The snake: green like an emerald tree boa, it slithers around and coils up to rest."""
+"""The snake: green like an emerald tree boa, it slithers around and coils up to rest.
+
+It has white marks on the back and a yellow belly. Its WALKING animation is a wave running from
+behind the neck to the tail while the raised head keeps still. Its SITTING animation ("Coil up")
+is coiled in two turns with the head resting on top.
+
+The head sits at the end of a diagonal neck rather than on top of a vertical one, the eye is below
+a row of green, and there is no mouth line. It blinks although a real snake has no eyelids; raise
+that if it is redrawn.
+"""
 
 from virtual_pet.behavior import Activity, Gait
 from virtual_pet.i18n import QT_TRANSLATE_NOOP

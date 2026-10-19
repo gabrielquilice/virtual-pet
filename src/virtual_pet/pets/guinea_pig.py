@@ -1,4 +1,8 @@
-"""The guinea pig: a tricolor, ginger, white and black, that scurries around."""
+"""The guinea pig: a tricolor, ginger, white and black, that scurries around.
+
+`guinea_pig` in code, settings and file name. It is ginger with a white blaze and band, a black
+patch and big dark eyes. It walks, and its SITTING animation is lying down like a loaf.
+"""
 
 from virtual_pet.behavior import Activity, Gait
 from virtual_pet.i18n import QT_TRANSLATE_NOOP
