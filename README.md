@@ -8,65 +8,80 @@
 A little pixel-art pet that lives on your desktop. It moves around on its own, sits when
 you click it and goes wherever you drag it, but never off the screen.
 
+## Premises and explanatory note
+
+This program was conceived as a demonstration project, although a very simple one, of the
+capabilities of AI models in developing and writing code. All of its content, from the folder
+structure to the pets' art, was made, "thought through" and reviewed exclusively by artificial
+intelligence models. The only exceptions are, explicitly, the following:
+
+- the project's name and its general behavior;
+- the types of pet and the settings;
+- the text of this short explanatory note.
+
+They make up the unique and truly creative character of this whole system, which therefore
+carries in itself, despite my technical inabilities, the originality proper to the human mind.
+
+If you wish to join in the game and fork the code, suggest a new pet or other improvements,
+please don't betray the spirit in which the project was born. I ask that you do what, in
+principle, seems absurd: do not change anything by yourself. Let the machines work.
+
 ## The pets
 
-| | Pet | In Portuguese | Gets around | Told to sit |
-| :---: | --- | --- | --- | --- |
-| <img src="docs/pets/dog.png" width="96" height="81" alt="The dog"> | Dog | Cachorro | Walks | Sits |
-| <img src="docs/pets/cat.png" width="96" height="81" alt="The cat"> | Cat | Gato | Walks | Sits with its tail around its paws |
-| <img src="docs/pets/parakeet.png" width="96" height="81" alt="The maritaca"> | Maritaca (a green Brazilian parakeet) | Maritaca | Flies | Fluffs up on the ground |
-| <img src="docs/pets/turtle.png" width="96" height="81" alt="The sea turtle"> | Sea Turtle | Tartaruga-marinha | Swims, and floats while it rests | Rests on the bottom |
-| <img src="docs/pets/fish.png" width="96" height="81" alt="The fish"> | Fish (a betta) | Peixe | Swims, and floats while it rests | Rests on the bottom |
-| <img src="docs/pets/guinea_pig.png" width="96" height="81" alt="The guinea pig"> | Guinea Pig | Porquinho-da-índia | Walks | Lies down like a loaf |
-| <img src="docs/pets/penguin.png" width="96" height="81" alt="The penguin"> | Penguin (a gentoo) | Pinguim | Walks | Sits back on its tail |
-| <img src="docs/pets/snake.png" width="96" height="81" alt="The snake"> | Snake (in an emerald tree boa's colors) | Cobra | Slithers | Coils up |
-| <img src="docs/pets/rabbit.png" width="96" height="81" alt="The rabbit"> | Rabbit | Coelho | Hops | Sits up on its haunches, sniffing |
-| <img src="docs/pets/cockatiel.png" width="96" height="81" alt="The cockatiel"> | Cockatiel | Calopsita | Flies | Fluffs up on the ground, crest down |
-| <img src="docs/pets/fox.png" width="96" height="81" alt="The fox"> | Fox | Raposa | Walks | Sits with its tail around its paws |
-| <img src="docs/pets/snail.png" width="96" height="81" alt="The snail"> | Snail (a garden snail) | Caracol | Crawls | Retreats into its shell |
-| <img src="docs/pets/frog.png" width="96" height="81" alt="The frog"> | Frog | Sapo | Hops | Sits, and croaks now and then |
-| <img src="docs/pets/chameleon.png" width="96" height="81" alt="The chameleon"> | Chameleon (a veiled chameleon) | Camaleão | Walks slowly, turning green again | Lies down. Whenever it keeps still, a new color runs over it from head to tail |
-| <img src="docs/pets/chicken.png" width="96" height="81" alt="The chicken"> | Chicken (a brown hen) | Galinha | Walks, and scratches the ground and pecks at it whenever it stops | Settles on the ground like a hen on her nest |
-| <img src="docs/pets/octopus.png" width="96" height="81" alt="The octopus"> | Octopus (a blue-ringed octopus) | Polvo | Crawls on its arms, its blue rings fading away until it is all yellow | Rests low on the ground, its arms curled around it. Whenever it keeps still or is carried, its blue rings come back |
-| <img src="docs/pets/owl.png" width="96" height="81" alt="The owl"> | Owl (a tropical screech owl) | Coruja | Flies, and turns its head to look at you whenever it stops | Rests upright as owls roost, fluffed up over its feet, its eyes half closed |
-| <img src="docs/pets/nautilus.png" width="96" height="81" alt="The nautilus"> | Nautilus (a chambered nautilus) | Náutilo | Swims in jets, mostly shell first, its head pulling into the shell and out again as it surges and glides, and hovers between swims | Rests on the bottom with its hood let down, holding on with one tentacle |
+| | Pet | Gets around | Told to sit |
+| :---: | --- | --- | --- |
+| <img src="docs/pets/dog.png" width="96" height="81" alt="The dog"> | Dog | Walks | Sits |
+| <img src="docs/pets/cat.png" width="96" height="81" alt="The cat"> | Cat | Walks | Sits with its tail around its paws |
+| <img src="docs/pets/parakeet.png" width="96" height="81" alt="The maritaca"> | Maritaca (a green Brazilian parakeet) | Flies | Fluffs up on the ground |
+| <img src="docs/pets/turtle.png" width="96" height="81" alt="The sea turtle"> | Sea Turtle | Swims, and floats while it rests | Rests on the bottom |
+| <img src="docs/pets/fish.png" width="96" height="81" alt="The fish"> | Fish (a betta) | Swims, and floats while it rests | Rests on the bottom |
+| <img src="docs/pets/guinea_pig.png" width="96" height="81" alt="The guinea pig"> | Guinea Pig | Walks | Lies down like a loaf |
+| <img src="docs/pets/penguin.png" width="96" height="81" alt="The penguin"> | Penguin (a gentoo) | Walks | Sits back on its tail |
+| <img src="docs/pets/snake.png" width="96" height="81" alt="The snake"> | Snake (in an emerald tree boa's colors) | Slithers | Coils up |
+| <img src="docs/pets/rabbit.png" width="96" height="81" alt="The rabbit"> | Rabbit | Hops | Sits up on its haunches, sniffing |
+| <img src="docs/pets/cockatiel.png" width="96" height="81" alt="The cockatiel"> | Cockatiel | Flies | Fluffs up on the ground, crest down |
+| <img src="docs/pets/fox.png" width="96" height="81" alt="The fox"> | Fox | Walks | Sits with its tail around its paws |
+| <img src="docs/pets/snail.png" width="96" height="81" alt="The snail"> | Snail (a garden snail) | Crawls | Retreats into its shell |
+| <img src="docs/pets/frog.png" width="96" height="81" alt="The frog"> | Frog | Hops | Sits, and croaks now and then |
+| <img src="docs/pets/chameleon.png" width="96" height="81" alt="The chameleon"> | Chameleon (a veiled chameleon) | Walks slowly | Lies down. Whenever it keeps still, a new color runs over it from head to tail |
+| <img src="docs/pets/chicken.png" width="96" height="81" alt="The chicken"> | Chicken (a brown hen) | Walks, and scratches and pecks whenever it stops | Settles on the ground like a hen on her nest |
+| <img src="docs/pets/octopus.png" width="96" height="81" alt="The octopus"> | Octopus (a blue-ringed octopus) | Crawls on its arms, its blue rings fading away | Rests low on the ground, its arms curled around it, its blue rings back |
+| <img src="docs/pets/owl.png" width="96" height="81" alt="The owl"> | Owl (a tropical screech owl) | Flies, and turns its head to look at you whenever it stops | Rests upright as owls roost, eyes half closed |
+| <img src="docs/pets/nautilus.png" width="96" height="81" alt="The nautilus"> | Nautilus (a chambered nautilus) | Swims in jets, mostly shell first, and hovers between swims | Rests on the bottom with its hood let down |
 
 ## How to play
 
 | Action | What happens |
 | --- | --- |
-| Leave it alone | It moves around the screen, resting now and then: it walks, flies, swims, slithers, crawls or hops, depending on the pet (see [The pets](#the-pets)). |
-| Left click | It sits and stays put, in its own way. Click again and it goes back to roaming. |
-| Drag | You carry it anywhere on the screen (including another monitor). |
-| Right click | Menu: its name, Sit (Coil up for the snake, Retreat into shell for the snail, Rest for the sea turtle, the fish, the octopus, the owl and the nautilus) or, if it sits, the way it roams (Walk, Fly, Swim, Slither, Crawl or Hop), Pet, Turn around, Hide, Settings… and Quit. |
-| Pet (in the menu) | A roaming pet stops for a moment (a sitting one stays as it is) and one or two pixel-art hearts float above it. |
+| Leave it alone | It moves around the screen, resting now and then, in its own way (see [The pets](#the-pets)). |
+| Left click | It sits and stays put. Click again and it goes back to roaming. |
+| Drag | You carry it anywhere on the screen (including another monitor). Let go while moving the mouse fast and it flies off. |
+| Right click | Menu: its name, Sit (or Rest, Coil up…) and the way it roams (Walk, Fly, Swim…), Pet, Turn around, Hide, Settings… and Quit. |
+| Pet (in the menu) | A roaming pet stops for a moment and one or two pixel-art hearts float above it. |
 | Turn around (in the menu) | It faces the other way. If it was on the move, it goes the other way instead. |
-| Hide (in the menu) | It leaves the screen and waits in the system tray: click the paw print there to bring it back, where you left it. On desktops without a tray (GNOME without the AppIndicator extension, for example), open the app again instead. |
+| Hide (in the menu) | It leaves the screen and waits in the system tray: click the paw print there to bring it back, where you left it. On desktops without a tray, open the app again instead. |
 | Hover | Shows its name. |
 
-On the first run you choose your pet and give it a name. Settings let you rename it or
-swap it for another kind of pet. There is only ever one pet on the screen: choosing a
-new one replaces the current one, in the same spot. The pet remembers which animal it
-is, its name, where you left it, whether it was sitting and which way it was facing.
-Opening the app while it runs starts no second pet: the running one shows itself instead.
-Ctrl+click on a pet in those dialogs, instead of choosing it, pops up its Wikipedia article
-(in the interface's language, with a picture), which needs an internet connection.
+On the first run you choose your pet and give it a name. Settings let you rename it, swap
+it for another kind of pet, pick the language and set how hard it is thrown. There is only
+ever one pet on the screen, and opening the app while it runs starts no second one: the
+running one shows itself instead. The pet remembers which animal it is, its name, where you
+left it, whether it was sitting and which way it was facing.
 
-Both the first run and Settings offer to start the pet with the system, off unless you
-tick it. On Linux that is an entry in `~/.config/autostart`, on Windows a value in your
-user's Run key, so the desktop's own list of startup apps shows it and can turn it off
-too; Settings show what that list says. The pet isn't installed in a fixed place, so
-each start points the entry at where the pet is now: if you move the AppImage or the
-unzipped folder, open it once from its new place.
+Both the first run and Settings offer to start the pet with the system (off unless you tick
+it). On Linux that is an entry in `~/.config/autostart`, on Windows a value in your user's
+Run key, so the desktop's own list of startup apps shows it and can turn it off too. If you
+move the AppImage or the unzipped folder, open it once from its new place.
 
-The pet speaks English and Brazilian Portuguese, in which the app is called Pet Virtual.
-It follows your desktop's language (English if it doesn't speak it), unless you choose a
-language in Settings.
+The pet goes online in two cases only: once a day it asks GitHub whether there is a newer
+version (it only speaks if there is), and Ctrl+click on a pet in the adoption and settings
+dialogs pops up its Wikipedia article. Set `VIRTUAL_PET_NO_UPDATE_CHECK` to turn the daily
+check off.
 
 ## Requirements
 
-- Linux with an X11 or Wayland desktop (tested on KDE Plasma 6, Wayland).
-- On Wayland, XWayland must be available (it is by default on KDE Plasma and GNOME).
+- Linux with an X11 or Wayland desktop (tested on KDE Plasma 6, Wayland). On Wayland,
+  XWayland must be available (it is by default on KDE Plasma and GNOME).
 - From source only: Python 3.12+ and [uv](https://docs.astral.sh/uv/). Debian/Ubuntu
   also need `libxcb-cursor0` for Qt's X11 backend.
 - Windows: 64-bit Windows 11, where the Windows build was tried on several PCs. Windows 10
@@ -74,59 +89,45 @@ language in Settings.
 
 ## Running
 
-The AppImage (see [Building the AppImage](#building-the-appimage)) is a single file with
-the pet, Python and Qt inside, so there is nothing else to install. Make it executable
-(downloads lose that bit) and run it, or double-click it in the file manager:
+The AppImage is a single file with the pet, Python and Qt inside, so there is nothing else
+to install. Make it executable (downloads lose that bit) and run it, or double-click it in
+the file manager:
 
 ```bash
-chmod +x VirtualPet-0.4.0-x86_64.AppImage
-./VirtualPet-0.4.0-x86_64.AppImage
+chmod +x VirtualPet-<version>-x86_64.AppImage
+./VirtualPet-<version>-x86_64.AppImage
 ```
 
 It runs on x86-64 Linux distributions whose glibc is at least as new as the build
-machine's. Like every AppImage it mounts itself with FUSE, which common desktop
-distributions have; where it is missing, `--appimage-extract-and-run` works too, but then
-Ctrl+C or logging out stops the pet without saving where it was.
+machine's. Like every AppImage it mounts itself with FUSE; where that is missing,
+`--appimage-extract-and-run` works too, but then Ctrl+C or logging out stops the pet
+without saving where it was.
 
 From source:
 
 ```bash
-uv run virtual-pet
+uv run virtual-pet       # or, to install it as a command for your user: uv tool install .
 ```
 
-To install it from source as a regular command (`virtual-pet`) for your user:
+Only one copy of the app runs at a time. Quit it from the pet's right-click menu (or with
+Ctrl+C when started from a terminal).
 
-```bash
-uv tool install .
-```
+**On Windows**, the build is a zip with a `VirtualPet` folder: unzip it anywhere and run
+`VirtualPet.exe`. The program isn't signed, so Windows SmartScreen warns about it the first
+time ("More info", then "Run anyway"). With display scaling that isn't a whole number (125%
+or 150%), the pet's pixels come out slightly uneven.
 
-Only one copy of the app runs at a time. Quit it from the pet's right-click menu (or
-with Ctrl+C when started from a terminal).
-
-### On Windows
-
-The Windows build is a zip (see [Building for Windows](#building-for-windows)) with a
-`VirtualPet` folder: unzip it anywhere and run `VirtualPet.exe` in it. The program isn't
-signed, so Windows SmartScreen warns about it the first time ("More info", then "Run
-anyway"). From source, `uv run virtual-pet` works as on Linux.
-
-With display scaling that isn't a whole number (125% or 150%, common on Windows laptops),
-the pet's pixels come out slightly uneven, some a screen pixel wider than others.
-
-### Why XWayland on Wayland?
-
-Wayland doesn't let applications place their own windows or keep them above others,
-and a desktop pet needs both. On Wayland sessions the pet therefore runs through
-XWayland automatically. The pet is an unmanaged X11 window, so it stays on top and
-never takes the keyboard focus from the application you are using. The window is
-shaped to the pet's silhouette, so the empty space around it isn't part of it.
+**Why XWayland on Wayland?** Wayland doesn't let applications place their own windows or
+keep them above others, and a desktop pet needs both. So on Wayland sessions the pet runs
+through XWayland automatically, as an unmanaged X11 window that stays on top and never takes
+the keyboard focus from the application you are using.
 
 ## Settings file
 
 Everything is stored in `~/.config/virtual-pet/config.json` (`$XDG_CONFIG_HOME` is
-respected), or on Windows in `%LOCALAPPDATA%\virtual-pet\config.json`. Delete that file
-to start over; the next run asks you to adopt a pet again. Starting with the system
-isn't in that file: it stays as it was until you change it in Settings.
+respected), or on Windows in `%LOCALAPPDATA%\virtual-pet\config.json`. Delete that file to
+start over; the next run asks you to adopt a pet again. Starting with the system isn't in
+that file: it stays as it was until you change it in Settings.
 
 ## Development
 
@@ -138,62 +139,9 @@ uv run ruff format .       # format
 uv run ty check src/       # type check
 ```
 
-### Project layout
-
-```
-src/virtual_pet/
-├── app.py          # entry point: Qt setup, first run, single instance, saving
-├── article_card.py # the popup with a pet's Wikipedia article, from Ctrl+click in the dialogs
-├── autostart.py    # starting with the system: an XDG autostart entry, or Windows' Run key
-├── behavior.py     # the pet's brain: roaming, resting, sitting, turning, being carried (no Qt)
-├── color_change.py # how the chameleon changes color, in waves from head to tail (no Qt)
-├── config.py       # settings file (JSON) loading and saving
-├── dialogs.py      # dialogs to adopt a pet and change it, the language or autostart later
-├── i18n.py         # the interface in the user's language
-├── icon.py         # the app's icon: a cream paw print on a rounded orange tile
-├── instance.py     # one pet at a time: the lock, and how opening the app again reaches it
-├── paw.png         # the paw's silhouette, which the icon is drawn from
-├── pet_window.py   # transparent, frameless, always-on-top window and mouse handling
-├── ring_fade.py    # how the octopus's blue rings fade in and out (no Qt)
-├── species.py      # what makes a kind of pet: colors, animations, gait, how it roams
-├── sprites.py      # pixel-art building blocks shared by all pets
-├── tray.py         # the paw print in the system tray while the pet hides
-├── wikipedia.py    # fetching a pet's Wikipedia article, in the interface's language
-├── translations/   # Qt Linguist files: virtual_pet_<language>.ts and its compiled .qm
-└── pets/
-    ├── dog.py      # each pet's pixel art, palette and animations
-    ├── cat.py
-    ├── parakeet.py # the maritaca
-    ├── turtle.py   # the sea turtle
-    ├── fish.py     # the betta
-    ├── guinea_pig.py
-    ├── penguin.py  # a gentoo
-    ├── snake.py    # in an emerald tree boa's colors
-    ├── rabbit.py   # a white bunny that hops
-    ├── cockatiel.py # gray, with a yellow crest
-    ├── fox.py      # a red fox
-    ├── snail.py    # a garden snail
-    ├── frog.py     # a green frog that croaks
-    ├── chameleon.py # a veiled chameleon that changes color
-    ├── chicken.py  # a brown hen that scratches the ground
-    ├── octopus.py  # a blue-ringed octopus whose rings fade in when it stops
-    ├── owl.py      # a tropical screech owl that turns its head to look at you
-    └── nautilus.py # a chambered nautilus that swims in jets
-appimage/
-├── build.py            # builds the AppImage (see below)
-├── virtual-pet.spec    # PyInstaller: what goes into the bundle
-├── AppRun              # starts the bundled pet inside the AppImage
-├── virtual-pet.desktop # menu entry
-└── licenses/           # license texts the build can't get from the bundled packages
-windows/
-├── build.py            # builds the Windows zip under Wine (see below)
-└── virtual-pet.spec    # PyInstaller: what goes into the Windows bundle
-```
-
-Each pet is drawn as text grids, one character per pixel, colored through its
-species' palette. Edit the grids to redraw a pet. The tests check that every frame
-of every pet keeps the same size and stands on the same ground line (except when
-carried or flying, and the swimmers, which float until they sit).
+The code is in `src/virtual_pet/`, and [CLAUDE.md](CLAUDE.md) describes how it fits
+together. Each pet is drawn as text grids, one character per pixel, in its own module in
+`src/virtual_pet/pets/`, whose docstring describes the animal and the design choices.
 
 ### Translations
 
@@ -209,71 +157,34 @@ uv run pyside6-lrelease src/virtual_pet/translations/virtual_pet_pt_BR.ts  # the
 ```
 
 The tests fail while a text is untranslated, or a `.qm` is older than its `.ts`. A new
-language needs its code and name in `LANGUAGES` (`i18n.py`) and a `.ts` file, made by
-the first command with `-target-language <code>` and the file named after that code.
+language needs its code and name in `LANGUAGES` (`i18n.py`) and a `.ts` file, made by the
+first command with `-target-language <code>` and the file named after that code.
 
-### Building the AppImage
-
-```bash
-uv run appimage/build.py
-```
-
-This writes `dist/VirtualPet-<version>-x86_64.AppImage` on the machine that runs it
-(see [Releasing](#releasing) for the version in its name).
-The build runs in its own environment, `build/appimage/venv`, which uv sets up from
-`uv.lock` with its own Python (python-build-standalone), whatever Python the project's
-`.venv` uses (Homebrew's or the distribution's, for example). The AppImage embeds the
-Python it is built with, and uv's builds are made to run on other distributions and come
-with the license texts of the libraries built into them.
-PyInstaller bundles the pet with that Python and Qt, leaving
-out what every desktop Linux already has (the AppImage project's
-[excludelist](https://github.com/AppImageCommunity/pkg2appimage/blob/master/excludelist)).
-The bundle goes into an AppDir with the launcher, menu entry, icons and licenses, and
-appimagetool packs it. The finished AppImage then runs the app's process tests
-(`--skip-tests` skips them).
-
-- The AppImage needs glibc at least as new as the build machine's (the build prints the
-  version), so build on the oldest distribution it should run on, for example in a
-  [distrobox](https://distrobox.it/) container.
-- The build machine needs the libraries that go into the bundle: on Debian/Ubuntu
-  `libxcb-cursor0`, and GTK 3 for Qt's GTK theme. The build stops and names any that
-  are missing.
-- The first build downloads uv's Python if it isn't installed yet (about 35 MB),
-  appimagetool and the AppImage runtime (pinned versions, checked by SHA-256) and, for
-  the license texts of uv's Python, that Python's full build (about 130 MB). The tools
-  and texts stay in `build/appimage/tools/`.
-- Everything in the AppImage comes with its license: the texts and an index,
-  `THIRD-PARTY-NOTICES.txt`, are in its `usr/share/licenses/`. The build stops if it
-  can't find the license of a bundled file (`--allow-missing-licenses` builds anyway).
-
-### Building for Windows
+### Building
 
 ```bash
-uv run windows/build.py
+uv run appimage/build.py   # dist/VirtualPet-<version>-x86_64.AppImage
+uv run windows/build.py    # dist/VirtualPet-<version>-windows-x64.zip
 ```
 
-This writes `dist/VirtualPet-<version>-windows-x64.zip` on this Linux machine, with Wine
-(the `wine` package on Debian and Ubuntu, or WineHQ's; tested with Wine 11), and names
-the version as the AppImage build does.
-PyInstaller can't build for another system, so it runs on Windows' own Python under
-Wine, in a Wine prefix of the build's own (`build/windows/wine`; `~/.wine` is never
-touched, and nothing shows up on the desktop or in its menus):
+Both run their own process tests on the result (`--skip-tests` skips them), and bundle
+every dependency with its license text and a `THIRD-PARTY-NOTICES.txt`; the build stops if
+it can't find the license of a bundled file.
 
-- The build downloads Windows' Python (python-build-standalone, pinned in
-  `windows/build.py`, about 50 MB, and its full build, as much again, for the license texts),
-  and uv installs the Windows wheels of `uv.lock`'s packages for it. They stay in
-  `build/windows/`.
-- PyInstaller bundles the pet with that Python and Qt, in a folder whose `licenses/`
-  holds the license texts and `THIRD-PARTY-NOTICES.txt`. As for the AppImage, the build
-  stops if it can't find the license of a bundled file.
-- The bundle then starts under Wine, in Portuguese: it must load its translations and
-  answer a second start (`--skip-tests` skips this).
-
-Qt asks Windows for its ICU library (`icuuc.dll`, part of Windows since 10 version 1903),
-which Wine lacks, so the build's Wine prefix gets a stub of it whose functions do nothing.
-Qt only uses them for text encodings the pet never needs, and the stub never goes into the
-bundle. Wine isn't Windows, though: the test shows that the bundle is complete, not how
-the pet behaves on a Windows desktop, which only trying it on Windows tells.
+- **AppImage.** It builds in its own environment (`build/appimage/venv`) with uv's own
+  Python, whatever Python the project's `.venv` uses. The AppImage needs glibc at least as
+  new as the build machine's (the build prints the version), so build on the oldest
+  distribution it should run on, for example in a [distrobox](https://distrobox.it/)
+  container. The build machine also needs the libraries that go into the bundle
+  (`libxcb-cursor0` and GTK 3 on Debian/Ubuntu); the build names any that are missing. The
+  first build downloads uv's Python, appimagetool and the AppImage runtime, and the license
+  texts of that Python's full build (about 130 MB), into `build/appimage/tools/`.
+- **Windows.** PyInstaller can't build for another system, so the Windows zip is built on
+  Linux with Wine (tested with Wine 11), running Windows' Python in a prefix of the build's
+  own (`build/windows/wine`; `~/.wine` is never touched). Qt asks Windows for its ICU
+  library, which Wine lacks, so the prefix gets a stub of it that never goes into the
+  bundle. Wine isn't Windows, though: the test shows that the bundle is complete, not how
+  the pet behaves on a Windows desktop, which only trying it on Windows tells.
 
 ### Releasing
 
@@ -290,28 +201,23 @@ git push --follow-tags
 The pushed tag starts the Release workflow (`.github/workflows/release.yml`): it runs the
 checks and the tests, builds the AppImage (on Ubuntu 22.04, so it needs glibc 2.35) and the
 Windows zip (under Wine), and attaches both to a draft release on GitHub, which is then
-reviewed and published by hand. The same builds also run locally:
-
-```bash
-uv run appimage/build.py       # dist/VirtualPet-0.5.0-x86_64.AppImage
-uv run windows/build.py        # dist/VirtualPet-0.5.0-windows-x64.zip
-```
+reviewed and published by hand.
 
 The build asks git which commit it is building, so it runs in a clone of the repository.
-Only a clean checkout of the release's tag makes `VirtualPet-<version>-x86_64.AppImage`.
-Any other commit adds itself to the name (`VirtualPet-0.5.0+g1a2b3c4-x86_64.AppImage`),
-followed by `.dirty` when files git tracks have uncommitted changes, and a release tag
-that isn't the version in `pyproject.toml` stops the build. The version also goes into
-the AppImage's menu entry (`X-AppImage-Version`), which AppImage managers show.
+Only a clean checkout of the release's tag makes `VirtualPet-<version>-x86_64.AppImage`;
+any other commit adds itself to the name (`VirtualPet-0.5.0+g1a2b3c4-x86_64.AppImage`),
+followed by `.dirty` when files git tracks have uncommitted changes, and a release tag that
+isn't the version in `pyproject.toml` stops the build.
 
 ### Agent skills
 
-`.claude/skills/` holds the project-scoped agent skills, pinned in `skills-lock.json`.
-They are unmodified third-party copies, each with its license in its folder:
+`.claude/skills/` holds the project-scoped agent skills. `draw-pet` is the project's own.
+The others are unmodified third-party copies pinned in `skills-lock.json`, each with its
+license in its folder:
 
-- `modern-python` ([Trail of Bits](https://github.com/trailofbits/skills), CC BY-SA 4.0): uv, ruff, ty and pytest setup.
-- `qt-ui-design` ([The Qt Company](https://github.com/TheQtCompanyRnD/agent-skills), BSD-3-Clause): UI design and audit guidance.
-- `tdd` ([Matt Pocock](https://github.com/mattpocock/skills), MIT): test-first red → green loop.
+- `modern-python` ([Trail of Bits](https://github.com/trailofbits/skills), CC BY-SA 4.0)
+- `qt-ui-design` ([The Qt Company](https://github.com/TheQtCompanyRnD/agent-skills), BSD-3-Clause)
+- `tdd` ([Matt Pocock](https://github.com/mattpocock/skills), MIT)
 
 ## License
 
