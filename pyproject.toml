@@ -55,6 +55,13 @@ ignore = [
     "S311",    # seeded pseudo-random generators make tests deterministic
     "S603",    # tests start the app they test, from source or a built one
 ]
+".claude/skills/*/scripts/*.py" = [
+    "INP001",  # a skill's folder of scripts, not a package
+    "S311",    # seeded pseudo-random strolls for a preview, not security
+    "S603",    # it runs ffmpeg to assemble GIFs
+    "S607",    # found on PATH
+    "T201",    # a command-line script reports what it wrote by printing
+]
 "{appimage,windows}/*.py" = [
     "INP001",  # folders of build scripts, not packages
     "S603",    # running the build tools is what the build script is for
