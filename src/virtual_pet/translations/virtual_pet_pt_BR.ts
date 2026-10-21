@@ -259,6 +259,10 @@ Escolha seu pet e dê um nome a ele.</translation>
         <source>Nautilus</source>
         <translation>Náutilo</translation>
     </message>
+    <message>
+        <source>Pigeon</source>
+        <translation>Pombo</translation>
+    </message>
 </context>
 <context>
     <name>UpdateMessage</name>

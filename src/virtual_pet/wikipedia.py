@@ -42,6 +42,7 @@ TITLES = {
         "octopus": "Blue-ringed octopus",
         "owl": "Tropical screech owl",
         "nautilus": "Nautilus pompilius",
+        "pigeon": "Rock dove",
     },
     "pt": {
         "dog": "Cão",
@@ -62,6 +63,7 @@ TITLES = {
         "octopus": "Polvo-de-anéis-azuis",
         "owl": "Megascops choliba",
         "nautilus": "Nautilus pompilius",
+        "pigeon": "Columba livia",
     },
 }
 

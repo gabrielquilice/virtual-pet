@@ -22,6 +22,7 @@ from virtual_pet.pets import (
     OWL,
     PARAKEET,
     PENGUIN,
+    PIGEON,
     RABBIT,
     SNAIL,
     SNAKE,
@@ -84,6 +85,7 @@ def test_the_pets_to_choose_from_and_their_names():
         ("octopus", "Octopus"),
         ("owl", "Owl"),
         ("nautilus", "Nautilus"),
+        ("pigeon", "Pigeon"),
     ]
 
 
@@ -107,6 +109,7 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         "octopus",
         "owl",
         "nautilus",
+        "pigeon",
     ]
 
     assert [species_by_key(key) for key in keys] == [
@@ -128,6 +131,7 @@ def test_pets_are_found_by_the_key_saved_in_the_settings():
         OCTOPUS,
         OWL,
         NAUTILUS,
+        PIGEON,
     ]
 
 
@@ -155,6 +159,7 @@ def test_each_pet_roams_its_own_way():
         "Crawl",
         "Fly",
         "Swim",
+        "Walk",
     ]
 
 
@@ -216,6 +221,47 @@ def test_a_chicken_stops_to_scratch_the_ground_and_peck_at_it():
     assert len(toes) > 1  # its feet move: it scratches
     assert max(eyes) >= GROUND_LINE - 5  # its head comes down to the ground: it pecks
     assert CHICKEN.gait.rest[0] > first_peck / standing.fps  # before it walks off
+
+
+def test_a_pigeon_bobs_its_head_as_it_walks():
+    walk = PIGEON.animations[Activity.WALKING]
+    stride = (*walk.frames, walk.frames[0])  # and on into the next one
+    # The window moves one art pixel a frame, so the head can hold still on the ground...
+    assert PIGEON.gait.speed / sprites.PIXEL_SIZE / walk.fps == 1
+    on_the_ground = [find(frame, sprites.EYE)[0] + step for step, frame in enumerate(stride)]
+    moves = [after - before for before, after in itertools.pairwise(on_the_ground)]
+
+    assert moves == [0, 0, 2, 2, 0, 0, 2, 2]  # ...then thrust it ahead, once a step
+
+
+def test_a_walking_pigeon_keeps_each_foot_still_on_the_ground_until_it_lifts_it():
+    walk = PIGEON.animations[Activity.WALKING]
+    for leg in ("R", "O"):  # the near and the far one
+        down = {
+            # where its toes are on the ground (the near foot can hide the far one's back toe)
+            step: frame[GROUND_LINE - 1].rindex(leg) + step
+            for step, frame in enumerate(walk.frames * 2)
+            if leg in frame[GROUND_LINE - 1]
+        }
+
+        assert all(down[step] == down[step + 1] for step in down if step + 1 in down)
+        assert len(down) == 2 * 5  # down for five frames a stride, swinging for three
+
+
+def test_a_pigeon_stops_to_peck_at_the_ground_and_its_eye_turns_with_its_head():
+    standing = PIGEON.animations[Activity.STANDING]
+    beak_tips = [max(y for y, row in enumerate(frame) if "A" in row) for frame in standing.frames]
+    first_peck = beak_tips.index(GROUND_LINE - 1)  # the beak on the ground line
+    pecking = standing.frames[first_peck]
+
+    def pupil(frame: sprites.Frame) -> tuple[int, int]:
+        """Where the pupil is from the iris pixel next to it."""
+        x, y = find(frame, sprites.EYE_SHINE)
+        return next((dx, dy) for dx, dy in ((1, 0), (0, 1)) if frame[y + dy][x + dx] == "N")
+
+    assert PIGEON.gait.rest[0] > first_peck / standing.fps  # before it walks off
+    assert pupil(PIGEON.portrait) == (1, 0)  # looking ahead...
+    assert pupil(pecking) == (0, 1)  # ...and, with its beak pointing down, at the ground
 
 
 def owl_pupils(frame: sprites.Frame) -> int:
@@ -320,7 +366,8 @@ def test_each_pet_is_drawn_in_its_own_colors():
     ]
 
     # tan, gray, green, sage, blue, ginger, white, emerald, warm white, yellow, red-orange,
-    # grayish beige, leaf green, chameleon green, golden brown, golden yellow, buff, shell white
+    # grayish beige, leaf green, chameleon green, golden brown, golden yellow, buff, shell white,
+    # slate
     assert body_colors == [
         "#dc9a57",
         "#a3a8b0",
@@ -340,6 +387,7 @@ def test_each_pet_is_drawn_in_its_own_colors():
         "#c79b31",
         "#d8c09a",
         "#f2e9d6",
+        "#717c90",
     ]
 
 

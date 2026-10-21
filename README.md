@@ -48,6 +48,7 @@ principle, seems absurd: do not change anything by yourself. Let the machines wo
 | <img src="docs/pets/octopus.png" width="96" height="81" alt="The octopus"> | Octopus (a blue-ringed octopus) | Crawls on its arms, its blue rings fading away | Rests low on the ground, its arms curled around it, its blue rings back |
 | <img src="docs/pets/owl.png" width="96" height="81" alt="The owl"> | Owl (a tropical screech owl) | Flies, and turns its head to look at you whenever it stops | Rests upright as owls roost, eyes half closed |
 | <img src="docs/pets/nautilus.png" width="96" height="81" alt="The nautilus"> | Nautilus (a chambered nautilus) | Swims in jets, mostly shell first, and hovers between swims | Rests on the bottom with its hood let down |
+| <img src="docs/pets/pigeon.png" width="96" height="81" alt="The pigeon"> | Pigeon (a rock pigeon) | Walks bobbing its head, and pecks at the ground whenever it stops | Settles down on its belly |
 
 ## How to play
 
