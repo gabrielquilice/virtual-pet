@@ -3,8 +3,8 @@
 from functools import partial
 from typing import NamedTuple, override
 
-from PySide6.QtCore import QCoreApplication, QSize, Qt, QUrl, Signal
-from PySide6.QtGui import QDesktopServices, QIcon, QMouseEvent, QPixmap
+from PySide6.QtCore import QCoreApplication, QSize, Qt, Signal
+from PySide6.QtGui import QIcon, QMouseEvent, QPixmap
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -30,6 +30,7 @@ from virtual_pet.article_card import ArticleCard
 from virtual_pet.behavior import DEFAULT_THROW_STRENGTH, THROW_STRENGTH_RANGE
 from virtual_pet.config import MAX_NAME_LENGTH, normalize_name
 from virtual_pet.i18n import LANGUAGES, current_language
+from virtual_pet.links import open_link
 from virtual_pet.pets import ALL_SPECIES, DOG
 from virtual_pet.species import Species
 from virtual_pet.sprites import FRAME_HEIGHT, FRAME_WIDTH
@@ -291,9 +292,7 @@ def update_message_box(result: UpdateCheck, parent: QWidget | None = None) -> QM
                 QMessageBox.ButtonRole.AcceptRole,
             )
             box.addButton(QMessageBox.StandardButton.Close)
-            box.buttonClicked.connect(
-                lambda button: QDesktopServices.openUrl(QUrl(url)) if button is get_it else None
-            )
+            box.buttonClicked.connect(lambda button: open_link(url) if button is get_it else None)
         case UpToDate():
             box.setIcon(QMessageBox.Icon.Information)
             box.setText(QCoreApplication.translate("UpdateMessage", "You have the latest version."))

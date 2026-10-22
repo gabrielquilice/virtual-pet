@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QToolButton,
 )
 
-from virtual_pet import dialogs, i18n
+from virtual_pet import dialogs, i18n, links
 from virtual_pet.article_card import ArticleCard
 from virtual_pet.dialogs import PetChoice, PetDialog, Preferences, SettingsDialog
 from virtual_pet.pets import CAT, PARAKEET
@@ -287,7 +287,7 @@ def test_an_available_update_offers_a_button_that_opens_it(settings, monkeypatch
     )
     opened = []
     monkeypatch.setattr(
-        dialogs.QDesktopServices, "openUrl", lambda url: opened.append(url.toString())
+        links.QDesktopServices, "openUrl", lambda url: opened.append(url.toString())
     )
 
     update_button(settings).click()
@@ -509,7 +509,7 @@ def test_a_long_article_is_not_cut_off(dialog, qtbot, monkeypatch):
 def test_following_the_link_opens_the_article_and_closes_the_card(dialog, qtbot, monkeypatch):
     opened = []
     monkeypatch.setattr(
-        "virtual_pet.article_card.QDesktopServices.openUrl",
+        "virtual_pet.links.QDesktopServices.openUrl",
         lambda url: opened.append(url.toString()),
     )
     dialog.show()

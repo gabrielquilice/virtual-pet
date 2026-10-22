@@ -3,10 +3,11 @@
 import html
 from typing import override
 
-from PySide6.QtCore import QCoreApplication, QPoint, QRect, QSize, Qt, QUrl
-from PySide6.QtGui import QDesktopServices, QGuiApplication, QKeyEvent, QPixmap
+from PySide6.QtCore import QCoreApplication, QPoint, QRect, QSize, Qt
+from PySide6.QtGui import QGuiApplication, QKeyEvent, QPixmap
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
+from virtual_pet.links import open_link
 from virtual_pet.wikipedia import Article, ArticleLoader, article_url
 
 CARD_WIDTH = 380
@@ -87,7 +88,7 @@ class ArticleCard(QFrame):
 
     def _open_article(self, url: str) -> None:
         """Open the article in the browser; the card has done its job."""
-        QDesktopServices.openUrl(QUrl(url))
+        open_link(url)
         self.close()
 
     def _article_arrived(self, species_key: str, article: object) -> None:
